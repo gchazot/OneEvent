@@ -63,7 +63,9 @@
                 <span class="glyphicon glyphicon-log-in"></span></button>
                 {% endif %}
 
-                <span class="navbar-text navbar-right">{{user.get_full_name}}</span>
+                {% if user.is_authenticated %}
+                <span class="navbar-text navbar-right"> {{user.get_full_name}}</span>
+                {% endif %}
 
             </div>
         </div>

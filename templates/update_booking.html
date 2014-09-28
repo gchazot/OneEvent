@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block heading_action %}Register{% endblock %}
+{% block heading_title %}{{ booking.event }}{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <h2>Your choices:</h2>
+    <form action="{% url 'update_booking' booking_id=booking.id %}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Confirm" class="btn btn-success" />
+    <a href="{% url 'my_events' %}" class="btn btn-warning">Cancel</a>
+    </form>
+</div>
+
+{% endblock %}

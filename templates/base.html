@@ -1,0 +1,91 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html lang="en" ng-app="oneEvent" class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html lang="en" ng-app="oneEvent" class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html lang="en" ng-app="oneEvent" class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en" ng-app="oneEvent" class="no-js"> <!--<![endif]-->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>OneEvent - All ASL events !</title>
+
+    <link href="{% static "bootstrap/css/bootstrap.min.css" %}" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static "OneEvent/OneEvent.css" %}" />
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+    <!--[if lt IE 7]>
+      <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+    <form method="post" id="login_form"
+        {% if user.is_authenticated %}
+            action="{% url 'django.contrib.auth.views.logout' %}">
+        {% else %}
+            action="{% url 'django.contrib.auth.views.login' %}">
+        {% endif %}
+        <input type="hidden" name="next" value="{% url 'index' %}" />
+        {% csrf_token %}
+    </form>
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+
+                <button type="button" class="btn navbar-btn"
+                    data-toggle="tooltip" data-placement="top" title="Home"
+                    onclick="location.href='{% url 'index' %}'">
+                <span class="glyphicon glyphicon-home"></span></button>
+
+                {% if user.is_staff %}
+                <button type="button" class="btn navbar-btn"
+                    data-toggle="tooltip" data-placement="top" title="Admin"
+                    onclick="location.href='{% url 'admin:index' %}'">
+                <span class="glyphicon glyphicon-cog"></span></button>
+                {% endif %}
+
+                {% if user.is_authenticated %}
+                <button type="button" class="btn navbar-btn"
+                    data-toggle="tooltip" data-placement="top" title="Logout"
+                    onclick="document.getElementById('login_form').submit(); return false;">
+                <span class="glyphicon glyphicon-log-out"></span></button>
+                {% else %}
+                <button type="button" class="btn navbar-btn"
+                    data-toggle="tooltip" data-placement="top" title="Login"
+                    onclick="document.getElementById('login_form').submit(); return false;">
+                <span class="glyphicon glyphicon-log-in"></span></button>
+                {% endif %}
+
+                <span class="navbar-text navbar-right">{{user.get_full_name}}</span>
+
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <div id="main_row" class="row">
+            <div class="container-fluid">
+            {% block page_heading %}
+                <div class="row text-center"><h1>
+                    <span class="label label-primary">{% block heading_action %}{% endblock %}</span>
+                    {% block heading_title %}{% endblock %}
+                </h1></div>
+            {% endblock %}
+
+            {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<!--     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script> -->
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+<!--     <script src="bootstrap/js/bootstrap.min.js"></script> -->
+</body>
+</html>

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row text-center">
+    <form action="{% block post_url %}{% endblock %}" method="post">
+    {% csrf_token %}
+    <input type="submit" value="Confirm" />
+    </form>
+</div>
+{% endblock %}

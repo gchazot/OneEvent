@@ -1,0 +1,88 @@
+{% extends 'base.html' %}'
+
+{% block heading_action %}Manage{% endblock %}
+{% block heading_title %}{{ event }}{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <span class="page-header"><h1>Event options</h1></span>
+    <form action="{% url 'manage_event' event_id=event.id %}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Save Changes" />
+    </form>
+</div>
+
+<div class="row"><div class="table-responsive">
+    <span class="page-header"><h1>Choices summary</h1></span>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Choice</th>
+                <th colspan="0">Options</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for choice, options in event.get_options_counts.items %}
+            <tr>
+                <td>{{ choice.title }}</td>
+                {% for option, total in options.items %}
+                <td>
+                    {{ option.title }}
+                    <span class="badge pull-right">{{ total }}</span>
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div></div>
+
+<div class="row table-responsive">
+    <span class="page-header"><h1>Participants</h1></span>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th rowspan=2>Name</th>
+                <th rowspan=2>Payment Status</th>
+                <th colspan=0>Choices</th>
+            </tr>
+            <tr>
+                {% for choice in event.choices.all %}
+                <th>{{ choice.title }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in event.bookings.all %}
+            <tr class="{{ booking.get_payment_status_class }}">
+                <td>{{ booking.person.get_full_name }}</td>
+                <td>
+                   {% if booking.cancelled %}
+                       <span class='btn btn-warning disabled'>Cancelled</span>
+                       {% if booking.paidTo %}
+                           <span class='btn btn-danger disabled'>Payment received !</span>
+                           by {{ booking.paidTo }} on {{ booking.datePaid }}
+                           <a href="{% url 'cancel_payment' booking_id=booking.id %}"
+                           class='btn btn-danger'>Refund</a>
+                       {% endif %}
+                   {% elif booking.paidTo %}
+                       Paid to {{ booking.paidTo }} on {{ booking.datePaid }}
+                   {% elif booking.mustPay %}
+                       <a href="{% url 'confirm_payment' booking_id=booking.id %}"
+                           class='btn btn-success'>Confirm Payment</a>
+                   {% else %}
+                       <span class='btn btn-success disabled'>No payment needed</span>
+                   {% endif %}
+                {% for option in booking.options.all %}
+                <td>
+                    {{ option.option.title }}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

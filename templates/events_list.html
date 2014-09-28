@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block heading_action %}OneEvent!{% endblock %}
+{% block heading_title %}All ASL events{% endblock %}
+
+
+{% block content %}
+
+<div class="row">
+    <ul class="nav nav-tabs" id="menu">
+        <li{% if events_shown == 'mine' %} class="active"{%endif%}><a href="{% url 'my_events' %}">My events</a></li>
+        <li{% if events_shown == 'fut' %} class="active"{%endif%}><a href="{% url 'future_events' %}">Coming up</a></li>
+        <li{% if events_shown == 'past' %} class="active"{%endif%}><a href="{% url 'past_events' %}">Past events</a></li>
+        <li{% if events_shown == 'all' %} class="active"{%endif%}><a href="{% url 'all_events' %}">All events</a></li>
+    </ul>
+</div>
+<div class="row"><div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Event</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Organised by</th>
+                {% if user.is_authenticated %}
+                <th></th>
+                {%endif%}
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in events %}
+            <tr>
+                <td>{{ event.title }}</td>
+                <td>{{ event.start|date }}</td>
+                <td>{{ event.end|date }}</td>
+                <td>{% for orga in event.organisers.all %}<p>{{orga.get_full_name}}</p>{%endfor%}</td>
+                {% if user.is_authenticated %}
+                <td>
+                {% if user.id in event.get_participants_ids %}
+                    {% for booking in event.bookings.all %}
+	                {% if booking.person == user %}
+	                <a href="{% url 'update_booking' booking_id=booking.id %}" class="btn btn-success">Update</a>
+	                <a href="{% url 'cancel_booking' booking_id=booking.id %}" class="btn btn-danger">Unregister</a>
+	                {% endif %}
+	                {% endfor %}
+                {% else %}
+                   <a href="{% url 'create_booking' event_id=event.id %}" class="btn btn-info">Register!</a>
+                {% endif %}
+                {% if user in event.organisers.all %}
+                    <a href="{% url 'manage_event' event_id=event.id %}" class="btn btn-default">Manage</a>
+                {% endif %}
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div></div>
+
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends "base_confirmation.html" %}
+
+{% block heading_action %}Unregister{% endblock %}
+{% block heading_title %}{{ booking.event }}{% endblock %}
+
+{% block post_url %}{% url 'cancel_booking' booking_id=booking.id %}{% endblock %}

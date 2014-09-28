@@ -1,0 +1,148 @@
+'''
+Created on 22 Jun 2014
+
+@author: germs
+'''
+from django.shortcuts import render, redirect, get_object_or_404, render_to_response
+from django.contrib.auth.decorators import login_required
+from django.db.models.query_utils import Q
+
+from datetime import datetime, date
+
+from OneEvent.models import Event, ParticipantBooking
+from OneEvent.forms import BookingForm, EventForm
+from django.template.context import RequestContext
+
+
+def index(request):
+    if request.user.is_authenticated():
+        return redirect('my_events')
+    else:
+        return redirect('all_events')
+
+
+def events_list(request, events, context={}):
+    context['events'] = events
+
+    if request.user.is_authenticated():
+        user_events = events.filter(bookings__person=request.user,
+                                    bookings__cancelled=False)
+        context['user_events'] = user_events
+
+    return render(request, 'events_list.html', context)
+
+
+def future_events(request):
+    context = {'events_shown': 'fut'}
+    events = Event.objects.filter(end__gte=datetime.now())
+    return events_list(request, events, context)
+
+
+def past_events(request):
+    context = {'events_shown': 'past'}
+    now = datetime.now()
+    query = Q(end__lte=now) | Q(end=None, start__lte=now)
+    events = Event.objects.filter(query)
+    return events_list(request, events, context)
+
+
+def all_events(request):
+    context = {'events_shown': 'all'}
+    return events_list(request, Event.objects.all(), context)
+
+
+@login_required
+def my_events(request):
+    context = {'events_shown': 'mine'}
+    query = Q(bookings__person=request.user, bookings__cancelled=False)
+    query = query | Q(organisers=request.user)
+    events = Event.objects.filter(query).distinct()
+    return events_list(request, events, context)
+
+
+@login_required
+def create_booking(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    user = request.user
+
+    booking, _ = ParticipantBooking.objects.get_or_create(event=event,
+                                                          person=user)
+    return redirect('update_booking', booking_id=booking.id)
+
+
+@login_required
+def update_booking(request, booking_id):
+    booking = get_object_or_404(ParticipantBooking, id=booking_id)
+
+    if not booking.user_can_update(request.user):
+        return redirect('my_events')
+
+    form = BookingForm(booking, request.POST or None)
+    if form.is_valid():
+        form.save()
+        booking.cancelled = False
+        booking.save()
+        return redirect('my_events')
+
+    return render_to_response('update_booking.html',
+                              {'booking': booking,
+                               'form': form},
+                              context_instance=RequestContext(request))
+
+
+@login_required
+def cancel_booking(request, booking_id):
+    booking = get_object_or_404(ParticipantBooking, id=booking_id)
+
+    if not booking.user_can_update(request.user):
+        return redirect('my_events')
+
+    if request.method == 'POST':
+        booking.cancelled = True
+        booking.save()
+        return redirect('my_events')
+    else:
+        return render_to_response('cancel_booking.html',
+                                  {'booking': booking},
+                                  context_instance=RequestContext(request))
+
+
+@login_required
+def manage_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    if not event.user_can_update(request.user):
+        return redirect('my_events')
+
+    form = EventForm(request.POST or None, instance=event)
+    if form.is_valid():
+        form.save()
+        if request.user in event.organisers.all():
+            return redirect('manage_event', event_id=event_id)
+        else:
+            return redirect('my_events')
+    return render_to_response('manage_event.html',
+                              {'event': event, 'form': form},
+                              context_instance=RequestContext(request))
+
+
+@login_required
+def confirm_payment(request, booking_id, cancel=False):
+    booking = get_object_or_404(ParticipantBooking, id=booking_id)
+
+    if not booking.user_can_update_payment(request.user):
+        return redirect('my_events')
+
+    if request.method == 'POST':
+        if not cancel:
+            booking.paidTo = request.user
+            booking.datePaid = date.today()
+        else:
+            booking.paidTo = None
+            booking.datePaid = None
+        booking.save()
+        return redirect('manage_event', event_id=booking.event.id)
+    else:
+        return render_to_response('confirm_payment.html',
+                                  {'booking': booking, 'cancel': cancel},
+                                  context_instance=RequestContext(request))

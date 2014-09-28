@@ -1,0 +1,15 @@
+{% extends "base_confirmation.html" %}
+
+{% block heading_action %}
+    {% if cancel %}Refund{% else %}Confirm Payment{% endif %}
+{% endblock %}
+{% block heading_title %}{{ booking.person.get_full_name }}
+<small>for</small> {{ booking.event.title }}{% endblock %}
+
+{% block post_url %}
+    {% if cancel %}
+        {% url 'cancel_payment' booking_id=booking.id %}
+    {% else %}
+        {% url 'confirm_payment' booking_id=booking.id %}
+    {% endif %}
+{% endblock %}

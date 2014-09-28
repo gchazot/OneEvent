@@ -1,0 +1,632 @@
+[
+{
+  "pk": 1, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "add_logentry", 
+    "name": "Can add log entry", 
+    "content_type": 1
+  }
+},
+{
+  "pk": 2, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "change_logentry", 
+    "name": "Can change log entry", 
+    "content_type": 1
+  }
+},
+{
+  "pk": 3, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "delete_logentry", 
+    "name": "Can delete log entry", 
+    "content_type": 1
+  }
+},
+{
+  "pk": 4, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "add_permission", 
+    "name": "Can add permission", 
+    "content_type": 2
+  }
+},
+{
+  "pk": 5, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "change_permission", 
+    "name": "Can change permission", 
+    "content_type": 2
+  }
+},
+{
+  "pk": 6, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "delete_permission", 
+    "name": "Can delete permission", 
+    "content_type": 2
+  }
+},
+{
+  "pk": 7, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "add_group", 
+    "name": "Can add group", 
+    "content_type": 3
+  }
+},
+{
+  "pk": 8, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "change_group", 
+    "name": "Can change group", 
+    "content_type": 3
+  }
+},
+{
+  "pk": 9, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "delete_group", 
+    "name": "Can delete group", 
+    "content_type": 3
+  }
+},
+{
+  "pk": 10, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "add_user", 
+    "name": "Can add user", 
+    "content_type": 4
+  }
+},
+{
+  "pk": 11, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "change_user", 
+    "name": "Can change user", 
+    "content_type": 4
+  }
+},
+{
+  "pk": 12, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "delete_user", 
+    "name": "Can delete user", 
+    "content_type": 4
+  }
+},
+{
+  "pk": 13, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "add_contenttype", 
+    "name": "Can add content type", 
+    "content_type": 5
+  }
+},
+{
+  "pk": 14, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "change_contenttype", 
+    "name": "Can change content type", 
+    "content_type": 5
+  }
+},
+{
+  "pk": 15, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "delete_contenttype", 
+    "name": "Can delete content type", 
+    "content_type": 5
+  }
+},
+{
+  "pk": 16, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "add_session", 
+    "name": "Can add session", 
+    "content_type": 6
+  }
+},
+{
+  "pk": 17, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "change_session", 
+    "name": "Can change session", 
+    "content_type": 6
+  }
+},
+{
+  "pk": 18, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "delete_session", 
+    "name": "Can delete session", 
+    "content_type": 6
+  }
+},
+{
+  "pk": 19, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "add_migrationhistory", 
+    "name": "Can add migration history", 
+    "content_type": 7
+  }
+},
+{
+  "pk": 20, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "change_migrationhistory", 
+    "name": "Can change migration history", 
+    "content_type": 7
+  }
+},
+{
+  "pk": 21, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "delete_migrationhistory", 
+    "name": "Can delete migration history", 
+    "content_type": 7
+  }
+},
+{
+  "pk": 22, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "add_event", 
+    "name": "Can add event", 
+    "content_type": 8
+  }
+},
+{
+  "pk": 23, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "change_event", 
+    "name": "Can change event", 
+    "content_type": 8
+  }
+},
+{
+  "pk": 24, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "delete_event", 
+    "name": "Can delete event", 
+    "content_type": 8
+  }
+},
+{
+  "pk": 25, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "add_eventchoice", 
+    "name": "Can add event choice", 
+    "content_type": 9
+  }
+},
+{
+  "pk": 26, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "change_eventchoice", 
+    "name": "Can change event choice", 
+    "content_type": 9
+  }
+},
+{
+  "pk": 27, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "delete_eventchoice", 
+    "name": "Can delete event choice", 
+    "content_type": 9
+  }
+},
+{
+  "pk": 28, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "add_eventchoiceoption", 
+    "name": "Can add event choice option", 
+    "content_type": 10
+  }
+},
+{
+  "pk": 29, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "change_eventchoiceoption", 
+    "name": "Can change event choice option", 
+    "content_type": 10
+  }
+},
+{
+  "pk": 30, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "delete_eventchoiceoption", 
+    "name": "Can delete event choice option", 
+    "content_type": 10
+  }
+},
+{
+  "pk": 31, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "add_participantbooking", 
+    "name": "Can add participant booking", 
+    "content_type": 11
+  }
+},
+{
+  "pk": 32, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "change_participantbooking", 
+    "name": "Can change participant booking", 
+    "content_type": 11
+  }
+},
+{
+  "pk": 33, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "delete_participantbooking", 
+    "name": "Can delete participant booking", 
+    "content_type": 11
+  }
+},
+{
+  "pk": 34, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "add_participantoption", 
+    "name": "Can add participant choice", 
+    "content_type": 12
+  }
+},
+{
+  "pk": 35, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "change_participantoption", 
+    "name": "Can change participant choice", 
+    "content_type": 12
+  }
+},
+{
+  "pk": 36, 
+  "model": "auth.permission", 
+  "fields": {
+    "codename": "delete_participantoption", 
+    "name": "Can delete participant choice", 
+    "content_type": 12
+  }
+},
+{
+  "pk": 1, 
+  "model": "auth.user", 
+  "fields": {
+    "username": "root", 
+    "first_name": "Big", 
+    "last_name": "Boss", 
+    "is_active": true, 
+    "is_superuser": true, 
+    "is_staff": true, 
+    "last_login": "2014-09-23T23:34:13.682Z", 
+    "groups": [], 
+    "user_permissions": [], 
+    "password": "pbkdf2_sha256$12000$UroBYCL1yhVU$ZGEKl46aRLWC9hvnJJh+0JE5CiEfgucscU24dFR9xWY=", 
+    "email": "", 
+    "date_joined": "2014-06-05T22:00:34Z"
+  }
+},
+{
+  "pk": 2, 
+  "model": "auth.user", 
+  "fields": {
+    "username": "germs", 
+    "first_name": "Germain", 
+    "last_name": "Chazot", 
+    "is_active": true, 
+    "is_superuser": false, 
+    "is_staff": true, 
+    "last_login": "2014-09-23T23:26:28.376Z", 
+    "groups": [], 
+    "user_permissions": [], 
+    "password": "pbkdf2_sha256$12000$WdJPnXNuce9E$4jSVogd7lAH8pE+C5CuJN4Xe9NJGOqcqMxzFSGXQNbY=", 
+    "email": "g.chazot@gmail.com", 
+    "date_joined": "2014-06-05T22:01:43Z"
+  }
+},
+{
+  "pk": 1, 
+  "model": "OneEvent.event", 
+  "fields": {
+    "start": "2014-06-05T20:00:00Z", 
+    "organisers": [
+      1
+    ], 
+    "end": "2014-06-05T23:10:00Z", 
+    "title": "Christmas Party"
+  }
+},
+{
+  "pk": 2, 
+  "model": "OneEvent.event", 
+  "fields": {
+    "start": "2014-06-05T21:41:44Z", 
+    "organisers": [
+      2
+    ], 
+    "end": "2014-06-05T21:41:45Z", 
+    "title": "Pub Friday"
+  }
+},
+{
+  "pk": 3, 
+  "model": "OneEvent.event", 
+  "fields": {
+    "start": "2014-06-07T00:00:00Z", 
+    "organisers": [
+      2
+    ], 
+    "end": null, 
+    "title": "Shit day"
+  }
+},
+{
+  "pk": 4, 
+  "model": "OneEvent.event", 
+  "fields": {
+    "start": "2014-09-30T00:00:00Z", 
+    "organisers": [], 
+    "end": "2014-09-30T12:00:00Z", 
+    "title": "Good Day"
+  }
+},
+{
+  "pk": 1, 
+  "model": "OneEvent.eventchoice", 
+  "fields": {
+    "description": "", 
+    "event": 1, 
+    "title": "Entree"
+  }
+},
+{
+  "pk": 2, 
+  "model": "OneEvent.eventchoice", 
+  "fields": {
+    "description": "", 
+    "event": 1, 
+    "title": "Plat"
+  }
+},
+{
+  "pk": 3, 
+  "model": "OneEvent.eventchoice", 
+  "fields": {
+    "description": "", 
+    "event": 1, 
+    "title": "Dessert"
+  }
+},
+{
+  "pk": 4, 
+  "model": "OneEvent.eventchoice", 
+  "fields": {
+    "description": "It will be enough anyway", 
+    "event": 2, 
+    "title": "Plat"
+  }
+},
+{
+  "pk": 5, 
+  "model": "OneEvent.eventchoice", 
+  "fields": {
+    "description": "That's just the first round", 
+    "event": 2, 
+    "title": "Binouze"
+  }
+},
+{
+  "pk": 6, 
+  "model": "OneEvent.eventchoice", 
+  "fields": {
+    "description": "", 
+    "event": 2, 
+    "title": "Side"
+  }
+},
+{
+  "pk": 1, 
+  "model": "OneEvent.eventchoiceoption", 
+  "fields": {
+    "default": false, 
+    "title": "Salad beurk", 
+    "description": "", 
+    "choice": 1
+  }
+},
+{
+  "pk": 2, 
+  "model": "OneEvent.eventchoiceoption", 
+  "fields": {
+    "default": true, 
+    "title": "Pat\u00e9 bof", 
+    "description": "Petit pat\u00e9 de campagne", 
+    "choice": 1
+  }
+},
+{
+  "pk": 3, 
+  "model": "OneEvent.eventchoiceoption", 
+  "fields": {
+    "default": false, 
+    "title": "Steak trop cuit", 
+    "description": "", 
+    "choice": 2
+  }
+},
+{
+  "pk": 4, 
+  "model": "OneEvent.eventchoiceoption", 
+  "fields": {
+    "default": true, 
+    "title": "Steak pas assez cuit", 
+    "description": "J'espere que vous aimez la viande crue", 
+    "choice": 2
+  }
+},
+{
+  "pk": 5, 
+  "model": "OneEvent.eventchoiceoption", 
+  "fields": {
+    "default": false, 
+    "title": "Glace fondue", 
+    "description": "", 
+    "choice": 3
+  }
+},
+{
+  "pk": 6, 
+  "model": "OneEvent.eventchoiceoption", 
+  "fields": {
+    "default": true, 
+    "title": "Pudding", 
+    "description": "le classique", 
+    "choice": 3
+  }
+},
+{
+  "pk": 7, 
+  "model": "OneEvent.eventchoiceoption", 
+  "fields": {
+    "default": true, 
+    "title": "Burger", 
+    "description": "", 
+    "choice": 4
+  }
+},
+{
+  "pk": 1, 
+  "model": "OneEvent.participantbooking", 
+  "fields": {
+    "datePaid": null, 
+    "mustPay": false, 
+    "person": 2, 
+    "paidTo": null, 
+    "cancelled": false, 
+    "event": 1
+  }
+},
+{
+  "pk": 2, 
+  "model": "OneEvent.participantbooking", 
+  "fields": {
+    "datePaid": null, 
+    "mustPay": false, 
+    "person": 1, 
+    "paidTo": null, 
+    "cancelled": true, 
+    "event": 2
+  }
+},
+{
+  "pk": 3, 
+  "model": "OneEvent.participantbooking", 
+  "fields": {
+    "datePaid": null, 
+    "mustPay": false, 
+    "person": 2, 
+    "paidTo": null, 
+    "cancelled": true, 
+    "event": 3
+  }
+},
+{
+  "pk": 4, 
+  "model": "OneEvent.participantbooking", 
+  "fields": {
+    "datePaid": null, 
+    "mustPay": false, 
+    "person": 1, 
+    "paidTo": null, 
+    "cancelled": true, 
+    "event": 4
+  }
+},
+{
+  "pk": 5, 
+  "model": "OneEvent.participantbooking", 
+  "fields": {
+    "datePaid": null, 
+    "mustPay": false, 
+    "person": 1, 
+    "paidTo": null, 
+    "cancelled": false, 
+    "event": 1
+  }
+},
+{
+  "pk": 2, 
+  "model": "OneEvent.participantoption", 
+  "fields": {
+    "option": 2, 
+    "booking": 1
+  }
+},
+{
+  "pk": 3, 
+  "model": "OneEvent.participantoption", 
+  "fields": {
+    "option": 3, 
+    "booking": 1
+  }
+},
+{
+  "pk": 4, 
+  "model": "OneEvent.participantoption", 
+  "fields": {
+    "option": 2, 
+    "booking": 5
+  }
+},
+{
+  "pk": 5, 
+  "model": "OneEvent.participantoption", 
+  "fields": {
+    "option": 4, 
+    "booking": 5
+  }
+},
+{
+  "pk": 6, 
+  "model": "OneEvent.participantoption", 
+  "fields": {
+    "option": 6, 
+    "booking": 5
+  }
+}
+]

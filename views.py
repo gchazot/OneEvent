@@ -22,12 +22,15 @@ def index(request):
 
 
 def events_list(request, events, context={}):
-    context['events'] = events
-
-    if request.user.is_authenticated():
-        user_events = events.filter(bookings__person=request.user,
-                                    bookings__cancelled=False)
-        context['user_events'] = user_events
+    context['events'] = []
+    for evt in events:
+        event_info = {'event': evt, 'booking': None}
+        if request.user.is_authenticated():
+            try:
+                event_info['booking'] = evt.get_active_bookings().get(person=request.user)
+            except ParticipantBooking.DoesNotExist:
+                pass
+        context['events'].append(event_info)
 
     return render(request, 'events_list.html', context)
 
@@ -65,9 +68,12 @@ def create_booking(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     user = request.user
 
-    booking, _ = ParticipantBooking.objects.get_or_create(event=event,
-                                                          person=user)
-    return redirect('update_booking', booking_id=booking.id)
+    if event.is_booking_open():
+        booking, _ = ParticipantBooking.objects.get_or_create(event=event,
+                                                              person=user)
+        return redirect('update_booking', booking_id=booking.id)
+    else:
+        return redirect('my_events')
 
 
 @login_required

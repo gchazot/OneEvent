@@ -1,7 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from datetime import date
+from datetime import date, datetime
+from django.utils.timezone import utc
+
+
+def end_of_day(when):
+    '''
+    Returns the end of the day after of the given datetime object
+    '''
+    return when.replace(hour=23, minute=59, second=59)
 
 
 class Event(models.Model):
@@ -14,29 +22,73 @@ class Event(models.Model):
 
     organisers = models.ManyToManyField(User, blank=True)
 
+    booking_close = models.DateTimeField(blank=True, null=True, help_text='(UTC !)')
+    choices_close = models.DateTimeField(blank=True, null=True, help_text='(UTC !)')
+
     def __unicode__(self):
         result = u'{0} - {1:%x %H:%M}'.format(self.title, self.start)
         if self.end is not None:
             result += u' to {0:%x %H:%M}'.format(self.end)
         return result
 
-    def get_bookings(self):
+    def clean(self):
+        '''
+        Validate this model
+        '''
+        super(Event, self).clean()
+        if self.booking_close and self.booking_close > self.start:
+            raise ValidationError("Bookings must close before the event starts")
+        if self.choices_close and self.choices_close > self.start:
+            raise ValidationError("Choices must close before the event starts")
+        if self.booking_close and self.choices_close and self.booking_close > self.choices_close:
+            raise ValidationError("Bookings must close before choices")
+
+    def user_can_update(self, user):
+        '''
+        Check that the given user can update the event
+        '''
+        return user in self.organisers.all()
+
+    def get_real_end(self):
+        '''
+        Get the real datetime of the end of the event
+        '''
+        if self.end is not None:
+            return self.end
+        else:
+            return  end_of_day(self.start)
+
+    def is_ended(self):
+        '''
+        Check if the event is ended
+        '''
+        return self.get_real_end() < datetime.now(utc)
+
+    def is_booking_open(self):
+        '''
+        Check if the event is still open for bookings
+        '''
+        closed = self.booking_close is not None and datetime.now(utc) > self.booking_close
+        return self.is_choices_open() and not self.is_ended() and not closed
+
+    def is_choices_open(self):
+        '''
+        Check if the event is still open for choices
+        '''
+        closed = self.choices_close is not None and datetime.now(utc) > self.choices_close
+        return not self.is_ended() and not closed
+
+    def get_active_bookings(self):
         '''
         Return the active bookings
         '''
         return self.bookings.filter(cancelled=False)
 
-    def user_can_update(self, user):
-        '''
-        Cherck that the given user can update the event
-        '''
-        return user in self.organisers.all()
-
     def get_participants_ids(self):
         '''
         Return the ids of users with active bookings
         '''
-        return self.get_bookings().values_list('person__id', flat=True)
+        return self.get_active_bookings().values_list('person__id', flat=True)
 
     def get_options_counts(self):
         '''
@@ -133,7 +185,8 @@ class ParticipantBooking(models.Model):
         '''
         Check that the user can update the booking
         '''
-        return user == self.person
+        return (self.event.is_booking_open() and self.event.is_choices_open()
+                and  user == self.person)
 
     def user_can_update_payment(self, user):
         '''

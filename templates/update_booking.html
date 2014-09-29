@@ -5,14 +5,16 @@
 
 {% block content %}
 
-<div class="row">
-    <h2>Your choices:</h2>
-    <form action="{% url 'update_booking' booking_id=booking.id %}" method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Confirm" class="btn btn-success" />
-    <a href="{% url 'my_events' %}" class="btn btn-warning">Cancel</a>
-    </form>
+<div class="row panel panel-info">
+    <div class="panel-heading panel-info"><h2>Your choices:</h2></div>
+    <div class="panel-body">
+        <form action="{% url 'update_booking' booking_id=booking.id %}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Confirm" class="btn btn-success" />
+        <a href="{% url 'my_events' %}" class="btn btn-warning">Cancel</a>
+        </form>
+    </div>
 </div>
 
 {% endblock %}

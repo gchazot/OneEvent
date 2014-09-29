@@ -50,12 +50,14 @@
                     {% if event_info.event.is_booking_open %}
                     <a href="{% url 'cancel_booking' booking_id=event_info.booking.id %}" class="btn btn-danger">Unregister</a>
                     {% else %}
-                    <span class="btn btn-danger disabled">Event Closed</span>
+                    <button type="button" class="btn btn-danger disabled enable-tooltip"
+                        data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Event Closed</button>
                     {% endif %}
                 {% elif event_info.event.is_booking_open %}
                     <a href="{% url 'create_booking' event_id=event_info.event.id %}" class="btn btn-info">Register !</a>
                 {% else %}
-                    <span class="btn btn-info disabled">Event Closed</span>
+                    <button type="button" class="btn btn-info disabled enable-tooltip"
+                        data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Event Closed</button>
                 {% endif %}
                 {% if user in event_info.event.organisers.all %}
                     <a href="{% url 'manage_event' event_id=event_info.event.id %}" class="btn btn-default">Manage</a>

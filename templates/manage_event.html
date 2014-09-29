@@ -5,17 +5,25 @@
 
 {% block content %}
 
-<div class="row">
-    <span class="page-header"><h1>Event options</h1></span>
-    <form action="{% url 'manage_event' event_id=event.id %}" method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Save Changes" />
-    </form>
+<div class="row panel panel-info">
+    <div class="panel-heading"><h2>Event options</h2></div>
+    <div class="panel-body">
+        <form action="{% url 'manage_event' event_id=event.id %}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input class="btn btn-success" type="submit" value="Save Changes" />
+        <input class="btn btn-warning" type="reset" value="Reset" />
+        </form>
+    </div>
 </div>
 
-<div class="row"><div class="table-responsive">
-    <span class="page-header"><h1>Choices summary</h1></span>
+<div class="row table-responsive panel panel-info">
+
+    <div class="panel-heading">
+        <h2>Choices summary
+        <a href="{% url 'dl_event_options_summary' event_id=event.id %}" class="btn btn-default">Download</a>
+        </h2>
+    </div>
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
@@ -37,10 +45,14 @@
             {% endfor %}
         </tbody>
     </table>
-</div></div>
+</div>
 
-<div class="row table-responsive">
-    <span class="page-header"><h1>Participants</h1></span>
+<div class="row table-responsive panel panel-info">
+    <div class="panel-heading">
+        <h2>Participants
+        <a href="{% url 'dl_participants_list' event_id=event.id %}" class="btn btn-default">Download</a>
+        </h2>
+    </div>
     <table class="table table-bordered">
         <thead>
             <tr>

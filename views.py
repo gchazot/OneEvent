@@ -12,6 +12,9 @@ from datetime import datetime, date
 from OneEvent.models import Event, ParticipantBooking
 from OneEvent.forms import BookingForm, EventForm
 from django.template.context import RequestContext
+from django.http.response import HttpResponse
+import unicode_csv
+from django.template.defaultfilters import slugify
 
 
 def index(request):
@@ -152,3 +155,67 @@ def confirm_payment(request, booking_id, cancel=False):
         return render_to_response('confirm_payment.html',
                                   {'booking': booking, 'cancel': cancel},
                                   context_instance=RequestContext(request))
+
+
+@login_required
+def dl_event_options_summary(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    if not event.user_can_update(request.user):
+        return redirect('my_events')
+
+    filename = "{0}_options_{1}.csv".format(slugify(event.title),
+                                            datetime.now().strftime('%Y%m%d%H%M%S'))
+
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="{0}"'.format(filename)
+    writer = unicode_csv.UnicodeWriter(response)
+
+    summary_values = event.get_options_counts()
+    writer.writerow([u"Choice", u"Options"])
+    for choice, options in summary_values.iteritems():
+        row = [choice.title]
+        for option, total in options.iteritems():
+            row.append(option.title)
+            row.append(str(total))
+        writer.writerow(row)
+
+    return response
+
+
+@login_required
+def dl_participants_list(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    if not event.user_can_update(request.user):
+        return redirect('my_events')
+
+    filename = "{0}_participants_{1}.csv".format(slugify(event.title),
+                                            datetime.now().strftime('%Y%m%d%H%M%S'))
+
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="{0}"'.format(filename)
+    writer = unicode_csv.UnicodeWriter(response)
+
+    bookings = event.bookings.order_by('person__last_name', 'person__first_name')
+
+    writer.writerow(["Last name", "First name", 'Cancelled', 'Payment status', 'Choices'])
+    for booking in bookings:
+        if booking.paidTo is not None:
+            payment = "{0} on {1}".format(booking.paidTo.get_full_name(), booking.datePaid)
+        else:
+            payment = "NOT PAID"
+
+        if booking.cancelled:
+            cancelled = "Yes"
+        else:
+            cancelled = "No"
+
+        row = [booking.person.last_name, booking.person.first_name, cancelled, payment]
+        for option in booking.options.all():
+            row.append(option.option.title)
+        writer.writerow(row)
+
+    return response

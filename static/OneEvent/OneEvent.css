@@ -1,5 +1,11 @@
-body { padding-top: 50px; }
+body {
+    padding-top: 50px;
+}
 
 .btn.enable-tooltip {
     pointer-events: auto;
+}
+
+#page-title {
+    padding-bottom: 10px;
 }

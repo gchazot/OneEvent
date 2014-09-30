@@ -1,9 +1,5 @@
 {% load staticfiles %}
 <!DOCTYPE html>
-<!--[if lt IE 7]>      <html lang="en" ng-app="oneEvent" class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html lang="en" ng-app="oneEvent" class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html lang="en" ng-app="oneEvent" class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html lang="en" ng-app="oneEvent" class="no-js"> <!--<![endif]-->
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -74,7 +70,7 @@
         <div id="main_row" class="row">
             <div class="container-fluid">
             {% block page_heading %}
-                <div class="row text-center"><h1>
+                <div id="page-title" class="row text-center"><h1>
                     <span class="label label-primary">{% block heading_action %}{% endblock %}</span>
                     {% block heading_title %}{% endblock %}
                 </h1></div>

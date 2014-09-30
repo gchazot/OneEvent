@@ -6,6 +6,6 @@ body {
     pointer-events: auto;
 }
 
-#page-title {
+.bottom-separation {
     padding-bottom: 10px;
 }

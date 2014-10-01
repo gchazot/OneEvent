@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from django.utils.timezone import utc
 
 
@@ -10,6 +10,58 @@ def end_of_day(when):
     Returns the end of the day after of the given datetime object
     '''
     return when.replace(hour=23, minute=59, second=59)
+
+
+class Profile(models.Model):
+    '''
+    User data specific to the app
+    '''
+    EMPLOYEE = 'Employee'
+    CONTRACTOR = 'Contractor'
+    UNKNOWN = 'Unknown'
+    EMPLOYMENT_CHOICES = (('E', EMPLOYEE), ('C', CONTRACTOR), ('U', UNKNOWN))
+
+    user = models.OneToOneField(User, related_name='oneevent_profile')
+    _employment = models.CharField(max_length=1, default='U', choices=EMPLOYMENT_CHOICES)
+    _employment_refreshed = models.DateTimeField(editable=False, null=True)
+
+    def __unicode__(self):
+        return "Profile for {0}".format(self.user)
+
+    def save(self, *args, **kwargs):
+        '''
+        Override the save method
+        '''
+        if self._employment != 'U':
+            self._employment_refreshed = datetime.now()
+        super(Profile, self).save(*args, **kwargs)
+
+    @staticmethod
+    def get_or_create(user, *args, **kwargs):
+        '''
+        Utility method to call Profile.objects.get_or_create(user=user, ...)
+        '''
+        return Profile.objects.get_or_create(user=user, *args, **kwargs)
+
+    def get_employment(self):
+        '''
+        Get the employment status of the user after refreshing it if necessary
+        TODO: Would be nice to migrate this to a Python "field" named "employment"
+        '''
+        oneday = timedelta(days=1)
+        refresh = datetime.now() - oneday
+        if self._employment_refreshed is None or self._employment_refreshed < refresh:
+            try:
+                # TODO: implement looking for the employment
+                pass
+            except:
+                #TODO: Add the exception class to except
+                print "Error Looking for employment for {0} - resetting".format(self.user)
+                self._employment = 'U'
+                # Update the refresh date
+                self._employment_refreshed = datetime.now()
+            self.save()
+        return self._employment
 
 
 class Event(models.Model):

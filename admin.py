@@ -5,10 +5,11 @@ Created on 5 Jun 2014
 '''
 from django.contrib import admin
 from models import (Event, EventChoice, EventChoiceOption, ParticipantBooking,
-                    ParticipantOption)
+                    ParticipantOption, Profile)
 
 admin.site.register(Event)
 admin.site.register(EventChoice)
 admin.site.register(EventChoiceOption)
 admin.site.register(ParticipantBooking)
 admin.site.register(ParticipantOption)
+admin.site.register(Profile)

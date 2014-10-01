@@ -192,7 +192,7 @@ def dl_participants_list(request, event_id):
         return redirect('my_events')
 
     filename = "{0}_participants_{1}.csv".format(slugify(event.title),
-                                            datetime.now().strftime('%Y%m%d%H%M%S'))
+                                                 datetime.now().strftime('%Y%m%d%H%M%S'))
 
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(content_type='text/csv')

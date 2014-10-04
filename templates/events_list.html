@@ -9,9 +9,9 @@
 <div class="row">
     <ul class="nav nav-tabs nav-justified bottom-separation" id="menu">
         <li{% if events_shown == 'mine' %} class="active"{%endif%}><a href="{% url 'my_events' %}">My events</a></li>
+        <li{% if events_shown == 'all' %} class="active"{%endif%}><a href="{% url 'all_events' %}">All events</a></li>
         <li{% if events_shown == 'fut' %} class="active"{%endif%}><a href="{% url 'future_events' %}">Coming up</a></li>
         <li{% if events_shown == 'past' %} class="active"{%endif%}><a href="{% url 'past_events' %}">Past events</a></li>
-        <li{% if events_shown == 'all' %} class="active"{%endif%}><a href="{% url 'all_events' %}">All events</a></li>
     </ul>
 </div>
 <div class="row"><div class="table-responsive">
@@ -35,8 +35,16 @@
                     {% if event_info.event.end %}<p>- {{ event_info.event.end|date:"D, d N Y H:i" }}</p>{% endif %}
                 </td>
                 <td>
-                    {% if event_info.event.booking_close %}<p>Registration closes: {{event_info.event.booking_close|date:"D, d N Y H:i e"}}</p>{% endif %}
-                    {% if event_info.event.choices_close %}<p>Choices closes: {{event_info.event.choices_close|date:"D, d N Y H:i e"}}</p>{% endif %}
+                    {% if event_info.event.booking_close %}
+                    <p>Registration closes: {{event_info.event.booking_close|date:"D, d N Y H:i e"}}</p>
+                    {% endif %}
+                    {% if event_info.event.choices_close %}
+                    <p>Choices closes: {{event_info.event.choices_close|date:"D, d N Y H:i e"}}</p>
+                    {% endif %}
+                    {% if event_info.event.price_for_employees > 0.0 or event_info.event.price_for_employees > 0.0 %}
+                    <p>Price for Employees: {{ event_info.event.price_for_employees }}{% if event_info.event.price_currency %}({{event_info.event.price_currency}}){% endif %}</p>
+                    <p>Price for Contractors: {{ event_info.event.price_for_contractors }}{% if event_info.event.price_currency %}({{event_info.event.price_currency}}){% endif %}</p>
+                    {% endif %}
                 </td>
                 <td>{% for orga in event_info.event.organisers.all %}<p>{{orga.get_full_name}}</p>{% endfor %}</td>
                 {% if user.is_authenticated %}

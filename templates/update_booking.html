@@ -5,15 +5,74 @@
 
 {% block content %}
 
-<div class="row panel panel-info">
-    <div class="panel-heading panel-info"><h2>Your choices:</h2></div>
-    <div class="panel-body">
-        <form action="{% url 'update_booking' booking_id=booking.id %}" method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <input type="submit" value="Confirm" class="btn btn-success" />
-        <a href="{% url 'my_events' %}" class="btn btn-warning">Cancel</a>
-        </form>
+<div class="row">
+    <div class="panel panel-info">
+        <div class="panel-heading panel-info"><h2>Event info:</h2></div>
+        <div class="panel-body">
+            {% if booking.event.start %}
+            <p><label>Starts:</label>{{ booking.event.start|date:"D, d N Y H:i" }}</p>
+            {% endif %}
+            {% if booking.event.end %}
+            <p><label>Ends:</label>{{ booking.event.end|date:"D, d N Y H:i" }}</p>
+            {% endif %}
+            <p><label>Organisers :</label><ul>
+            {% for orga in booking.event.organisers.all %}<li>{{ orga.get_full_name }}</li>{% endfor %}
+            </ul></p>
+
+            <p><label>Price for Employees: </label>
+            {{ booking.event.price_for_employees }}
+            {% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
+            </p>
+
+            <p><label>Price for Contractors: </label>
+            {{ booking.event.price_for_contractors }}
+            {% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
+            </p>
+
+        </div>
+    </div>
+    <div class="panel panel-{{booking.get_payment_status_class|default:'info'}}">
+        <div class="panel-heading panel-info"><h2>Registration status:</h2></div>
+        <div class="panel-body">
+            <p><label>Registration:</label>
+            {% if booking.cancelled %}
+            Not Confirmed/Cancelled
+            {% else %}
+            Confirmed
+            </p>
+            {% endif %}
+            {% if not booking.cancelled or booking.paidTo %}
+            <p><label>Payment:</label>
+                <span class="bg-{{booking.get_payment_status_class}}">
+                {% if booking.paidTo %}
+                Paid to {{booking.paidTo.get_full_name}} on {{booking.datePaid|date:"D, d N Y"}}
+                {% elif booking.mustPay <= 0 %}
+                No payment needed
+                {% else %}
+                Please pay
+                {{ booking.mustPay }}{% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
+                to an organiser
+                {% endif %}
+                </span>
+            {% endif %}
+            </p>
+            {% if not booking.cancelled %}
+            <p><a href="{% url 'cancel_booking' booking_id=booking.id %}" class="btn btn-danger">Unregister</a></p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="panel panel-info">
+        <div class="panel-heading panel-info"><h2>Your choices:</h2></div>
+        <div class="panel-body">
+            <form action="{% url 'update_booking' booking_id=booking.id %}" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit" class="btn btn-success"
+                value="Confirm {% if booking.cancelled %}Registration{% else %}Changes{% endif %}"/>
+            <a href="{% url 'my_events' %}" class="btn btn-warning">
+                Cancel {% if booking.cancelled %}Registration{% else %}Changes{% endif %}</a>
+            </form>
+        </div>
     </div>
 </div>
 

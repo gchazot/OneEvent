@@ -25,6 +25,10 @@ class Event(models.Model):
     booking_close = models.DateTimeField(blank=True, null=True, help_text='(UTC !)')
     choices_close = models.DateTimeField(blank=True, null=True, help_text='(UTC !)')
 
+    price_for_employees = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    price_for_contractors = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    price_currency = models.CharField(max_length=3, null=True, blank=True)
+
     def __unicode__(self):
         result = u'{0} - {1:%x %H:%M}'.format(self.title, self.start)
         if self.end is not None:
@@ -196,19 +200,19 @@ class ParticipantBooking(models.Model):
 
     def get_payment_status_class(self):
         '''
-        Return the CSS class for the status of payment
+        Return the status of payment (as a CSS class)
         '''
         if self.cancelled:
             if self.paidTo is None:
                 return ''
             else:
                 return 'danger'
-        elif not self.mustPay:
-            return 'success'
-        elif self.paidTo is None:
-            return 'warning'
         else:
-            return 'success'
+            if not self.mustPay:
+                return 'success'
+            elif self.paidTo is None:
+                return 'warning'
+        return ''
 
 
 class ParticipantOption(models.Model):

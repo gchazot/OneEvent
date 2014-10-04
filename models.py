@@ -1,8 +1,10 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
 from datetime import date, datetime
 from django.utils.timezone import utc
+from decimal import Decimal
+import logging
 
 
 def end_of_day(when):
@@ -29,6 +31,9 @@ class Event(models.Model):
     price_for_contractors = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     price_currency = models.CharField(max_length=3, null=True, blank=True)
 
+    employees_groups = models.ManyToManyField(Group, related_name='employees_for_event+')
+    contractors_groups = models.ManyToManyField(Group, related_name='contractors_for_event+')
+
     def __unicode__(self):
         result = u'{0} - {1:%x %H:%M}'.format(self.title, self.start)
         if self.end is not None:
@@ -46,6 +51,10 @@ class Event(models.Model):
             raise ValidationError("Choices must close before the event starts")
         if self.booking_close and self.choices_close and self.booking_close > self.choices_close:
             raise ValidationError("Bookings must close before choices")
+#         if self.price_for_employees > 0 and self.employees_groups.count() == 0:
+#             raise ValidationError("You must provide at least one employees group to set an empolyees price")
+#         if self.price_for_contractors > 0 and self.contractors_groups.count() == 0:
+#             raise ValidationError("You must provide at least one contractors group to set an contractors price")
 
     def user_can_update(self, user):
         '''
@@ -161,7 +170,6 @@ class ParticipantBooking(models.Model):
     event = models.ForeignKey(Event, related_name='bookings')
     person = models.ForeignKey(User)
     cancelled = models.BooleanField(default=True)
-    mustPay = models.BooleanField(default=False)
     paidTo = models.ForeignKey(User, blank=True, null=True, related_name='received_payments')
     datePaid = models.DateField(blank=True, null=True)
 
@@ -176,7 +184,7 @@ class ParticipantBooking(models.Model):
         Validate the contents of this Model
         '''
         super(ParticipantBooking, self).clean()
-        if self.paidTo is not None and not self.mustPay:
+        if self.paidTo is not None and self.must_pay() == 0:
             raise ValidationError("{0} does not have to pay for {1}".format(self.person,
                                                                             self.event))
         # Reset the date paid against paid To
@@ -198,6 +206,41 @@ class ParticipantBooking(models.Model):
         '''
         return user in self.event.organisers.all()
 
+    def is_employee(self):
+        '''
+        Check if the user is part of the employees groups of the event
+        '''
+        common_groups = self.person.groups.all() & self.event.employees_groups.all()
+        logging.debug("is_employee:{0}:{1}".format(self.person, common_groups))
+        return common_groups.count() > 0
+
+    def is_contractor(self):
+        '''
+        Check if the user is part of the contractors groups of the event
+        '''
+        common_groups = self.person.groups.all() & self.event.contractors_groups.all()
+        logging.debug("is_contractor:{0}:{1}".format(self.person, common_groups))
+        return common_groups.count() > 0
+
+    def must_pay(self):
+        '''
+        Returns the amount that the person has to pay for the booking
+        '''
+        if self.is_employee():
+            if self.event.price_for_employees is not None:
+                return self.event.price_for_employees
+            else:
+                return Decimal(0.00)
+        elif self.is_contractor():
+            if self.event.price_for_contractors is not None:
+                return self.event.price_for_contractors
+            else:
+                return Decimal(0.00)
+        else:
+            logging.error("User {0} is neither employee not contractor for {1}".format(self.person,
+                                                                                       self.event))
+            return Decimal(999.99)
+
     def get_payment_status_class(self):
         '''
         Return the status of payment (as a CSS class)
@@ -208,7 +251,7 @@ class ParticipantBooking(models.Model):
             else:
                 return 'danger'
         else:
-            if not self.mustPay:
+            if self.must_pay() == 0:
                 return 'success'
             elif self.paidTo is None:
                 return 'warning'

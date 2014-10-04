@@ -4,9 +4,16 @@
 {% block heading_title %}{{ event }}{% endblock %}
 
 {% block content %}
+<div class="row">
 
-<div class="row panel panel-info">
-    <div class="panel-heading"><h2>Event options</h2></div>
+<div class="panel panel-info">
+    <div class="panel-heading">
+        <h3>
+            <a data-toggle="collapse" data-target="#collapseOne">Event options</a>
+        </h3>
+    </div>
+
+    <div id="collapseOne" class="panel-collapse collapse">
     <div class="panel-body">
         <form action="{% url 'manage_event' event_id=event.id %}" method="post">
         {% csrf_token %}
@@ -15,86 +22,98 @@
         <input class="btn btn-warning" type="reset" value="Reset" />
         </form>
     </div>
+    </div>
 </div>
 
-<div class="row table-responsive panel panel-info">
-
+<div class="panel panel-info">
     <div class="panel-heading">
-        <h2>Choices summary
-        <a href="{% url 'dl_event_options_summary' event_id=event.id %}" class="btn btn-default">Download</a>
-        </h2>
+        <h3>
+            <a data-toggle="collapse" data-target="#collapseTwo">Choices summary</a>
+            <a href="{% url 'dl_event_options_summary' event_id=event.id %}" class="btn btn-default">Download</a>
+        </h3>
     </div>
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>Choice</th>
-                <th colspan="0">Options</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for choice, options in event.get_options_counts.items %}
-            <tr>
-                <td>{{ choice.title }}</td>
-                {% for option, total in options.items %}
-                <td>
-                    {{ option.title }}
-                    <span class="badge pull-right">{{ total }}</span>
-                </td>
+    <div id="collapseTwo" class="panel-collapse collapse in table-responsive" >
+        <table class="panel-body table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Choice</th>
+                    <th colspan="0">Options</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for choice, options in event.get_options_counts.items %}
+                <tr>
+                    <td>{{ choice.title }}</td>
+                    {% for option, total in options.items %}
+                    <td>
+                        {{ option.title }}
+                        <span class="badge pull-right">{{ total }}</span>
+                    </td>
+                    {% endfor %}
+                </tr>
                 {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
 </div>
 
-<div class="row table-responsive panel panel-info">
+<div class="panel panel-info">
     <div class="panel-heading">
-        <h2>Participants
-        <a href="{% url 'dl_participants_list' event_id=event.id %}" class="btn btn-default">Download</a>
-        </h2>
+        <h3>
+            <a data-toggle="collapse"data-target="#collapseThree">Participants</a>
+            <a href="{% url 'dl_participants_list' event_id=event.id %}" class="btn btn-default">Download</a>
+        </h3>
     </div>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th rowspan=2>Name</th>
-                <th rowspan=2>Payment Status</th>
-                <th colspan=0>Choices</th>
-            </tr>
-            <tr>
-                {% for choice in event.choices.all %}
-                <th>{{ choice.title }}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for booking in event.bookings.all %}
-            <tr class="{{ booking.get_payment_status_class }}">
-                <td>{{ booking.person.get_full_name }}</td>
-                <td>
-                   {% if booking.cancelled %}
-                       <span class='btn btn-warning disabled'>Cancelled</span>
-                       {% if booking.paidTo %}
-                           <span class='btn btn-danger disabled'>Payment received !</span>
-                           by {{ booking.paidTo }} on {{ booking.datePaid }}
-                           <a href="{% url 'cancel_payment' booking_id=booking.id %}"
-                           class='btn btn-danger'>Refund</a>
+    <div id="collapseThree" class="panel-collapse collapse in table-responsive" >
+        <table class="panel-body table table-bordered">
+            <thead>
+                <tr>
+                    <th rowspan=2>Name</th>
+                    <th rowspan=2>Employment</th>
+                    <th rowspan=2>Payment Status</th>
+                    <th colspan=0>Choices</th>
+                </tr>
+                <tr>
+                    {% for choice in event.choices.all %}
+                    <th>{{ choice.title }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in event.bookings.all %}
+                <tr class="{{ booking.get_payment_status_class }}">
+                    <td>{{ booking.person.get_full_name }}</td>
+                    <td>
+                        {% if booking.is_employee %}<p>Employee</p>{% endif %}
+                        {% if booking.is_contractor %}<p>Contractor</p>{% endif %}
+                    </td>
+                    <td>
+                       {% if booking.cancelled %}
+                           <span class='btn btn-warning disabled'>Cancelled</span>
+                           {% if booking.paidTo %}
+                               <span class='btn btn-danger disabled'>Payment received !</span>
+                               by {{ booking.paidTo }} on {{ booking.datePaid }}
+                               <a href="{% url 'cancel_payment' booking_id=booking.id %}"
+                               class='btn btn-danger'>Refund</a>
+                           {% endif %}
+                       {% elif booking.paidTo %}
+                           Paid to {{ booking.paidTo }} on {{ booking.datePaid }}
+                       {% elif booking.must_pay > 0 %}
+                           <a href="{% url 'confirm_payment' booking_id=booking.id %}"
+                               class='btn btn-success'>Confirm Payment</a>
+                       {% else %}
+                           <span class='btn btn-success disabled'>No payment needed</span>
                        {% endif %}
-                   {% elif booking.paidTo %}
-                       Paid to {{ booking.paidTo }} on {{ booking.datePaid }}
-                   {% elif booking.mustPay %}
-                       <a href="{% url 'confirm_payment' booking_id=booking.id %}"
-                           class='btn btn-success'>Confirm Payment</a>
-                   {% else %}
-                       <span class='btn btn-success disabled'>No payment needed</span>
-                   {% endif %}
-                {% for option in booking.options.all %}
-                <td>
-                    {{ option.option.title }}
-                </td>
+                    {% for option in booking.options.all %}
+                    <td>
+                        {{ option.option.title }}
+                    </td>
+                    {% endfor %}
+                </tr>
                 {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
+            </tbody>
     </table>
+</div>
+
 </div>
 {% endblock %}

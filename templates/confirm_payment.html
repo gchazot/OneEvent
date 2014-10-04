@@ -13,3 +13,11 @@
         {% url 'confirm_payment' booking_id=booking.id %}
     {% endif %}
 {% endblock %}
+
+{% block additional_info %}
+<p>
+    <label>Amount due: </label>
+    {{ booking.must_pay|floatformat:'2' }}
+    {% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
+</p>
+{% endblock %}

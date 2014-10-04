@@ -4,6 +4,7 @@
 <div class="row text-center">
     <form action="{% block post_url %}{% endblock %}" method="post">
     {% csrf_token %}
+    {% block additional_info %}{% endblock %}
     <input class="btn btn-default" type="submit" value="Confirm" />
     </form>
 </div>

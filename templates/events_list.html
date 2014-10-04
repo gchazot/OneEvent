@@ -53,7 +53,8 @@
                     {% if event_info.event.is_choices_open %}
                     <a href="{% url 'update_booking' booking_id=event_info.booking.id %}" class="btn btn-success">Choices</a>
                     {% else %}
-                    <span class="btn btn-success disabled">Choices Closed</span>
+                    <button type="button" class="btn btn-success disabled enable-tooltip"
+                        data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Choices Closed</button>
                     {% endif %}
                     {% if event_info.event.is_booking_open %}
                     <a href="{% url 'cancel_booking' booking_id=event_info.booking.id %}" class="btn btn-danger">Unregister</a>

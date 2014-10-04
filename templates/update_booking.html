@@ -7,7 +7,10 @@
 
 <div class="row">
     <div class="panel panel-info">
-        <div class="panel-heading panel-info"><h2>Event info:</h2></div>
+        <div class="panel-heading" data-toggle="collapse" data-target="#collapseOne">
+            Event info
+        </div>
+        <div id="collapseOne" class="panel-collapse collapse">
         <div class="panel-body">
             {% if booking.event.start %}
             <p><label>Starts:</label>{{ booking.event.start|date:"D, d N Y H:i" }}</p>
@@ -30,9 +33,13 @@
             </p>
 
         </div>
+        </div>
     </div>
     <div class="panel panel-{{booking.get_payment_status_class|default:'info'}}">
-        <div class="panel-heading panel-info"><h2>Registration status:</h2></div>
+        <div class="panel-heading" data-toggle="collapse" data-target="#collapseTwo">
+            Registration status
+        </div>
+        <div id="collapseTwo" class="panel-collapse collapse in" >
         <div class="panel-body">
             <p><label>Registration:</label>
             {% if booking.cancelled %}
@@ -60,9 +67,13 @@
             <p><a href="{% url 'cancel_booking' booking_id=booking.id %}" class="btn btn-danger">Unregister</a></p>
             {% endif %}
         </div>
+        </div>
     </div>
     <div class="panel panel-info">
-        <div class="panel-heading panel-info"><h2>Your choices:</h2></div>
+        <div class="panel-heading panel-info" data-toggle="collapse"data-target="#collapseThree">
+            Your choices
+        </div>
+        <div id="collapseThree" class="panel-collapse collapse in">
         <div class="panel-body">
             <form action="{% url 'update_booking' booking_id=booking.id %}" method="post">
             {% csrf_token %}
@@ -72,6 +83,7 @@
             <a href="{% url 'my_events' %}" class="btn btn-warning">
                 Cancel {% if booking.cancelled %}Registration{% else %}Changes{% endif %}</a>
             </form>
+        </div>
         </div>
     </div>
 </div>

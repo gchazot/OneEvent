@@ -7,10 +7,8 @@
 <div class="row">
 
 <div class="panel panel-info">
-    <div class="panel-heading">
-        <h3>
-            <a data-toggle="collapse" data-target="#collapseOne">Event options</a>
-        </h3>
+    <div class="panel-heading" data-toggle="collapse" data-target="#collapseOne">
+        Event options
     </div>
 
     <div id="collapseOne" class="panel-collapse collapse">
@@ -26,11 +24,9 @@
 </div>
 
 <div class="panel panel-info">
-    <div class="panel-heading">
-        <h3>
-            <a data-toggle="collapse" data-target="#collapseTwo">Choices summary</a>
-            <a href="{% url 'dl_event_options_summary' event_id=event.id %}" class="btn btn-default">Download</a>
-        </h3>
+    <div class="panel-heading" data-toggle="collapse" data-target="#collapseTwo">
+        Choices summary
+        <a href="{% url 'dl_event_options_summary' event_id=event.id %}" class="btn btn-default">Download</a>
     </div>
     <div id="collapseTwo" class="panel-collapse collapse in table-responsive" >
         <table class="panel-body table table-bordered table-striped">
@@ -58,13 +54,12 @@
 </div>
 
 <div class="panel panel-info">
-    <div class="panel-heading">
-        <h3>
-            <a data-toggle="collapse"data-target="#collapseThree">Participants</a>
-            <a href="{% url 'dl_participants_list' event_id=event.id %}" class="btn btn-default">Download</a>
-        </h3>
+    <div class="panel-heading" data-toggle="collapse" data-target="#collapseThree">
+        Participants
+        <a href="{% url 'dl_participants_list' event_id=event.id %}"
+            class="btn btn-default" data-toggle="" data-target="">Download</a>
     </div>
-    <div id="collapseThree" class="panel-collapse collapse in table-responsive" >
+    <div id="collapseThree" class="panel-collapse collapse in table-responsive">
         <table class="panel-body table table-bordered">
             <thead>
                 <tr>

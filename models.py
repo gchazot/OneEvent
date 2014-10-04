@@ -147,7 +147,10 @@ class EventChoiceOption(models.Model):
         unique_together = ('choice', 'title')
 
     def __unicode__(self):
-        return u'{0} : option {1} {2}'.format(self.choice, self.title, self.default)
+        if self.default:
+            return u'{0} : option {1} (default)'.format(self.choice, self.title)
+        else:
+            return u'{0} : option {1}'.format(self.choice, self.title)
 
     def clean(self):
         '''

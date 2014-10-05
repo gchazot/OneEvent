@@ -6,9 +6,9 @@
 {% block content %}
 
 <div class="row">
-    <div class="panel panel-info">
-        <div class="panel-heading" data-toggle="collapse" data-target="#collapseOne">
-            Event info
+    <div class="panel panel-info collapsible-caret">
+        <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseOne">
+            <strong>Event info</strong>
         </div>
         <div id="collapseOne" class="panel-collapse collapse">
         <div class="panel-body">
@@ -43,9 +43,9 @@
         </div>
         </div>
     </div>
-    <div class="panel panel-{{booking.get_payment_status_class|default:'info'}}">
-        <div class="panel-heading" data-toggle="collapse" data-target="#collapseTwo">
-            Registration status
+    <div class="panel panel-{{booking.get_payment_status_class|default:'info'}} collapsible-caret">
+        <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseTwo">
+            <strong>Registration status</strong>
         </div>
         <div id="collapseTwo" class="panel-collapse collapse in" >
         <div class="panel-body">
@@ -77,9 +77,9 @@
         </div>
         </div>
     </div>
-    <div class="panel panel-info">
-        <div class="panel-heading panel-info" data-toggle="collapse"data-target="#collapseThree">
-            Your choices
+    <div class="panel panel-info collapsible-caret">
+        <div class="panel-heading collapsible-toggle" data-toggle="collapse"data-target="#collapseThree">
+            <strong>Your choices</strong>
         </div>
         <div id="collapseThree" class="panel-collapse collapse in">
         <div class="panel-body">

@@ -1,11 +1,37 @@
+/* Make sure that the navbar does not overlap the rest */
 body {
     padding-top: 50px;
 }
 
+/* To force tooltips to be working even on disabled buttons */
 .btn.enable-tooltip {
     pointer-events: auto;
 }
 
+/* Small separation */
 .bottom-separation {
     padding-bottom: 10px;
 }
+
+/* Classes to add collapsing arrows to collapsible panels */
+/* From http://stackoverflow.com/a/18330745 */
+.collapsible-caret .collapsible-toggle:hover {
+    text-decoration: none;
+}
+.collapsible-caret .collapsible-toggle:hover span,
+.collapsible-caret .collapsible-toggle:hover strong {
+    text-decoration: underline;
+}
+.collapsible-caret .collapsible-toggle:before {
+    font-size: 25px;
+    vertical-align: -3px;
+}
+.collapsible-caret .collapsible-toggle:not(.collapsed):before {
+    content: "▾";
+    margin-right: 0px;
+}
+.collapsible-caret .collapsible-toggle.collapsed:before {
+    content: "▸";
+    margin-right: 0px;
+}
+

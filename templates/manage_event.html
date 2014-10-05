@@ -6,9 +6,9 @@
 {% block content %}
 <div class="row">
 
-<div class="panel panel-info">
-    <div class="panel-heading" data-toggle="collapse" data-target="#collapseOne">
-        Event details
+<div class="panel panel-info collapsible-caret">
+    <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseOne">
+        <strong>Event details</strong>
     </div>
 
     <div id="collapseOne" class="panel-collapse collapse">
@@ -23,9 +23,9 @@
     </div>
 </div>
 
-<div class="panel panel-info">
-    <div class="panel-heading" data-toggle="collapse" data-target="#collapseTwo">
-        Choices summary
+<div class="panel panel-info collapsible-caret">
+    <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseTwo">
+        <strong>Choices summary</strong>
         <a href="{% url 'dl_event_options_summary' event_id=event.id %}" class="btn btn-default">Download</a>
     </div>
     <div id="collapseTwo" class="panel-collapse collapse in table-responsive" >
@@ -53,9 +53,9 @@
     </div>
 </div>
 
-<div class="panel panel-info">
-    <div class="panel-heading" data-toggle="collapse" data-target="#collapseThree">
-        Participants
+<div class="panel panel-info collapsible-caret">
+    <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseThree">
+        <strong>Participants</strong>
         <a href="{% url 'dl_participants_list' event_id=event.id %}"
             class="btn btn-default" data-toggle="" data-target="">Download</a>
     </div>

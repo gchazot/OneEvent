@@ -13,8 +13,9 @@ from OneEvent.models import Event, ParticipantBooking
 from OneEvent.forms import BookingForm, EventForm
 from django.template.context import RequestContext
 from django.http.response import HttpResponse
-import unicode_csv
 from django.template.defaultfilters import slugify
+from django.contrib import messages
+import unicode_csv
 
 
 def index(request):
@@ -74,9 +75,11 @@ def create_booking(request, event_id):
     if event.is_booking_open():
         booking, _ = ParticipantBooking.objects.get_or_create(event=event,
                                                               person=user)
+        messages.warning(request, 'Please confirm your registration here!')
         return redirect('update_booking', booking_id=booking.id)
     else:
-        return redirect('my_events')
+        messages.error(request, 'Bookings are closed for "{0}"!'.format(event.title))
+        return redirect('index')
 
 
 @login_required
@@ -84,13 +87,15 @@ def update_booking(request, booking_id):
     booking = get_object_or_404(ParticipantBooking, id=booking_id)
 
     if not booking.user_can_update(request.user):
-        return redirect('my_events')
+        messages.error(request, 'You are not authorised to update this booking !')
+        return redirect('index')
 
     form = BookingForm(booking, request.POST or None)
     if form.is_valid():
         form.save()
         booking.cancelled = False
         booking.save()
+        messages.success(request, 'Registration updated')
         return redirect('my_events')
 
     return render_to_response('update_booking.html',
@@ -104,11 +109,13 @@ def cancel_booking(request, booking_id):
     booking = get_object_or_404(ParticipantBooking, id=booking_id)
 
     if not booking.user_can_update(request.user):
-        return redirect('my_events')
+        messages.error(request, 'You are not authorised to cancel this booking !')
+        return redirect('index')
 
     if request.method == 'POST':
         booking.cancelled = True
         booking.save()
+        messages.warning(request, 'Registration cancelled')
         return redirect('my_events')
     else:
         return render_to_response('cancel_booking.html',
@@ -121,15 +128,18 @@ def manage_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
     if not event.user_can_update(request.user):
-        return redirect('my_events')
+        messages.error(request, 'You are not authorised to manage this event !')
+        return redirect('index')
 
     form = EventForm(request.POST or None, instance=event)
     if form.is_valid():
         form.save()
         if request.user in event.organisers.all():
+            messages.success(request, 'Event details updated'.format(event.title))
             return redirect('manage_event', event_id=event_id)
         else:
-            return redirect('my_events')
+            messages.success(request, 'You removed yourself from the organisers of {0}'.format(event.title))
+            return redirect('index')
     return render_to_response('manage_event.html',
                               {'event': event, 'form': form},
                               context_instance=RequestContext(request))
@@ -140,7 +150,8 @@ def confirm_payment(request, booking_id, cancel=False):
     booking = get_object_or_404(ParticipantBooking, id=booking_id)
 
     if not booking.user_can_update_payment(request.user):
-        return redirect('my_events')
+        messages.error(request, 'You are not authorised to manage payment for this event !')
+        return redirect('index')
 
     if request.method == 'POST':
         if not cancel:
@@ -150,6 +161,14 @@ def confirm_payment(request, booking_id, cancel=False):
             booking.paidTo = None
             booking.datePaid = None
         booking.save()
+
+        if not cancel:
+            messages.success(request,
+                             'Payment confirmed for {0}'.format(booking.person.get_full_name()))
+        else:
+            messages.success(request,
+                             'Refund confirmed for {0}'.format(booking.person.get_full_name()))
+
         return redirect('manage_event', event_id=booking.event.id)
     else:
         return render_to_response('confirm_payment.html',
@@ -162,7 +181,8 @@ def dl_event_options_summary(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
     if not event.user_can_update(request.user):
-        return redirect('my_events')
+        messages.error(request, 'You are not authorised to download options for this event !')
+        return redirect('index')
 
     filename = "{0}_options_{1}.csv".format(slugify(event.title),
                                             datetime.now().strftime('%Y%m%d%H%M%S'))
@@ -189,7 +209,8 @@ def dl_participants_list(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
     if not event.user_can_update(request.user):
-        return redirect('my_events')
+        messages.error(request, 'You are not authorised to download participants for this event !')
+        return redirect('index')
 
     filename = "{0}_participants_{1}.csv".format(slugify(event.title),
                                                  datetime.now().strftime('%Y%m%d%H%M%S'))

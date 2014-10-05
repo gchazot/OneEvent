@@ -170,7 +170,7 @@ class ParticipantBooking(models.Model):
     Entry recording a user registration to an event
     '''
     event = models.ForeignKey(Event, related_name='bookings')
-    person = models.ForeignKey(User)
+    person = models.ForeignKey(User, related_name='bookings')
     cancelled = models.BooleanField(default=True)
     paidTo = models.ForeignKey(User, blank=True, null=True, related_name='received_payments')
     datePaid = models.DateField(blank=True, null=True)

@@ -6,14 +6,6 @@
 
 {% block content %}
 
-<div class="row">
-    <ul class="nav nav-tabs nav-justified bottom-separation" id="menu">
-        <li{% if events_shown == 'mine' %} class="active"{%endif%}><a href="{% url 'my_events' %}">My events</a></li>
-        <li{% if events_shown == 'all' %} class="active"{%endif%}><a href="{% url 'all_events' %}">All events</a></li>
-        <li{% if events_shown == 'fut' %} class="active"{%endif%}><a href="{% url 'future_events' %}">Coming up</a></li>
-        <li{% if events_shown == 'past' %} class="active"{%endif%}><a href="{% url 'past_events' %}">Past events</a></li>
-    </ul>
-</div>
 <div class="row"><div class="table-responsive">
     <table class="table table-bordered table-striped">
         <thead>

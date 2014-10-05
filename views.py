@@ -64,7 +64,11 @@ def my_events(request):
     query = Q(bookings__person=request.user, bookings__cancelled=False)
     query = query | Q(organisers=request.user)
     events = Event.objects.filter(query).distinct()
-    return events_list(request, events, context)
+    if events.count() > 0:
+        return events_list(request, events, context)
+    else:
+        messages.debug(request, "You have no event yet")
+        return redirect('all_events')
 
 
 @login_required

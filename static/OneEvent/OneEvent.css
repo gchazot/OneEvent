@@ -14,7 +14,7 @@ body {
 }
 
 /* Classes to add collapsing arrows to collapsible panels */
-/* From http://stackoverflow.com/a/18330745 */
+/* From http://stackoverflow.com/a/18330745 and a bit of http://stackoverflow.com/a/23772496 */
 .collapsible-caret .collapsible-toggle:hover {
     text-decoration: none;
 }
@@ -23,15 +23,16 @@ body {
     text-decoration: underline;
 }
 .collapsible-caret .collapsible-toggle:before {
-    font-size: 25px;
     vertical-align: -3px;
 }
 .collapsible-caret .collapsible-toggle:not(.collapsed):before {
-    content: "▾";
+    font-family: 'Glyphicons Halflings';
+    content: "\e113"; /* "chevron-up" icon */
     margin-right: 0px;
 }
 .collapsible-caret .collapsible-toggle.collapsed:before {
-    content: "▸";
+    font-family: 'Glyphicons Halflings';
+    content: "\e114"; /* "chevron-down" icon */
     margin-right: 0px;
 }
 

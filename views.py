@@ -41,7 +41,8 @@ def events_list(request, events, context={}):
 
 def future_events(request):
     context = {'events_shown': 'fut'}
-    events = Event.objects.filter(end__gte=datetime.now())
+    query = Q(end__gt=datetime.now()) | Q(end=None, start__gte=datetime.now())
+    events = Event.objects.filter(query)
     return events_list(request, events, context)
 
 

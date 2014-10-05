@@ -32,6 +32,14 @@
             {% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
             </p>
 
+            {% if booking.event.location_name %}
+            <p><label>Venue: </label>
+            {{booking.event.location_name}}</p>
+            {% endif %}
+            {% if booking.event.location_address %}
+            <p><label>Address: </label>
+            <pre>{{booking.event.location_address}}</pre></p>
+            {% endif %}
         </div>
         </div>
     </div>

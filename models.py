@@ -22,6 +22,9 @@ class Event(models.Model):
     start = models.DateTimeField()
     end = models.DateTimeField(blank=True, null=True)
 
+    location_name = models.CharField(max_length=64, null=True, blank=True)
+    location_address = models.TextField(null=True, blank=True)
+
     organisers = models.ManyToManyField(User, blank=True)
 
     booking_close = models.DateTimeField(blank=True, null=True, help_text='(UTC !)')
@@ -51,10 +54,6 @@ class Event(models.Model):
             raise ValidationError("Choices must close before the event starts")
         if self.booking_close and self.choices_close and self.booking_close > self.choices_close:
             raise ValidationError("Bookings must close before choices")
-#         if self.price_for_employees > 0 and self.employees_groups.count() == 0:
-#             raise ValidationError("You must provide at least one employees group to set an empolyees price")
-#         if self.price_for_contractors > 0 and self.contractors_groups.count() == 0:
-#             raise ValidationError("You must provide at least one contractors group to set an contractors price")
 
     def user_can_update(self, user):
         '''

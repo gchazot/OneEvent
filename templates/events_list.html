@@ -30,7 +30,10 @@
         <tbody>
             {% for event_info in events %}
             <tr>
-                <td>{{ event_info.event.title }}</td>
+                <td>
+                    <p>{{ event_info.event.title }}</p>
+                    {% if event_info.event.location_name %}<p><small>at </small>{{event_info.event.location_name}}</p>{% endif %}
+                </td>
                 <td><p>{{ event_info.event.start|date:"D, d N Y H:i" }}</p>
                     {% if event_info.event.end %}<p>- {{ event_info.event.end|date:"D, d N Y H:i" }}</p>{% endif %}
                 </td>

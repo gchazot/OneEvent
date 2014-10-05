@@ -139,7 +139,7 @@ class EventChoiceOption(models.Model):
     An option available for a choice of an event
     '''
     choice = models.ForeignKey(EventChoice, related_name='options')
-    title = models.CharField(max_length=64)
+    title = models.CharField(max_length=256)
     description = models.TextField(blank=True)
     default = models.BooleanField(default=False)
 

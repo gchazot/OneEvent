@@ -114,6 +114,7 @@ class EventAdmin(admin.ModelAdmin):
     fields = (
         'title',
         ('start', 'end'),
+        ('location_name', 'location_address'),
         'organisers',
         ('booking_close', 'choices_close'),
         ('price_for_employees', 'price_for_contractors', 'price_currency'),

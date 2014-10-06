@@ -12,33 +12,44 @@
         </div>
         <div id="collapseOne" class="panel-collapse collapse">
         <div class="panel-body">
-            {% if booking.event.start %}
-            <p><label>Starts:</label>{{ booking.event.start|date:"D, d N Y H:i" }}</p>
-            {% endif %}
+            <p><label>Starts: </label>
+                {{ booking.event.start|date:"D, d N Y H:i" }}</p>
+
             {% if booking.event.end %}
-            <p><label>Ends:</label>{{ booking.event.end|date:"D, d N Y H:i" }}</p>
+            <p><label>Ends: </label>
+                {{ booking.event.end|date:"D, d N Y H:i" }}</p>
             {% endif %}
-            <p><label>Organisers :</label><ul>
+
+            <p><label>Organisers: </label><ul>
             {% for orga in booking.event.organisers.all %}<li>{{ orga.get_full_name }}</li>{% endfor %}
             </ul></p>
 
+            {% if booking.event.booking_close %}
+            <p><label>Bookings close: </label>
+                {{ booking.event.booking_close|date:"D, d N Y H:i" }}</p>
+            {% endif %}
+            {% if booking.event.choices_close %}
+            <p><label>Choices close: </label>
+                {{ booking.event.choices_close|date:"D, d N Y H:i" }}</p>
+            {% endif %}
+
             <p><label>Price for Employees: </label>
-            {{ booking.event.price_for_employees }}
-            {% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
+                {{ booking.event.price_for_employees }}
+                {% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
             </p>
 
             <p><label>Price for Contractors: </label>
-            {{ booking.event.price_for_contractors }}
-            {% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
+                {{ booking.event.price_for_contractors }}
+                {% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
             </p>
 
             {% if booking.event.location_name %}
             <p><label>Venue: </label>
-            {{booking.event.location_name}}</p>
+                {{booking.event.location_name}}</p>
             {% endif %}
             {% if booking.event.location_address %}
             <p><label>Address: </label>
-            <pre>{{booking.event.location_address}}</pre></p>
+                <pre>{{booking.event.location_address}}</pre></p>
             {% endif %}
         </div>
         </div>

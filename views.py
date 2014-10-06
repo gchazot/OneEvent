@@ -1,3 +1,4 @@
+
 '''
 Created on 22 Jun 2014
 
@@ -145,6 +146,8 @@ def manage_event(request, event_id):
         else:
             messages.success(request, 'You removed yourself from the organisers of {0}'.format(event.title))
             return redirect('index')
+    elif form.is_bound:
+        messages.error(request, 'Unable to update event details, see below for errors!')
     return render_to_response('manage_event.html',
                               {'event': event, 'form': form},
                               context_instance=RequestContext(request))

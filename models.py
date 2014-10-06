@@ -34,8 +34,8 @@ class Event(models.Model):
     price_for_contractors = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     price_currency = models.CharField(max_length=3, null=True, blank=True)
 
-    employees_groups = models.ManyToManyField(Group, related_name='employees_for_event+')
-    contractors_groups = models.ManyToManyField(Group, related_name='contractors_for_event+')
+    employees_groups = models.ManyToManyField(Group, blank=True, related_name='employees_for_event+')
+    contractors_groups = models.ManyToManyField(Group, blank=True, related_name='contractors_for_event+')
 
     def __unicode__(self):
         result = u'{0} - {1:%x %H:%M}'.format(self.title, self.start)

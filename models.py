@@ -273,12 +273,12 @@ class ParticipantBooking(models.Model):
             if self.event.price_for_employees is not None:
                 return self.event.price_for_employees
             else:
-                return Decimal(0.00)
+                return Decimal(0)
         elif self.is_contractor():
             if self.event.price_for_contractors is not None:
                 return self.event.price_for_contractors
             else:
-                return Decimal(0.00)
+                return Decimal(0)
         else:
             logging.error("User {0} is neither employee not contractor for {1}".format(self.person,
                                                                                        self.event))
@@ -294,7 +294,7 @@ class ParticipantBooking(models.Model):
             else:
                 return 'danger'
         else:
-            if self.must_pay() == 0:
+            if self.must_pay() == Decimal(0) or self.paidTo is not None:
                 return 'success'
             elif self.paidTo is None:
                 return 'warning'

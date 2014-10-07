@@ -61,13 +61,13 @@
         <div id="collapseTwo" class="panel-collapse collapse in" >
         <div class="panel-body">
             <p><label>Registration:</label>
-            {% if booking.cancelled %}
-            Not Confirmed/Cancelled
+            {% if booking.cancelledBy %}
+            Not Confirmed/Cancelled (by {{booking.cancelledBy.get_full_name}} on {{booking.cancelledOn|date:"D, d N Y"}})
             {% else %}
             Confirmed
             </p>
             {% endif %}
-            {% if not booking.cancelled or booking.paidTo %}
+            {% if not booking.cancelledBy or booking.paidTo %}
             <p><label>Payment:</label>
                 <span class="bg-{{booking.get_payment_status_class}}">
                 {% if booking.paidTo %}
@@ -82,7 +82,7 @@
                 </span>
             {% endif %}
             </p>
-            {% if not booking.cancelled %}
+            {% if not booking.cancelledBy %}
             <p><a href="{% url 'cancel_booking' booking_id=booking.id %}" class="btn btn-danger">Unregister</a></p>
             {% endif %}
         </div>
@@ -98,9 +98,9 @@
             {% csrf_token %}
             {{ form.as_p }}
             <input type="submit" class="btn btn-success"
-                value="Confirm {% if booking.cancelled %}Registration{% else %}Changes{% endif %}"/>
+                value="Confirm {% if booking.cancelledBy %}Registration{% else %}Changes{% endif %}"/>
             <a href="{% url 'my_events' %}" class="btn btn-warning">
-                Cancel {% if booking.cancelled %}Registration{% else %}Changes{% endif %}</a>
+                Cancel {% if booking.cancelledBy %}Registration{% else %}Changes{% endif %}</a>
             </form>
         </div>
         </div>

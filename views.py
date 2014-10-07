@@ -63,7 +63,7 @@ def all_events(request):
 @login_required
 def my_events(request):
     context = {'events_shown': 'mine'}
-    query = Q(bookings__person=request.user, bookings__cancelled=False)
+    query = Q(bookings__person=request.user, bookings__cancelledBy=None)
     query = query | Q(organisers=request.user)
     events = Event.objects.filter(query).distinct()
     if events.count() > 0:
@@ -80,7 +80,9 @@ def create_booking(request, event_id):
 
     if event.is_booking_open():
         booking, _ = ParticipantBooking.objects.get_or_create(event=event,
-                                                              person=user)
+                                                              person=user,
+                                                              defaults={'cancelledBy': user,
+                                                                        'cancelledOn': datetime.now()})
         messages.warning(request, 'Please confirm your registration here!')
         return redirect('update_booking', booking_id=booking.id)
     else:
@@ -99,7 +101,8 @@ def update_booking(request, booking_id):
     form = BookingForm(booking, request.POST or None)
     if form.is_valid():
         form.save()
-        booking.cancelled = False
+        booking.cancelledBy = None
+        booking.cancelledOn = None
         booking.save()
         messages.success(request, 'Registration updated')
         return redirect('my_events')
@@ -119,7 +122,8 @@ def cancel_booking(request, booking_id):
         return redirect('index')
 
     if request.method == 'POST':
-        booking.cancelled = True
+        booking.cancelledBy = request.user
+        booking.cancelledOn = datetime.now()
         booking.save()
         messages.warning(request, 'Registration cancelled')
         return redirect('my_events')
@@ -237,7 +241,7 @@ def dl_participants_list(request, event_id):
         else:
             payment = "NOT PAID"
 
-        if booking.cancelled:
+        if booking.cancelledBy is not None:
             cancelled = "Yes"
         else:
             cancelled = "No"

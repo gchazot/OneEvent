@@ -94,7 +94,7 @@ class Event(models.Model):
         '''
         Return the active bookings
         '''
-        return self.bookings.filter(cancelled=False)
+        return self.bookings.filter(cancelledBy=None)
 
     def get_participants_ids(self):
         '''
@@ -110,7 +110,7 @@ class Event(models.Model):
         result = {}
         event_options = EventChoiceOption.objects.filter(choice__event=self)
         part_options = ParticipantOption.objects.filter(booking__event=self,
-                                                        booking__cancelled=False)
+                                                        booking__cancelledBy=None)
         for option in event_options:
             choice_counts = result.get(option.choice) or {}
             choice_counts[option] = part_options.filter(option=option).count()
@@ -231,6 +231,12 @@ class ParticipantBooking(models.Model):
         if self.paidTo is None and self.datePaid is not None:
             self.datePaid = None
 
+        # Reset the cancel date against cancelledBy
+        if self.cancelledBy is not None and self.cancelledOn is None:
+            self.cancelledOn = datetime.now()
+        if self.cancelledBy is None and self.cancelledOn is not None:
+            self.cancelledOn = None
+
     def user_can_update(self, user):
         '''
         Check that the user can update the booking
@@ -283,7 +289,7 @@ class ParticipantBooking(models.Model):
         '''
         Return the status of payment (as a CSS class)
         '''
-        if self.cancelled:
+        if self.cancelledBy is not None:
             if self.paidTo is None:
                 return ''
             else:

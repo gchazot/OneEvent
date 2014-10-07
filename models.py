@@ -204,6 +204,10 @@ class ParticipantBooking(models.Model):
     event = models.ForeignKey(Event, related_name='bookings')
     person = models.ForeignKey(User, related_name='bookings')
     cancelled = models.BooleanField(default=True)
+
+    cancelledBy = models.ForeignKey(User, blank=True, null=True, related_name='cancelled_bookings')
+    cancelledOn = models.DateTimeField(blank=True, null=True)
+
     paidTo = models.ForeignKey(User, blank=True, null=True, related_name='received_payments')
     datePaid = models.DateField(blank=True, null=True)
 

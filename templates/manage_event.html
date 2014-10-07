@@ -1,7 +1,7 @@
 {% extends 'base.html' %}'
 
 {% block heading_action %}Manage{% endblock %}
-{% block heading_title %}{{ event }}{% endblock %}
+{% block heading_title %}{{ event.title }}{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -107,7 +107,54 @@
                 </tr>
                 {% endfor %}
             </tbody>
-    </table>
+        </table>
+    </div>
+</div>
+
+<div class="panel panel-info collapsible-caret">
+    <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseFour">
+        <strong>Collected money</strong>
+    </div>
+    <div id="collapseFour" class="panel-collapse collapse in table-responsive">
+        <table class="panel-body table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Organiser</th>
+                    <th>Employees</th>
+                    <th>Contractors</th>
+                    <th>Other (debug)</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for organiser, totals in event.get_collected_money_sums %}
+                {% if organiser == 'Total' %}
+                <tr class="info">
+                    <th>Total</th>
+                {% else %}
+                <tr>
+                    <th>{{ organiser.get_full_name }}</th>
+                {% endif %}
+                    <td>
+                        {{ totals.Employees|default:0 }}
+                        {% if event.price_currency %}({{event.price_currency}}){% endif %}
+                    </td>
+                    <td>
+                        {{ totals.Contractors|default:0 }}
+                        {% if event.price_currency %}({{event.price_currency}}){% endif %}
+                    </td>
+                    <td>
+                        {{ totals.Other|default:0 }}
+                        {% if event.price_currency %}({{event.price_currency}}){% endif %}
+                    </td>
+                    <td>
+                        {{ totals.Total|default:0 }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 </div>

@@ -117,6 +117,38 @@ class Event(models.Model):
             result[option.choice] = choice_counts
         return result
 
+    def get_collected_money_sums(self):
+        organisers_sums = {}
+        bookings = self.bookings.filter(paidTo__isnull=False)
+        for booking in bookings:
+            if booking.is_employee():
+                entry_name = "Employees"
+                entry_price = self.price_for_employees
+            elif booking.is_contractor():
+                entry_name = "Contractors"
+                entry_price = self.price_for_contractors
+            else:
+                entry_name = "Other"
+                entry_price = 1
+
+            orga_entries = organisers_sums.get(booking.paidTo) or {}
+            total = orga_entries.get(entry_name) or Decimal(0)
+            orga_entries[entry_name] = total + entry_price
+            organisers_sums[booking.paidTo] = orga_entries
+
+        result = []
+        overall_totals = {}
+        for orga, orga_entries in organisers_sums.iteritems():
+            orga_entries["Total"] = sum(organisers_sums[orga].values())
+            result.append((orga, orga_entries,))
+
+            for entry_name, entry_value in orga_entries.iteritems():
+                entry_total = overall_totals.get(entry_name) or Decimal(0)
+                overall_totals[entry_name] = entry_total + entry_value
+        result.append(("Total", overall_totals,))
+
+        return result
+
 
 class EventChoice(models.Model):
     '''

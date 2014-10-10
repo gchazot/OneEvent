@@ -1,7 +1,9 @@
 {% extends 'base.html' %}'
 
 {% block heading_action %}Manage{% endblock %}
-{% block heading_title %}{{ event.title }}{% endblock %}
+{% block heading_title %}{{ event.title }}
+    <small>{{ booking.event.start|date:"D, d N Y H:i" }}</small>
+{% endblock %}
 
 {% block content %}
 <div class="row">

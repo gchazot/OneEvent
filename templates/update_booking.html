@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 
 {% block heading_action %}Register{% endblock %}
-{% block heading_title %}{{ booking.event }}{% endblock %}
+{% block heading_title %}{{ booking.event.title }}
+    <small>{{ booking.event.start|date:"D, d N Y H:i" }}</small>
+{% endblock %}
 
 {% block content %}
 

@@ -63,7 +63,7 @@
                     <button type="button" class="btn btn-info disabled enable-tooltip"
                         data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Event Closed</button>
                 {% endif %}
-                {% if user in event_info.event.organisers.all %}
+                {% if user in event_info.event.organisers.all or user.is_superuser %}
                     <a href="{% url 'manage_event' event_id=event_info.event.id %}" class="btn btn-default">Manage</a>
                 {% endif %}
                 </td>

@@ -8,7 +8,8 @@ from django.shortcuts import render, redirect, get_object_or_404, render_to_resp
 from django.contrib.auth.decorators import login_required
 from django.db.models.query_utils import Q
 
-from datetime import datetime, date
+from datetime import datetime
+from django.utils import timezone
 
 from OneEvent.models import Event, ParticipantBooking
 from OneEvent.forms import BookingForm, EventForm
@@ -42,14 +43,14 @@ def events_list(request, events, context={}):
 
 def future_events(request):
     context = {'events_shown': 'fut'}
-    query = Q(end__gt=datetime.now()) | Q(end=None, start__gte=datetime.now())
+    query = Q(end__gt=timezone.now()) | Q(end=None, start__gte=timezone.now())
     events = Event.objects.filter(query)
     return events_list(request, events, context)
 
 
 def past_events(request):
     context = {'events_shown': 'past'}
-    now = datetime.now()
+    now = timezone.now()
     query = Q(end__lte=now) | Q(end=None, start__lte=now)
     events = Event.objects.filter(query)
     return events_list(request, events, context)
@@ -82,7 +83,7 @@ def create_booking(request, event_id):
         booking, _ = ParticipantBooking.objects.get_or_create(event=event,
                                                               person=user,
                                                               defaults={'cancelledBy': user,
-                                                                        'cancelledOn': datetime.now()})
+                                                                        'cancelledOn': timezone.now()})
         messages.warning(request, 'Please confirm your registration here!')
         return redirect('update_booking', booking_id=booking.id)
     else:
@@ -123,7 +124,7 @@ def cancel_booking(request, booking_id):
 
     if request.method == 'POST':
         booking.cancelledBy = request.user
-        booking.cancelledOn = datetime.now()
+        booking.cancelledOn = timezone.now()
         booking.save()
         messages.warning(request, 'Registration cancelled')
         return redirect('my_events')
@@ -168,7 +169,7 @@ def confirm_payment(request, booking_id, cancel=False):
     if request.method == 'POST':
         if not cancel:
             booking.paidTo = request.user
-            booking.datePaid = date.today()
+            booking.datePaid = timezone.now().date()
         else:
             booking.paidTo = None
             booking.datePaid = None
@@ -197,7 +198,7 @@ def dl_event_options_summary(request, event_id):
         return redirect('index')
 
     filename = "{0}_options_{1}.csv".format(slugify(event.title),
-                                            datetime.now().strftime('%Y%m%d%H%M%S'))
+                                            datetime.utcnow().strftime('%Y%m%d%H%M%S'))
 
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(content_type='text/csv')
@@ -225,7 +226,7 @@ def dl_participants_list(request, event_id):
         return redirect('index')
 
     filename = "{0}_participants_{1}.csv".format(slugify(event.title),
-                                                 datetime.now().strftime('%Y%m%d%H%M%S'))
+                                                 datetime.utcnow().strftime('%Y%m%d%H%M%S'))
 
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(content_type='text/csv')

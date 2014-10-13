@@ -1,10 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
-from datetime import date, datetime
-from django.utils.timezone import utc
 from decimal import Decimal
 import logging
+from django.utils import timezone
 
 
 def end_of_day(when):
@@ -74,20 +73,20 @@ class Event(models.Model):
         '''
         Check if the event is ended
         '''
-        return self.get_real_end() < datetime.now(utc)
+        return self.get_real_end() < timezone.now()
 
     def is_booking_open(self):
         '''
         Check if the event is still open for bookings
         '''
-        closed = self.booking_close is not None and datetime.now(utc) > self.booking_close
+        closed = self.booking_close is not None and timezone.now() > self.booking_close
         return self.is_choices_open() and not self.is_ended() and not closed
 
     def is_choices_open(self):
         '''
         Check if the event is still open for choices
         '''
-        closed = self.choices_close is not None and datetime.now(utc) > self.choices_close
+        closed = self.choices_close is not None and timezone.now() > self.choices_close
         return not self.is_ended() and not closed
 
     def get_active_bookings(self):
@@ -226,13 +225,13 @@ class ParticipantBooking(models.Model):
                                                                             self.event))
         # Reset the date paid against paid To
         if self.paidTo is not None and self.datePaid is None:
-            self.datePaid = date.today()
+            self.datePaid = timezone.now().date()
         if self.paidTo is None and self.datePaid is not None:
             self.datePaid = None
 
         # Reset the cancel date against cancelledBy
         if self.cancelledBy is not None and self.cancelledOn is None:
-            self.cancelledOn = datetime.now()
+            self.cancelledOn = timezone.now()
         if self.cancelledBy is None and self.cancelledOn is not None:
             self.cancelledOn = None
 

@@ -234,19 +234,31 @@ def dl_participants_list(request, event_id):
 
     bookings = event.bookings.order_by('person__last_name', 'person__first_name')
 
-    writer.writerow(["Last name", "First name", 'Cancelled', 'Payment status', 'Choices'])
+    writer.writerow([u'Last name', u'First name', u'Employment',
+                     u'Cancelled', u'Payment status', u'Choices'])
     for booking in bookings:
         if booking.paidTo is not None:
-            payment = "{0} on {1}".format(booking.paidTo.get_full_name(), booking.datePaid)
+            payment = u"{0} on {1}".format(booking.paidTo.get_full_name(), booking.datePaid)
+        elif booking.must_pay() > 0:
+            payment = u"MUST PAY {0} ({1})".format(booking.must_pay(), event.price_currency)
         else:
-            payment = "NOT PAID"
+            payment = u"No payment needed"
 
         if booking.cancelledBy is not None:
-            cancelled = "Yes"
+            cancelled = u"Yes"
+            payment = u"No payment needed"
         else:
-            cancelled = "No"
+            cancelled = u"No"
 
-        row = [booking.person.last_name, booking.person.first_name, cancelled, payment]
+        if booking.is_employee():
+            employment = u'Employee'
+        elif booking.is_contractor():
+            employment = u'Contractor'
+        else:
+            employment = u'Unknown'
+
+        row = [booking.person.last_name, booking.person.first_name, employment,
+               cancelled, payment]
         for option in booking.options.all():
             row.append(option.option.title)
         writer.writerow(row)

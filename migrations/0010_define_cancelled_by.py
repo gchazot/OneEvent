@@ -8,14 +8,17 @@ from django.db import models
 class Migration(DataMigration):
 
     def forwards(self, orm):
-        migr_user = orm['auth.User'].objects.order_by('id')[0]
-        print "--- Making all events paid by {0}".format(migr_user.username)
+        migr_users = orm['auth.User'].objects.order_by('id')
+        if migr_users.count() >0:
+            migr_user = migr_users[0]
+            print "--- Making all events paid by {0}".format(migr_user.username)
 
-        migr_date = datetime.datetime(1970, 1, 1)
+            migr_date = datetime.datetime(1970, 1, 1)
 
-        bookings = orm['OneEvent.ParticipantBooking'].objects.filter(cancelled=True)
-        bookings.update(cancelledBy=migr_user, cancelledOn=migr_date)
-
+            bookings = orm['OneEvent.ParticipantBooking'].objects.filter(cancelled=True)
+            bookings.update(cancelledBy=migr_user, cancelledOn=migr_date)
+        else:
+            print 'No user to mark as "Cancelled By"!!'
         # Note: Remember to use orm['appname.ModelName'] rather than "from appname.models..."
 
     def backwards(self, orm):

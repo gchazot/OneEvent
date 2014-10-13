@@ -59,7 +59,7 @@ class Event(models.Model):
         '''
         Check that the given user can update the event
         '''
-        return user in self.organisers.all()
+        return user in self.organisers.all() or user.is_superuser
 
     def get_real_end(self):
         '''

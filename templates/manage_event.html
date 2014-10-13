@@ -1,7 +1,9 @@
 {% extends 'base.html' %}'
 
 {% block heading_action %}Manage{% endblock %}
-{% block heading_title %}{{ event.title }}{% endblock %}
+{% block heading_title %}{{ event.title }}
+    <small>{{ booking.event.start|date:"D, d N Y H:i" }}</small>
+{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -39,7 +41,7 @@
             <tbody>
                 {% for choice, options in event.get_options_counts.items %}
                 <tr>
-                    <td>{{ choice.title }}</td>
+                    <th>{{ choice.title }}</th>
                     {% for option, total in options.items %}
                     <td>
                         {{ option.title }}
@@ -54,12 +56,12 @@
 </div>
 
 <div class="panel panel-info collapsible-caret">
-    <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseThree">
+    <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseThree">
         <strong>Participants</strong>
         <a href="{% url 'dl_participants_list' event_id=event.id %}"
             class="btn btn-default" data-toggle="" data-target="">Download</a>
     </div>
-    <div id="collapseThree" class="panel-collapse collapse in table-responsive">
+    <div id="collapseThree" class="panel-collapse collapse table-responsive">
         <table class="panel-body table table-bordered">
             <thead>
                 <tr>
@@ -109,6 +111,10 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+    <div id="panel-footer">
+        <p><strong>Total Confirmed bookings: </strong> {{event.get_active_bookings.count}}</p>
+        <p><strong>Including Cancelled: </strong> {{event.bookings.count}}</p>
     </div>
 </div>
 

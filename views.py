@@ -8,7 +8,6 @@ from django.shortcuts import render, redirect, get_object_or_404, render_to_resp
 from django.contrib.auth.decorators import login_required
 from django.db.models.query_utils import Q
 
-from datetime import datetime
 from django.utils import timezone
 
 from OneEvent.models import Event, ParticipantBooking
@@ -18,6 +17,10 @@ from django.http.response import HttpResponse
 from django.template.defaultfilters import slugify
 from django.contrib import messages
 import unicode_csv
+from timezones import get_tzinfo
+
+# A default datetime format (too lazy to use the one in settings)
+dt_format = '%a, %d %b %Y %H:%M'
 
 
 def index(request):
@@ -43,7 +46,8 @@ def events_list(request, events, context={}):
 
 def future_events(request):
     context = {'events_shown': 'fut'}
-    query = Q(end__gt=timezone.now()) | Q(end=None, start__gte=timezone.now())
+    now = timezone.now()
+    query = Q(end__gt=now) | Q(end=None, start__gte=now)
     events = Event.objects.filter(query)
     return events_list(request, events, context)
 
@@ -108,6 +112,7 @@ def update_booking(request, booking_id):
         messages.success(request, 'Registration updated')
         return redirect('my_events')
 
+    timezone.activate(booking.event.get_tzinfo())
     return render_to_response('update_booking.html',
                               {'booking': booking,
                                'form': form},
@@ -129,6 +134,7 @@ def cancel_booking(request, booking_id):
         messages.warning(request, 'Registration cancelled')
         return redirect('my_events')
     else:
+        timezone.activate(booking.event.get_tzinfo())
         return render_to_response('cancel_booking.html',
                                   {'booking': booking},
                                   context_instance=RequestContext(request))
@@ -142,6 +148,13 @@ def manage_event(request, event_id):
         messages.error(request, 'You are not authorised to manage this event !')
         return redirect('index')
 
+    # Activate the timezone from form data before processing the form
+    # Use a separate form! otherwise the data is already processed
+    tz_form = EventForm(request.POST or None, instance=event)
+    if tz_form.is_valid():
+        tz = get_tzinfo(tz_form.cleaned_data['city'])
+        timezone.activate(tz)
+
     form = EventForm(request.POST or None, instance=event)
     if form.is_valid():
         form.save()
@@ -151,8 +164,12 @@ def manage_event(request, event_id):
         else:
             messages.success(request, 'You removed yourself from the organisers of {0}'.format(event.title))
             return redirect('index')
-    elif form.is_bound:
-        messages.error(request, 'Unable to update event details, see below for errors!')
+    else:
+        if form.is_bound:
+            messages.error(request, 'Unable to update event details, see below for errors!')
+        # Not saving a form. Activate the timezone from the event
+        timezone.activate(event.get_tzinfo())
+
     return render_to_response('manage_event.html',
                               {'event': event, 'form': form},
                               context_instance=RequestContext(request))
@@ -169,7 +186,7 @@ def confirm_payment(request, booking_id, cancel=False):
     if request.method == 'POST':
         if not cancel:
             booking.paidTo = request.user
-            booking.datePaid = timezone.now().date()
+            booking.datePaid = timezone.now()
         else:
             booking.paidTo = None
             booking.datePaid = None
@@ -184,6 +201,7 @@ def confirm_payment(request, booking_id, cancel=False):
 
         return redirect('manage_event', event_id=booking.event.id)
     else:
+        timezone.activate(booking.event.get_tzinfo())
         return render_to_response('confirm_payment.html',
                                   {'booking': booking, 'cancel': cancel},
                                   context_instance=RequestContext(request))
@@ -198,7 +216,7 @@ def dl_event_options_summary(request, event_id):
         return redirect('index')
 
     filename = "{0}_options_{1}.csv".format(slugify(event.title),
-                                            datetime.utcnow().strftime('%Y%m%d%H%M%S'))
+                                            timezone.now().strftime('%Y%m%d%H%M%S'))
 
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(content_type='text/csv')
@@ -226,7 +244,7 @@ def dl_participants_list(request, event_id):
         return redirect('index')
 
     filename = "{0}_participants_{1}.csv".format(slugify(event.title),
-                                                 datetime.utcnow().strftime('%Y%m%d%H%M%S'))
+                                                 timezone.now().strftime('%Y%m%d%H%M%S'))
 
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(content_type='text/csv')
@@ -239,15 +257,20 @@ def dl_participants_list(request, event_id):
                      u'Cancelled', u'Payment status', u'Choices'])
     for booking in bookings:
         if booking.paidTo is not None:
-            payment = u"{0} on {1}".format(booking.paidTo.get_full_name(), booking.datePaid)
+            local_datePaid = booking.datePaid.astimezone(booking.event.get_tzinfo())
+            payment = u"{0} on {1}".format(booking.paidTo.get_full_name(),
+                                           local_datePaid.strftime(dt_format))
         elif booking.must_pay() > 0:
             payment = u"MUST PAY {0} ({1})".format(booking.must_pay(), event.price_currency)
         else:
             payment = u"No payment needed"
 
         if booking.cancelledBy is not None:
-            cancelled = u"Yes"
-            payment = u"No payment needed"
+            local_dateCancelled = booking.cancelledOn.astimezone(booking.event.get_tzinfo())
+            cancelled = u"By {0} on {1}".format(booking.cancelledBy.get_full_name(),
+                                                local_dateCancelled.strftime(dt_format))
+            if booking.paidTo is None:
+                payment = u"N/A"
         else:
             cancelled = u"No"
 

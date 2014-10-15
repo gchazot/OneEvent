@@ -14,6 +14,8 @@
         </div>
         <div id="collapseOne" class="panel-collapse collapse">
         <div class="panel-body">
+            <p><label>Location:</label>
+                {{ booking.event.city }}</p>
             <p><label>Starts: </label>
                 {{ booking.event.start|date:"D, d N Y H:i" }}</p>
 
@@ -64,7 +66,7 @@
         <div class="panel-body">
             <p><label>Registration:</label>
             {% if booking.cancelledBy %}
-            Not Confirmed/Cancelled (by {{booking.cancelledBy.get_full_name}} on {{booking.cancelledOn|date:"D, d N Y"}})
+            Not Confirmed/Cancelled (by {{booking.cancelledBy.get_full_name}} on {{booking.cancelledOn|date:"D, d N Y H:i"}})
             {% else %}
             Confirmed
             </p>
@@ -73,7 +75,7 @@
             <p><label>Payment:</label>
                 <span class="bg-{{booking.get_payment_status_class}}">
                 {% if booking.paidTo %}
-                Paid to {{booking.paidTo.get_full_name}} on {{booking.datePaid|date:"D, d N Y"}}
+                Paid to {{booking.paidTo.get_full_name}} on {{booking.datePaid|date:"D, d N Y H:i"}}
                 {% elif booking.must_pay == 0 %}
                 No payment needed
                 {% else %}

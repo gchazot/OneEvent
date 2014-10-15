@@ -4,13 +4,17 @@ from django.core.exceptions import ValidationError
 from decimal import Decimal
 import logging
 from django.utils import timezone
+from timezones import CITY_CHOICES, get_tzinfo
 
 
-def end_of_day(when):
+def end_of_day(when, timezone):
     '''
     Returns the end of the day after of the given datetime object
+    @param when: the datetime to use
+    @param timezone: the timezone in which to calculate the end of the day
     '''
-    return when.replace(hour=23, minute=59, second=59)
+    local_dt = when.astimezone(timezone)
+    return timezone.normalize(local_dt.replace(hour=23, minute=59, second=59))
 
 
 class Event(models.Model):
@@ -18,16 +22,22 @@ class Event(models.Model):
     An event being organised
     '''
     title = models.CharField(max_length=64, unique=True)
-    start = models.DateTimeField()
-    end = models.DateTimeField(blank=True, null=True)
+    start = models.DateTimeField(help_text='Local start date and time')
+    end = models.DateTimeField(blank=True, null=True,
+                               help_text='Local end date and time (optional)')
+    city = models.CharField(max_length=32, choices=CITY_CHOICES,
+                            help_text='Timezone of your event')
 
-    location_name = models.CharField(max_length=64, null=True, blank=True)
+    location_name = models.CharField(max_length=64, null=True, blank=True,
+                                     help_text='Venue of your event')
     location_address = models.TextField(null=True, blank=True)
 
     organisers = models.ManyToManyField(User, blank=True)
 
-    booking_close = models.DateTimeField(blank=True, null=True, help_text='(UTC !)')
-    choices_close = models.DateTimeField(blank=True, null=True, help_text='(UTC !)')
+    booking_close = models.DateTimeField(blank=True, null=True,
+                                         help_text='Limit date and time for registering')
+    choices_close = models.DateTimeField(blank=True, null=True,
+                                         help_text='Limit date and time for changing choices')
 
     price_for_employees = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     price_for_contractors = models.DecimalField(max_digits=6, decimal_places=2, default=0)
@@ -60,6 +70,12 @@ class Event(models.Model):
         '''
         return user in self.organisers.all() or user.is_superuser
 
+    def get_tzinfo(self):
+        '''
+        Get the tzinfo object applicable to this event
+        '''
+        return get_tzinfo(self.city)
+
     def get_real_end(self):
         '''
         Get the real datetime of the end of the event
@@ -67,7 +83,7 @@ class Event(models.Model):
         if self.end is not None:
             return self.end
         else:
-            return end_of_day(self.start)
+            return end_of_day(self.start, self.get_tzinfo())
 
     def is_ended(self):
         '''
@@ -79,14 +95,16 @@ class Event(models.Model):
         '''
         Check if the event is still open for bookings
         '''
-        closed = self.booking_close is not None and timezone.now() > self.booking_close
+        closed = (self.booking_close is not None
+                  and timezone.now() > self.booking_close)
         return self.is_choices_open() and not self.is_ended() and not closed
 
     def is_choices_open(self):
         '''
         Check if the event is still open for choices
         '''
-        closed = self.choices_close is not None and timezone.now() > self.choices_close
+        closed = (self.choices_close is not None
+                  and timezone.now() > self.choices_close)
         return not self.is_ended() and not closed
 
     def get_active_bookings(self):
@@ -207,7 +225,7 @@ class ParticipantBooking(models.Model):
     cancelledOn = models.DateTimeField(blank=True, null=True)
 
     paidTo = models.ForeignKey(User, blank=True, null=True, related_name='received_payments')
-    datePaid = models.DateField(blank=True, null=True)
+    datePaid = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         unique_together = ('event', 'person')
@@ -225,7 +243,7 @@ class ParticipantBooking(models.Model):
                                                                             self.event))
         # Reset the date paid against paid To
         if self.paidTo is not None and self.datePaid is None:
-            self.datePaid = timezone.now().date()
+            self.datePaid = timezone.now()
         if self.paidTo is None and self.datePaid is not None:
             self.datePaid = None
 

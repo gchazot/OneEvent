@@ -87,15 +87,15 @@
                     <td>
                        {% if booking.cancelledBy %}
                            <p><span class='btn btn-warning disabled'>Cancelled</span>
-                           by {{booking.cancelledBy.get_full_name}} on {{booking.cancelledOn|date:"D, d N Y"}}</p>
+                           by {{booking.cancelledBy.get_full_name}} on {{booking.cancelledOn|date:"D, d N Y H:i"}}</p>
                            {% if booking.paidTo %}
                                <p><span class='btn btn-danger disabled'>Payment received !</span>
-                               by {{ booking.paidTo.get_full_name }} on {{ booking.datePaid }}</p>
+                               by {{ booking.paidTo.get_full_name }} on {{ booking.datePaid|date:"D, d N Y H:i" }}</p>
                                <p><a href="{% url 'cancel_payment' booking_id=booking.id %}"
                                class='btn btn-danger'>Refund</a></p>
                            {% endif %}
                        {% elif booking.paidTo %}
-                           Paid to {{ booking.paidTo.get_full_name }} on {{ booking.datePaid }}
+                           Paid to {{ booking.paidTo.get_full_name }} on {{ booking.datePaid|date:"D, d N Y H:i" }}
                        {% elif booking.must_pay > 0 %}
                            <a href="{% url 'confirm_payment' booking_id=booking.id %}"
                                class='btn btn-success'>Confirm Payment</a>

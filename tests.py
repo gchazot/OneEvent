@@ -88,12 +88,12 @@ class ParticipantRegistrationTest(TestCase):
                                  datePaid=None)
         reg.clean()
         self.assertEquals(reg.paidTo, self.user)
-        self.assertEquals(reg.datePaid, timezone.now().date())
+        self.assertEquals(reg.datePaid, timezone.now())
 
         reg = ParticipantBooking(event=self.ev,
                                  person=self.user,
                                  paidTo=None,
-                                 datePaid=timezone.now().date())
+                                 datePaid=timezone.now())
         reg.clean()
         self.assertEquals(reg.paidTo, None)
         self.assertEquals(reg.datePaid, None)

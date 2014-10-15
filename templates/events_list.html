@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tz %}
 
 {% block heading_action %}OneEvent!{% endblock %}
 {% block heading_title %}All ASL events{% endblock %}
@@ -11,7 +12,7 @@
         <thead>
             <tr>
                 <th>Event</th>
-                <th>Date</th>
+                <th>Date (local)</th>
                 <th>Infos</th>
                 <th>Organised by</th>
                 {% if user.is_authenticated %}
@@ -21,20 +22,25 @@
         </thead>
         <tbody>
             {% for event_info in events %}
+            {% timezone event_info.event.get_tzinfo %}
             <tr>
                 <td>
-                    <p>{{ event_info.event.title }}</p>
+                    <p>
+                        {{ event_info.event.title }}
+                        <span class="badge pull-right">{{ event_info.event.city }}</span>
+                    </p>
                     {% if event_info.event.location_name %}<p><small>at </small>{{event_info.event.location_name}}</p>{% endif %}
                 </td>
                 <td><p>{{ event_info.event.start|date:"D, d N Y H:i" }}</p>
                     {% if event_info.event.end %}<p>- {{ event_info.event.end|date:"D, d N Y H:i" }}</p>{% endif %}
+                    <p></p>
                 </td>
                 <td>
                     {% if event_info.event.booking_close %}
-                    <p>Registration closes: {{event_info.event.booking_close|date:"D, d N Y H:i e"}}</p>
+                    <p>Registration closes: {{event_info.event.booking_close|date:"D, d N Y H:i"}}</p>
                     {% endif %}
                     {% if event_info.event.choices_close %}
-                    <p>Choices closes: {{event_info.event.choices_close|date:"D, d N Y H:i e"}}</p>
+                    <p>Choices closes: {{event_info.event.choices_close|date:"D, d N Y H:i"}}</p>
                     {% endif %}
                     {% if event_info.event.price_for_employees > 0.0 or event_info.event.price_for_employees > 0.0 %}
                     <p>Price for Employees: {{ event_info.event.price_for_employees }}{% if event_info.event.price_currency %}({{event_info.event.price_currency}}){% endif %}</p>
@@ -69,6 +75,7 @@
                 </td>
                 {% endif %}
             </tr>
+            {% endtimezone %}
             {% endfor %}
         </tbody>
     </table>

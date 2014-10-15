@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>OneEvent - All ASL events !</title>
+    <title>OneEvent - All your events !</title>
 
     <link href="{% static "bootstrap/css/bootstrap.min.css" %}" rel="stylesheet" />
     <link rel="stylesheet" href="{% static "OneEvent/OneEvent.css" %}" />
@@ -42,6 +42,7 @@
                     <span class="icon-bar"></span>
                 </button>
                 <span class="navbar-brand">OneEvent</span>
+                <span class="navbar-text" style="float:left">{% block navbar_header_text %}{% endblock %}</span>
             </div>
             <div class="collapse navbar-collapse" id="navbar-menu-entries">
                 <ul class="nav navbar-nav">
@@ -52,22 +53,10 @@
                             <span class="hidden-sm hidden-md hidden-lg">Home</span>
                         </a>
                     </li>
-
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle"
-                            data-toggle="dropdown" title="Events">
-                            <span class="glyphicon glyphicon-th-list"></span>
-                            <span class="">Events</span>
-                            <span class="caret"></span>
-                        </a>
-                        <ul class="dropdown-menu" role="menu">
-                            <li><a href="{% url 'my_events' %}">My events</a></li>
-                            <li><a href="{% url 'all_events' %}">All events</a></li>
-                            <li><a href="{% url 'future_events' %}">Coming up</a></li>
-                            <li><a href="{% url 'past_events' %}">Past events</a></li>
-                        </ul>
-                    </li>
                 </ul>
+
+                {% block navbar_extra %}{% endblock %}
+
                 <ul class="nav navbar-nav navbar-right">
                     {% if user.is_staff %}
                     <li>
@@ -97,7 +86,7 @@
 
                     {% if user.is_authenticated %}
                     <li>
-                        <p class="navbar-text navbar-right"> {{user.get_full_name}}</p>
+                        <p class="navbar-text"> {{user.get_full_name}}</p>
                     </li>
                     {% endif %}
                 </ul>

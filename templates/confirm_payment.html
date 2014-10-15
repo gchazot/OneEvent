@@ -1,5 +1,7 @@
 {% extends "base_confirmation.html" %}
 
+{% block navbar_header_text %}Confirm Payment{% endblock %}
+
 {% block heading_action %}
     {% if cancel %}Refund{% else %}Confirm Payment{% endif %}
 {% endblock %}

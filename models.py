@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 import logging
@@ -32,7 +31,7 @@ class Event(models.Model):
                                      help_text='Venue of your event')
     location_address = models.TextField(null=True, blank=True)
 
-    organisers = models.ManyToManyField(User, blank=True)
+    organisers = models.ManyToManyField('auth.User', blank=True)
 
     booking_close = models.DateTimeField(blank=True, null=True,
                                          help_text='Limit date and time for registering')
@@ -43,8 +42,8 @@ class Event(models.Model):
     price_for_contractors = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     price_currency = models.CharField(max_length=3, null=True, blank=True)
 
-    employees_groups = models.ManyToManyField(Group, blank=True, related_name='employees_for_event+')
-    contractors_groups = models.ManyToManyField(Group, blank=True, related_name='contractors_for_event+')
+    employees_groups = models.ManyToManyField('auth.Group', blank=True, related_name='employees_for_event+')
+    contractors_groups = models.ManyToManyField('auth.Group', blank=True, related_name='contractors_for_event+')
 
     def __unicode__(self):
         result = u'{0} - {1:%x %H:%M}'.format(self.title, self.start)
@@ -171,7 +170,7 @@ class EventChoice(models.Model):
     '''
     A choice that participants have to make for an event
     '''
-    event = models.ForeignKey(Event, related_name='choices')
+    event = models.ForeignKey('Event', related_name='choices')
     title = models.CharField(max_length=64)
     description = models.TextField(blank=True)
 
@@ -186,7 +185,7 @@ class EventChoiceOption(models.Model):
     '''
     An option available for a choice of an event
     '''
-    choice = models.ForeignKey(EventChoice, related_name='options')
+    choice = models.ForeignKey('EventChoice', related_name='options')
     title = models.CharField(max_length=256)
     description = models.TextField(blank=True)
     default = models.BooleanField(default=False)
@@ -218,13 +217,13 @@ class ParticipantBooking(models.Model):
     '''
     Entry recording a user registration to an event
     '''
-    event = models.ForeignKey(Event, related_name='bookings')
-    person = models.ForeignKey(User, related_name='bookings')
+    event = models.ForeignKey('Event', related_name='bookings')
+    person = models.ForeignKey('auth.User', related_name='bookings')
 
-    cancelledBy = models.ForeignKey(User, blank=True, null=True, related_name='cancelled_bookings')
+    cancelledBy = models.ForeignKey('auth.User', blank=True, null=True, related_name='cancelled_bookings')
     cancelledOn = models.DateTimeField(blank=True, null=True)
 
-    paidTo = models.ForeignKey(User, blank=True, null=True, related_name='received_payments')
+    paidTo = models.ForeignKey('auth.User', blank=True, null=True, related_name='received_payments')
     datePaid = models.DateTimeField(blank=True, null=True)
 
     class Meta:
@@ -322,8 +321,8 @@ class ParticipantOption(models.Model):
     '''
     A choice made by a booking for an event
     '''
-    booking = models.ForeignKey(ParticipantBooking, related_name='options')
-    option = models.ForeignKey(EventChoiceOption, null=True, blank=True)
+    booking = models.ForeignKey('ParticipantBooking', related_name='options')
+    option = models.ForeignKey('EventChoiceOption', null=True, blank=True)
 
     class Meta:
         unique_together = ('booking', 'option')

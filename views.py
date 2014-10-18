@@ -7,17 +7,18 @@ Created on 22 Jun 2014
 from django.shortcuts import render, redirect, get_object_or_404, render_to_response
 from django.contrib.auth.decorators import login_required
 from django.db.models.query_utils import Q
-
-from django.utils import timezone
-
-from OneEvent.models import Event, ParticipantBooking
-from OneEvent.forms import BookingForm, EventForm
 from django.template.context import RequestContext
 from django.http.response import HttpResponse
 from django.template.defaultfilters import slugify
 from django.contrib import messages
+from django.utils import timezone
+
 import unicode_csv
 from timezones import get_tzinfo
+
+from OneEvent.models import Event, ParticipantBooking, Message
+from OneEvent.forms import BookingForm, EventForm, MessageForm, ReplyMessageForm
+from datetime import timedelta
 
 # A default datetime format (too lazy to use the one in settings)
 dt_format = '%a, %d %b %Y %H:%M'
@@ -288,3 +289,51 @@ def dl_participants_list(request, event_id):
         writer.writerow(row)
 
     return response
+
+
+@login_required
+def view_messages(request):
+    threads = Message.objects.filter(thread_head=None)
+    if not request.user.is_superuser:
+        threads = threads.filter(sender=request.user)
+
+    user_threads = []
+    for thread_head in threads:
+        query = Q(id=thread_head.id) | Q(thread_head=thread_head)
+        messages = Message.objects.filter(query)
+        user_threads.append((thread_head, messages,))
+
+    return render_to_response('view_messages.html',
+                              {'threads': user_threads},
+                              context_instance=RequestContext(request))
+
+
+@login_required
+def create_message(request, thread_id=None):
+    # Pre-populate some fields of the message
+    new_msg = Message(sender=request.user)
+    if thread_id is None:
+        thread_head = None
+        form = MessageForm(request.POST or None, instance=new_msg)
+    else:
+        thread_head = get_object_or_404(Message, id=thread_id)
+        new_msg.thread_head = thread_head
+        new_msg.title = thread_head.title
+        new_msg.category = thread_head.category
+        form = ReplyMessageForm(request.POST or None, instance=new_msg)
+
+    # Check a quota of messages
+    limit = timezone.now() - timedelta(days=1)
+    user_msgs = Message.objects.filter(created__gte=limit, sender=request.user)
+    if user_msgs.count() >= 10:
+        messages.error(request, 'Sorry you have used your message quota')
+        return redirect('view_messages')
+
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Your message has been sent')
+        return redirect('view_messages')
+
+    return render_to_response('create_message.html',
+                              {'form': form, 'thread_id': thread_id},
+                              context_instance=RequestContext(request))

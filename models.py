@@ -341,3 +341,28 @@ class ParticipantOption(models.Model):
             error = 'Participant {0} already has a choice for {1}'.format(self.booking,
                                                                           self.option.choice)
             raise ValidationError(error)
+
+
+class Message(models.Model):
+    MSG_CAT_CHOICES = (
+        ('QUERY', 'Question'),
+        ('COMMENT', 'General comment'),
+        ('BUG', 'Bug report'),
+        ('FEAT', 'Feature request'),
+        ('ADMIN', 'Administration Request'),
+    )
+    sender = models.ForeignKey('auth.User')
+    category = models.CharField(max_length=8, choices=MSG_CAT_CHOICES)
+    title = models.CharField(max_length=128)
+    text = models.TextField(max_length=2048)
+    thread_head = models.ForeignKey('Message', related_name='thread',
+                                    null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created']
+
+    def __unicode__(self):
+        return u'Message: From {0}, On {1}, Title "{2}"'.format(self.sender,
+                                                                self.created,
+                                                                self.title)

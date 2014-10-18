@@ -5,7 +5,7 @@ Created on 5 Jun 2014
 '''
 from django.contrib import admin
 from models import (Event, EventChoice, EventChoiceOption, ParticipantBooking,
-                    ParticipantOption)
+                    ParticipantOption, Message)
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.utils import timezone
@@ -189,3 +189,4 @@ class ParticipantBookingAdmin(admin.ModelAdmin):
 admin.site.register(Event, EventAdmin)
 admin.site.register(EventChoice, EventChoiceAdmin)
 admin.site.register(ParticipantBooking, ParticipantBookingAdmin)
+admin.site.register(Message, admin.ModelAdmin)

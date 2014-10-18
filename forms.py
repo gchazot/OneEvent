@@ -5,7 +5,7 @@ Created on 23 Sep 2014
 '''
 from django.forms import Form
 from django.forms.fields import ChoiceField
-from OneEvent.models import ParticipantOption, EventChoiceOption, Event
+from OneEvent.models import ParticipantOption, EventChoiceOption, Event, Message
 from django.forms.models import ModelForm
 
 
@@ -45,3 +45,14 @@ class BookingForm(Form):
 class EventForm(ModelForm):
     class Meta:
         model = Event
+
+
+class MessageForm(ModelForm):
+    class Meta:
+        model = Message
+        fields = ['category', 'title', 'text']
+
+
+class ReplyMessageForm(MessageForm):
+    class Meta(MessageForm.Meta):
+        fields = ['text']

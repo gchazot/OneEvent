@@ -36,10 +36,16 @@ def events_list(request, events, context={}):
     for evt in events:
         event_info = {'event': evt, 'booking': None}
         if request.user.is_authenticated():
+            # Hide events that the user can not list
+            if not evt.user_can_list(request.user):
+                continue
+            # Look for a possible booking by the user
             try:
                 event_info['booking'] = evt.get_active_bookings().get(person=request.user)
             except ParticipantBooking.DoesNotExist:
                 pass
+            event_info['user_can_book'] = evt.user_can_book(request.user)
+            event_info['user_can_update'] = evt.user_can_update(request.user)
         context['events'].append(event_info)
 
     return render(request, 'events_list.html', context)
@@ -82,12 +88,15 @@ def my_events(request):
 @login_required
 def create_booking(request, event_id):
     event = get_object_or_404(Event, id=event_id)
-    user = request.user
+
+    if not event.user_can_book(request.user):
+        messages.error(request, 'You are not allowed to register to this event')
+        return redirect('index')
 
     if event.is_booking_open():
         booking, _ = ParticipantBooking.objects.get_or_create(event=event,
-                                                              person=user,
-                                                              defaults={'cancelledBy': user,
+                                                              person=request.user,
+                                                              defaults={'cancelledBy': request.user,
                                                                         'cancelledOn': timezone.now()})
         messages.warning(request, 'Please confirm your registration here!')
         return redirect('update_booking', booking_id=booking.id)
@@ -99,6 +108,10 @@ def create_booking(request, event_id):
 @login_required
 def update_booking(request, booking_id):
     booking = get_object_or_404(ParticipantBooking, id=booking_id)
+
+    if not booking.event.user_can_book(request.user):
+        messages.error(request, 'It is not possible to register/update this booking')
+        return redirect('index')
 
     if not booking.user_can_update(request.user):
         messages.error(request, 'You are not authorised to update this booking !')

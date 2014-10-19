@@ -9,6 +9,7 @@ from django.db.utils import IntegrityError
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from datetime import timedelta
 
 
 class EventTest(TestCase):
@@ -49,23 +50,8 @@ class EventChoiceOptionTest(TestCase):
                           choice=self.choice,
                           title='option 1')
 
-    def test_clean(self):
-        opt1 = EventChoiceOption.objects.create(choice=self.choice,
-                                                title='option 1',
-                                                default=False)
-        opt1.clean()
-        self.assertTrue(opt1.default)
 
-        opt2 = EventChoiceOption(choice=self.choice,
-                                 title='option 2',
-                                 default=True)
-        opt2.clean()
-        self.assertTrue(opt2.default)
-        self.assertFalse(EventChoiceOption.objects.get(choice=self.choice,
-                                                       title='option 1').default)
-
-
-class ParticipantRegistrationTest(TestCase):
+class ParticipantBookingTest(TestCase):
     def setUp(self):
         self.ev = Event.objects.create(title='myEvent',
                                        start=timezone.now())
@@ -76,19 +62,15 @@ class ParticipantRegistrationTest(TestCase):
                                           person=self.user)
 
     def test_clean(self):
-#         reg = ParticipantBooking(event=self.ev,
-#                                  person=self.user,
-#                                  paidTo=self.user,
-#                                  datePaid=None)
-#         self.assertRaises(ValidationError, reg.clean)
-
         reg = ParticipantBooking(event=self.ev,
                                  person=self.user,
                                  paidTo=self.user,
                                  datePaid=None)
         reg.clean()
         self.assertEquals(reg.paidTo, self.user)
-        self.assertEquals(reg.datePaid, timezone.now())
+        diff_datePaid = timezone.now() - reg.datePaid
+        self.assertLess(diff_datePaid, timedelta(seconds=1))
+        self.assertGreaterEqual(diff_datePaid, timedelta(seconds=0))
 
         reg = ParticipantBooking(event=self.ev,
                                  person=self.user,

@@ -115,7 +115,7 @@ class EventChoiceInline(admin.TabularInline, EditLinkToInlineObjectMixin):
 
 class EventAdmin(admin.ModelAdmin):
     fields = (
-        'title',
+        ('title', 'pub_status'),
         ('start', 'end'),
         'city',
         ('location_name', 'location_address'),

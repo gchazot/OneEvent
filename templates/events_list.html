@@ -11,7 +11,7 @@
     <li class="dropdown">
         <a href="#" class="dropdown-toggle"
             data-toggle="dropdown" title="Events">
-            <span class="glyphicon glyphicon-th-list"></span>
+            <span class="glyphicon glyphicon-list"></span>
             <span class="">
                 {% if events_shown == 'fut' %}
                     Coming Up
@@ -99,14 +99,17 @@
                     <button type="button" class="btn btn-danger disabled enable-tooltip"
                         data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Event Closed</button>
                     {% endif %}
-                {% elif event_info.event.is_booking_open %}
+                {% elif event_info.user_can_book %}
+                    {% if event_info.event.is_booking_open %}
                     <a href="{% url 'create_booking' event_id=event_info.event.id %}" class="btn btn-info">Register !</a>
-                {% else %}
-                    <button type="button" class="btn btn-info disabled enable-tooltip"
-                        data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Event Closed</button>
+                    {% else %}
+                        <button type="button" class="btn btn-info disabled enable-tooltip"
+                            data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Event Closed</button>
+                    {% endif %}
                 {% endif %}
-                {% if user in event_info.event.organisers.all or user.is_superuser %}
+                {% if event_info.user_can_update %}
                     <a href="{% url 'manage_event' event_id=event_info.event.id %}" class="btn btn-default">Manage</a>
+                    <p>({{event_info.event.get_pub_status_display }})</p>
                 {% endif %}
                 </td>
                 {% endif %}

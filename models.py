@@ -20,12 +20,23 @@ class Event(models.Model):
     '''
     An event being organised
     '''
+    PUB_STATUS_CHOICES = (
+        ('PUB', 'Public'),
+        ('REST', 'Restricted'),
+        ('PRIV', 'Private'),
+        ('UNPUB', 'Unpublished'),
+        ('ARCH', 'Archived')
+    )
+
     title = models.CharField(max_length=64, unique=True)
     start = models.DateTimeField(help_text='Local start date and time')
     end = models.DateTimeField(blank=True, null=True,
                                help_text='Local end date and time (optional)')
     city = models.CharField(max_length=32, choices=CITY_CHOICES,
                             help_text='Timezone of your event')
+
+    pub_status = models.CharField(max_length=8, choices=PUB_STATUS_CHOICES, default='UNPUB',
+                                  verbose_name='Publication status')
 
     location_name = models.CharField(max_length=64, null=True, blank=True,
                                      help_text='Venue of your event')
@@ -40,10 +51,15 @@ class Event(models.Model):
 
     price_for_employees = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     price_for_contractors = models.DecimalField(max_digits=6, decimal_places=2, default=0)
-    price_currency = models.CharField(max_length=3, null=True, blank=True)
+    price_currency = models.CharField(max_length=3, null=True, blank=True,
+                                      verbose_name='Currency for prices')
 
-    employees_groups = models.ManyToManyField('auth.Group', blank=True, related_name='employees_for_event+')
-    contractors_groups = models.ManyToManyField('auth.Group', blank=True, related_name='contractors_for_event+')
+    employees_groups = models.ManyToManyField('auth.Group', blank=True,
+                                              related_name='employees_for_event+',
+                                              verbose_name='Groups considered as Employees')
+    contractors_groups = models.ManyToManyField('auth.Group', blank=True,
+                                                related_name='contractors_for_event+',
+                                                verbose_name='Groups considered as Contractors')
 
     def __unicode__(self):
         result = u'{0} - {1:%x %H:%M}'.format(self.title, self.start)
@@ -63,11 +79,73 @@ class Event(models.Model):
         if self.booking_close and self.choices_close and self.booking_close > self.choices_close:
             raise ValidationError("Bookings must close before choices")
 
+    def user_is_organiser(self, user):
+        '''
+        Check if the given user is part of the organisers of the event
+        '''
+        return user in self.organisers.all()
+
+    def user_is_employee(self, user):
+        '''
+        Check if the user is part of the employees groups of the event
+        '''
+        common_groups = user.groups.all() & self.employees_groups.all()
+        logging.debug("is_employee:{0}:{1}".format(user, common_groups))
+        return common_groups.count() > 0
+
+    def user_is_contractor(self, user):
+        '''
+        Check if the user is part of the contractors groups of the event
+        '''
+        common_groups = user.groups.all() & self.contractors_groups.all()
+        logging.debug("is_contractor:{0}:{1}".format(user, common_groups))
+        return common_groups.count() > 0
+
     def user_can_update(self, user):
         '''
         Check that the given user can update the event
         '''
-        return user in self.organisers.all() or user.is_superuser
+        return user.is_superuser or user in self.organisers.all()
+
+    def user_can_list(self, user):
+        '''
+        Check that the given user can view the event in the list
+        '''
+        if self.pub_status == 'PUB':
+            return True
+        elif self.pub_status == 'REST':
+            return (user.is_superuser
+                    or self.user_is_organiser(user)
+                    or self.user_is_employee(user)
+                    or self.user_is_contractor(user))
+        elif self.pub_status == 'PRIV' or self.pub_status == 'UNPUB':
+            user_has_booking = self.bookings.filter(person=user, cancelledBy=None).count() > 0
+            return (user.is_superuser
+                    or user_has_booking
+                    or self.user_is_organiser(user))
+        elif self.pub_status == 'ARCH':
+            return False
+        else:
+            raise Exception("Unknown publication status: {0}".format(self.pub_status))
+
+    def user_can_book(self, user):
+        '''
+        Check if the given user can book the event
+        '''
+        if self.pub_status == 'PUB':
+            return True
+        elif self.pub_status == 'REST':
+            return (self.user_is_organiser(user)
+                    or self.user_is_employee(user)
+                    or self.user_is_contractor(user))
+        elif self.pub_status == 'PRIV':
+            return True
+        elif self.pub_status == 'UNPUB':
+            return False
+        elif self.pub_status == 'ARCH':
+            return False
+        else:
+            raise Exception("Unknown publication status: {0}".format(self.pub_status))
 
     def get_tzinfo(self):
         '''
@@ -96,7 +174,8 @@ class Event(models.Model):
         '''
         closed = (self.booking_close is not None
                   and timezone.now() > self.booking_close)
-        return self.is_choices_open() and not self.is_ended() and not closed
+        published = self.pub_status in ('PUB', 'REST', 'PRIV')
+        return self.is_choices_open() and not self.is_ended() and not closed and published
 
     def is_choices_open(self):
         '''
@@ -104,7 +183,8 @@ class Event(models.Model):
         '''
         closed = (self.choices_close is not None
                   and timezone.now() > self.choices_close)
-        return not self.is_ended() and not closed
+        published = self.pub_status in ('PUB', 'REST', 'PRIV')
+        return not self.is_ended() and not closed and published
 
     def get_active_bookings(self):
         '''
@@ -121,7 +201,7 @@ class Event(models.Model):
     def get_options_counts(self):
         '''
         Get a summary of the options chosen for this event
-        output format is {EventChoice: {EventChoiceOption: count}}
+        @return: a map of the form {EventChoice: {EventChoiceOption: count}}
         '''
         result = {}
         event_options = EventChoiceOption.objects.filter(choice__event=self)
@@ -134,6 +214,12 @@ class Event(models.Model):
         return result
 
     def get_collected_money_sums(self):
+        '''
+        Calculate the total money collected by each organiser, for each class of participant
+        @return: a list of the form [(orga, {participant_class: total collected}]. This also
+        includes a special participant class "Total" and a special organiser "Total" for the
+        sums of values per organiser and per participant class
+        '''
         organisers_sums = {}
         bookings = self.bookings.filter(paidTo__isnull=False)
         for booking in bookings:
@@ -199,19 +285,6 @@ class EventChoiceOption(models.Model):
         else:
             return u'{0} : option {1}'.format(self.choice, self.title)
 
-    def clean(self):
-        '''
-        Validate the contents of this Model
-        '''
-        super(EventChoiceOption, self).clean()
-        other = EventChoiceOption.objects.filter(choice=self.choice).exclude(id=self.id)
-        if self.default:
-            # reset other defaults
-            other.update(default=False)
-        elif other.filter(default=True).count() == 0:
-            # Force at least one default
-            self.default = True
-
 
 class ParticipantBooking(models.Model):
     '''
@@ -256,7 +329,8 @@ class ParticipantBooking(models.Model):
         '''
         Check that the user can update the booking
         '''
-        return (self.event.is_booking_open() and self.event.is_choices_open()
+        return (self.event.is_booking_open()
+                and self.event.is_choices_open()
                 and user == self.person)
 
     def user_can_update_payment(self, user):
@@ -269,17 +343,13 @@ class ParticipantBooking(models.Model):
         '''
         Check if the user is part of the employees groups of the event
         '''
-        common_groups = self.person.groups.all() & self.event.employees_groups.all()
-        logging.debug("is_employee:{0}:{1}".format(self.person, common_groups))
-        return common_groups.count() > 0
+        return self.event.user_is_employee(self.person)
 
     def is_contractor(self):
         '''
         Check if the user is part of the contractors groups of the event
         '''
-        common_groups = self.person.groups.all() & self.event.contractors_groups.all()
-        logging.debug("is_contractor:{0}:{1}".format(self.person, common_groups))
-        return common_groups.count() > 0
+        return self.event.user_is_contractor(self.person)
 
     def must_pay(self):
         '''

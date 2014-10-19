@@ -346,7 +346,7 @@ class ParticipantOption(models.Model):
 class Message(models.Model):
     MSG_CAT_CHOICES = (
         ('QUERY', 'Question'),
-        ('COMMENT', 'General comment'),
+        ('COMMENT', 'Comment'),
         ('BUG', 'Bug report'),
         ('FEAT', 'Feature request'),
         ('ADMIN', 'Administration Request'),

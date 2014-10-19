@@ -22,9 +22,13 @@
 
 <div class="row">
 {% for thread_head, thread in threads %}
-<div class="panel panel-info collapsible-caret">
-    <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse"
-         data-target="#collapse_{{thread_head.id}}">
+<div class="panel collapsible-caret
+            {% if thread_head.category == 'BUG' %}panel-danger
+            {% elif thread_head.category == 'ADMIN' %}panel-warning
+            {% elif thread_head.category == 'FEAT' %}panel-success
+            {% else %}panel-info{% endif %}">
+    <div class="panel-heading collapsible-toggle collapsed"
+         data-toggle="collapse" data-target="#collapse_{{thread_head.id}}">
         <span>{{ thread_head.title }}</span>
         <span class="badge pull-right">{{ thread_head.get_category_display }}</span>
     </div>

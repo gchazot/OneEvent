@@ -4,7 +4,7 @@
 
 {% block heading_action %}Manage{% endblock %}
 {% block heading_title %}{{ event.title }}
-    <small>{{ booking.event.start|date:"D, d N Y H:i" }}</small>
+    <small>{{ event.start|date:"D, d N Y H:i" }}</small>
 {% endblock %}
 
 {% block content %}
@@ -27,6 +27,7 @@
     </div>
 </div>
 
+{% if event.choices.count > 0 %}
 <div class="panel panel-info collapsible-caret">
     <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseTwo">
         <strong>Choices summary</strong>
@@ -56,6 +57,7 @@
         </table>
     </div>
 </div>
+{% endif %}
 
 <div class="panel panel-info collapsible-caret">
     <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseThree">
@@ -70,7 +72,9 @@
                     <th rowspan=2>Name</th>
                     <th rowspan=2>Employment</th>
                     <th rowspan=2>Payment Status</th>
+                    {% if event.choices.count > 0 %}
                     <th colspan=0>Choices</th>
+                    {% endif %}
                 </tr>
                 <tr>
                     {% for choice in event.choices.all %}

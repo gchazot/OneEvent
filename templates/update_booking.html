@@ -96,7 +96,11 @@
     </div>
     <div class="panel panel-info collapsible-caret">
         <div class="panel-heading collapsible-toggle" data-toggle="collapse"data-target="#collapseThree">
+            {% if booking.event.choices.count > 0 %}
             <strong>Your choices</strong>
+            {% else %}
+            <strong>Update registration</strong>
+            {% endif %}
         </div>
         <div id="collapseThree" class="panel-collapse collapse in">
         <div class="panel-body">

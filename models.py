@@ -4,6 +4,7 @@ from decimal import Decimal
 import logging
 from django.utils import timezone
 from timezones import CITY_CHOICES, get_tzinfo
+from django.utils.safestring import mark_safe
 
 
 def end_of_day(when, timezone):
@@ -428,6 +429,7 @@ class Message(models.Model):
     thread_head = models.ForeignKey('Message', related_name='thread',
                                     null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
+    safe_content = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-created']
@@ -436,3 +438,21 @@ class Message(models.Model):
         return u'Message: From {0}, On {1}, Title "{2}"'.format(self.sender,
                                                                 self.created,
                                                                 self.title)
+
+    def safe_title(self):
+        '''
+        Returns the title marked safe or not depending on safe_content
+        '''
+        if self.safe_content:
+            return mark_safe(self.title)
+        else:
+            return self.title
+
+    def safe_text(self):
+        '''
+        Returns the title marked safe or not depending on safe_content
+        '''
+        if self.safe_content:
+            return mark_safe(self.text)
+        else:
+            return self.text

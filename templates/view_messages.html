@@ -29,7 +29,7 @@
             {% else %}panel-info{% endif %}">
     <div class="panel-heading collapsible-toggle collapsed"
          data-toggle="collapse" data-target="#collapse_{{thread_head.id}}">
-        <span>{{ thread_head.title }}</span>
+        <span>{{ thread_head.safe_title }}</span>
         <span class="badge pull-right">{{ thread_head.get_category_display }}</span>
     </div>
 
@@ -49,7 +49,7 @@
                 <div class="col-xs-12 col-sm-6 text-right">{{ message.created|date:"D, d N Y H:i e"}}</div>
             </div>
             <div class="row">
-                <div class="col-xs-12 col-sm-10 col-sm-offset-1 well">{{ message.text }}</div>
+                <div class="col-xs-12 col-sm-10 col-sm-offset-1 well">{{ message.safe_text }}</div>
             </div>
             {% endfor %}
         </div>

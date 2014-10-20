@@ -53,6 +53,7 @@
                             <span class="hidden-sm hidden-md hidden-lg">Home</span>
                         </a>
                     </li>
+                    {% if user.is_authenticated %}
                     <li>
                         <a href="{% url 'view_messages' %}"
                             data-toggle="tooltip" data-placement="top" title="Contact/Messages">
@@ -60,6 +61,7 @@
                             <span class="hidden-sm hidden-md hidden-lg">Contact/Messages</span>
                         </a>
                     </li>
+                    {% endif %}
                 </ul>
 
                 {% block navbar_extra %}{% endblock %}

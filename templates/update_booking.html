@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
+
 
 {% block navbar_header_text %}Registration{% endblock %}
 
@@ -106,7 +108,7 @@
         <div class="panel-body">
             <form action="{% url 'update_booking' booking_id=booking.id %}" method="post">
             {% csrf_token %}
-            {{ form.as_p }}
+            {{ form|crispy }}
             <input type="submit" class="btn btn-success"
                 value="Confirm {% if booking.cancelledBy %}Registration{% else %}Changes{% endif %}"/>
             <a href="{% url 'my_events' %}" class="btn btn-warning">

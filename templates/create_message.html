@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 
 {% block heading_action %}Messages{% endblock %}
 {% block heading_title %}New message{% endblock %}
@@ -17,8 +18,8 @@
     <form action="{% url 'create_message' %}" method="post">
     {% endif %}
         {% csrf_token %}
-        {{ form.as_p }}
-        <input class="btn btn-success" type="submit" value="Send" />
+        {{ form|crispy }}
+        <input class="btn btn-default" type="submit" value="Send" />
     </form>
 </div>
 {% endblock %}

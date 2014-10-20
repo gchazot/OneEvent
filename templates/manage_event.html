@@ -1,4 +1,5 @@
-{% extends 'base.html' %}'
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
 
 {% block navbar_header_text %}Manage Event{% endblock %}
 
@@ -17,9 +18,9 @@
 
     <div id="collapseOne" class="panel-collapse collapse">
     <div class="panel-body">
-        <form action="{% url 'manage_event' event_id=event.id %}" method="post">
+        <form role="form" action="{% url 'manage_event' event_id=event.id %}" method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+        {{ form|crispy }}
         <input class="btn btn-success" type="submit" value="Save Changes" />
         <input class="btn btn-warning" type="reset" value="Reset" />
         </form>

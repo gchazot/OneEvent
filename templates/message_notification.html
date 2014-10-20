@@ -1,0 +1,30 @@
+<html>
+<body>
+<p>You have just received a new message on OneEvent:</p>
+
+<table border="0">
+    <tr>
+        <th>From:</th>
+        <td>{{message.sender.get_full_name}}</td>
+    </tr>
+    <tr>
+        <th>Sent on:</th>
+        <td>{{message.created|date:"D, d N Y H:i e"}}</td>
+    </tr>
+    <tr>
+        <th>Reason</th>
+        <td>{{message.get_category_display}}</td>
+    </tr>
+    <tr>
+        <th>Subject:</th>
+        <td>{{message.safe_title}}</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <th>Message:</th>
+        <td>{{message.safe_text}}</td>
+    </tr>
+</table>
+
+</body>
+</html>

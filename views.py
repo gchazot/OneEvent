@@ -48,7 +48,7 @@ def events_list(request, events, context={}):
             event_info['user_can_update'] = evt.user_can_update(request.user)
         context['events'].append(event_info)
 
-    return render(request, 'events_list.html', context)
+    return render(request, 'events_list.html', context, context_instance=RequestContext(request))
 
 
 def future_events(request):
@@ -312,8 +312,7 @@ def view_messages(request):
 
     user_threads = []
     for thread_head in threads:
-        query = Q(id=thread_head.id) | Q(thread_head=thread_head)
-        messages = Message.objects.filter(query)
+        messages = thread_head.full_thread()
         user_threads.append((thread_head, messages,))
 
     return render_to_response('view_messages.html',
@@ -343,7 +342,8 @@ def create_message(request, thread_id=None):
         return redirect('view_messages')
 
     if form.is_valid():
-        form.save()
+        new_message = form.save()
+        new_message.send_message_notification()
         messages.success(request, 'Your message has been sent')
         return redirect('view_messages')
 

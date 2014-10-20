@@ -5,6 +5,13 @@ import logging
 from django.utils import timezone
 from timezones import CITY_CHOICES, get_tzinfo
 from django.utils.safestring import mark_safe
+from django.shortcuts import render
+from django.template import loader
+from django.core.mail import mail_admins, send_mail
+from django.core.mail.message import EmailMultiAlternatives
+from django.conf import settings
+from django.db.models.query_utils import Q
+from django.templatetags.static import PrefixNode
 
 
 def end_of_day(when, timezone):
@@ -456,3 +463,39 @@ class Message(models.Model):
             return mark_safe(self.text)
         else:
             return self.text
+
+    def full_thread(self):
+        '''
+        Get the full thread of messages related to this one
+        '''
+        query = Q(id=self.id)
+        if self.thread_head:
+            query = query | Q(thread_head=self.thread_head)
+        else:
+            query = query | Q(thread_head=self)
+        return Message.objects.filter(query)
+
+    def send_message_notification(self):
+        '''
+        Send a notification email to the relevant person(s)
+        '''
+        if self.thread_head:
+            prefix = "reply"
+        else:
+            prefix = "message"
+        subject = '[OneEvent] [{1}] New {2}: {0}'.format(self.title,
+                                                         self.get_category_display(),
+                                                         prefix)
+        message_html = loader.render_to_string('message_notification.html',
+                                               {'message': self})
+        message_text = self.safe_text()
+
+        # Send to the user only the replies that do not come from himself
+        if self.thread_head and self.sender != self.thread_head.sender:
+            msg = EmailMultiAlternatives(subject, message_text,
+                                         to=[self.thread_head.sender.email])
+            msg.attach_alternative(message_html, "text/html")
+            msg.send(fail_silently=True)
+            print "Sent message to {0}".format(self.thread_head.sender.email)
+        else:
+            mail_admins(subject, message_text, html_message=message_html, fail_silently=True)

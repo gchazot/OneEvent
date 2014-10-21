@@ -430,7 +430,8 @@ class Message(models.Model):
         ('ADMIN', 'Administration Request'),
     )
     sender = models.ForeignKey('auth.User')
-    category = models.CharField(max_length=8, choices=MSG_CAT_CHOICES)
+    category = models.CharField(max_length=8, choices=MSG_CAT_CHOICES,
+                                verbose_name='Reason')
     title = models.CharField(max_length=128)
     text = models.TextField(max_length=2048)
     thread_head = models.ForeignKey('Message', related_name='thread',

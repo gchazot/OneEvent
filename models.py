@@ -5,13 +5,16 @@ import logging
 from django.utils import timezone
 from timezones import CITY_CHOICES, get_tzinfo
 from django.utils.safestring import mark_safe
-from django.shortcuts import render
 from django.template import loader
-from django.core.mail import mail_admins, send_mail
+from django.core.mail import mail_admins
 from django.core.mail.message import EmailMultiAlternatives
-from django.conf import settings
 from django.db.models.query_utils import Q
-from django.templatetags.static import PrefixNode
+
+import icalendar
+from icalendar.prop import vCalAddress, vText
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
 
 
 def end_of_day(when, timezone):
@@ -50,7 +53,8 @@ class Event(models.Model):
                                      help_text='Venue of your event')
     location_address = models.TextField(null=True, blank=True)
 
-    organisers = models.ManyToManyField('auth.User', blank=True)
+    owner = models.ForeignKey('auth.User', related_name='events_owned')
+    organisers = models.ManyToManyField('auth.User', blank=True, related_name='events_organised')
 
     booking_close = models.DateTimeField(blank=True, null=True,
                                          help_text='Limit date and time for registering')
@@ -393,6 +397,151 @@ class ParticipantBooking(models.Model):
             elif self.paidTo is None:
                 return 'warning'
         return ''
+
+    def get_invite_texts(self):
+        '''
+        Get the text contents for an invite to the event
+        @return: a tuple (title, description_plain, description_html)
+        '''
+        event = self.event
+        event_tz = event.get_tzinfo()
+
+        title_text = 'Invitation to {0}'.format(event.title)
+
+        plain_text = 'You have registered to an event\n\
+                      Add it to your calendar!\n\
+                      Event: {0}\n\
+                      Start: {1}\n\
+                      End: {2}\n\
+                      Location: {3}\n\
+                      Address: {4}\n'.format(event.title,
+                                             event.start.astimezone(event_tz),
+                                             event.get_real_end().astimezone(event_tz),
+                                             event.location_name,
+                                             event.location_address)
+
+        html_text = '<h2>You have registered to an event</h2>\n\
+                     <h4>Add it to your calendar!</h4>\n\
+                     <ul>\n\
+                     <li><label>Event: </label>{0}</li>\n\
+                     <li><label>Start: </label>{1}</li>\n\
+                     <li><label>End: </label>{2}</li>\n\
+                     <li><label>Location: </label>{3}</li>\n\
+                     <li><label>Address: </label>{4}</li>\n\
+                     </ul>\n'.format(event.title,
+                                     event.start.astimezone(event_tz),
+                                     event.get_real_end().astimezone(event_tz),
+                                     event.location_name,
+                                     event.location_address)
+
+        return (title_text, plain_text, html_text)
+
+    def get_calendar_entry(self):
+        '''
+        Build the iCalendar string for the event
+        '''
+        event = self.event
+        event_tz = event.get_tzinfo()
+
+        # Generate some description strings
+        title, desc_plain, _desc_html = self.get_invite_texts()
+
+        # Generate the Calendar event
+        cal = icalendar.Calendar()
+        cal.add('prodid', '-//OneEvent event entry//onevent//EN')
+        cal.add('version', '2.0')
+        cal.add('calscale', 'GREGORIAN')
+        cal.add('method', 'PUBLISH')
+        cal_evt = icalendar.Event()
+        cal_evt.add('summary', title)
+        cal_evt.add('uid', 'event{0}-booking{1}@oneevent'.format(event.id, self.id))
+        cal_evt.add('dtstamp', timezone.now())
+        cal_evt.add('dtstart', event.start.astimezone(event_tz))
+        cal_evt.add('dtend', event.get_real_end().astimezone(event_tz))
+        cal_evt.add('description', desc_plain)
+        cal_evt.add('status', 'CONFIRMED')
+        cal_evt.add('transp', 'OPAQUE')
+        cal_evt.add('priority', '5')
+        cal_evt.add('class', 'PUBLIC')
+        cal_evt['location'] = vText('{0} - {1}'.format(event.city, event.location_name))
+
+        organiser = vCalAddress('mailto:{0}'.format(event.owner.email))
+        organiser.params['cn'] = vText(event.owner.get_full_name())
+        organiser.params['role'] = vText('CHAIR')
+        cal_evt['organizer'] = organiser
+
+        attendee = vCalAddress('mailto:{0}'.format(self.person.email))
+        attendee.params['cutype'] = vText('INDIVIDUAL')
+        attendee.params['x-num-guests'] = vText('0')
+        attendee.params['role'] = vText('REQ-PARTICIPANT')
+        attendee.params['partstat'] = vText('NEEDS-ACTION')
+        attendee.params['rsvp'] = vText('FALSE')
+        attendee.params['cn'] = vText(self.person.get_full_name())
+        cal_evt.add('attendee', attendee, encode=0)
+
+        cal.add_component(cal_evt)
+
+        return cal.to_ical()
+
+    def send_calendar_invite(self):
+        '''
+        Send a calendar entry to the participant
+        '''
+        title, desc_plain, desc_html = self.get_invite_texts()
+        cal_text = self.get_calendar_entry()
+
+        part_plain = MIMEText(desc_plain, "plain", 'utf-8')
+        del(part_plain['MIME-Version'])
+
+        part_html = MIMEText(desc_html, 'html', 'utf-8')
+        del(part_html['MIME-Version'])
+
+        part_cal = MIMEText(cal_text, 'calendar; method=REQUEST', 'utf-8')
+        del(part_cal['MIME-Version'])
+
+        ical_atch = MIMEApplication(cal_text,
+                                    'ics; charset="UTF-8"; name="%s"' % ("invite.ics"))
+        del(ical_atch['MIME-Version'])
+        ical_atch.add_header('Content-Disposition', 'attachment', filename='invite.ics')
+
+        # The "Lotus Notes" fomat
+#         msgAlternative = MIMEMultipart('alternative')
+#         del(msgAlternative['MIME-Version'])
+#         msgAlternative.attach(part_html)
+#         msgAlternative.attach(part_cal)
+#
+#         msgRelated = MIMEMultipart('related')
+#         del(msgRelated['MIME-Version'])
+#         msgRelated.attach(msgAlternative)
+#         msgAlternative.attach(part_html)
+#
+#         msgMixed = MIMEMultipart('mixed')
+#         del(msgMixed['MIME-Version'])
+#         msgMixed.attach(msgRelated)
+#         msgMixed.attach(ical_atch)
+#
+#         msg = EmailMultiAlternatives(subject='test invite',
+#                                      body=None,
+#                                      to=['g.chazot@gmail.com'])
+#         msg.attach(msgMixed)
+
+        # The "Google Calendar" format
+        msgAlternative = MIMEMultipart('alternative')
+        del(msgAlternative['MIME-Version'])
+        msgAlternative.add_header('Content-class', 'urn:content-classes:calendarmessage')
+        msgAlternative.attach(part_plain)
+        msgAlternative.attach(part_html)
+        msgAlternative.attach(part_cal)
+
+        # Create the message object
+        msg = EmailMultiAlternatives(subject=title,
+                                     body=None,
+                                     to=[self.person.email])
+        msg.attach(msgAlternative)
+        msg.attach(ical_atch)
+
+        # Send the message
+        return msg.send(fail_silently=False) == 1
 
 
 class ParticipantOption(models.Model):

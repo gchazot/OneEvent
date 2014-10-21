@@ -119,7 +119,7 @@ class EventAdmin(admin.ModelAdmin):
         ('start', 'end'),
         'city',
         ('location_name', 'location_address'),
-        'organisers',
+        ('owner', 'organisers'),
         ('booking_close', 'choices_close'),
         ('price_for_employees', 'price_for_contractors', 'price_currency'),
         ('employees_groups', 'contractors_groups'),

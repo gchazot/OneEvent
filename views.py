@@ -350,3 +350,13 @@ def create_message(request, thread_id=None):
     return render_to_response('create_message.html',
                               {'form': form, 'thread_id': thread_id},
                               context_instance=RequestContext(request))
+
+
+@login_required
+def send_booking_invite(request, booking_id):
+    booking = get_object_or_404(ParticipantBooking, id=booking_id)
+    if booking.send_calendar_invite():
+        messages.success(request, 'Invitation sent to your email')
+    else:
+        messages.error(request, 'Failure sending the invitation')
+    return redirect('update_booking', booking_id=booking_id)

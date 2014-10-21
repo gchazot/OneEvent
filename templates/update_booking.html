@@ -91,7 +91,10 @@
             {% endif %}
             </p>
             {% if not booking.cancelledBy %}
-            <p><a href="{% url 'cancel_booking' booking_id=booking.id %}" class="btn btn-danger">Unregister</a></p>
+            <p>
+            <a href="{% url 'send_booking_invite' booking_id=booking.id %}" class="btn btn-info">Receive Calendar Entry</a>
+            <a href="{% url 'cancel_booking' booking_id=booking.id %}" class="btn btn-danger">Unregister</a>
+            </p>
             {% endif %}
         </div>
         </div>

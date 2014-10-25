@@ -13,7 +13,7 @@ urlpatterns = patterns(
     url(r'^events/past$', 'past_events', name='past_events'),
     url(r'^events/all$', 'all_events', name='all_events'),
 
-    url(r'^event/(?P<event_id>\d+)/manage$', 'manage_event', name='manage_event'),
+    url(r'^event/(?P<event_id>\d+)$', 'manage_event', name='manage_event'),
     url(r'^event/(?P<event_id>\d+)/options_summary$', 'dl_event_options_summary',
         name='dl_event_options_summary'),
     url(r'^event/(?P<event_id>\d+)/participants_list$', 'dl_participants_list',
@@ -24,7 +24,7 @@ urlpatterns = patterns(
     url(r'^booking/(?P<booking_id>\d+)/cancel$', 'cancel_booking', name='cancel_booking'),
     url(r'^booking/(?P<booking_id>\d+)/payment/confirm$', 'confirm_payment',
         name='confirm_payment'),
-    url(r'^booking/(?P<booking_id>\d+)/payment/confirm$', 'confirm_payment',
+    url(r'^booking/(?P<booking_id>\d+)/payment/cancel$', 'confirm_payment',
         name='cancel_payment', kwargs={'cancel': True}),
     url(r'^booking/(?P<booking_id>\d+)/send_invite$', 'send_booking_invite',
         name='send_booking_invite'),

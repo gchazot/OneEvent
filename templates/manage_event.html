@@ -86,7 +86,16 @@
             <tbody>
                 {% for booking in event.bookings.all %}
                 <tr class="{{ booking.get_payment_status_class }}">
-                    <td>{{ booking.person.get_full_name }}</td>
+                    <td>
+                        {{ booking.person.get_full_name }}
+                        {% if not booking.cancelledBy %}
+                        <div class="text-right">
+                        <a href="{% url 'cancel_booking' booking_id=booking.id %}"
+                            data-toggle="tooltip" data-placement="top" title="Cancel Booking">
+                            <span class="glyphicon glyphicon-remove-circle"></span></a>
+                        </div>
+                        {% endif %}
+                    </td>
                     <td>
                         {% if booking.is_employee %}<p>Employee</p>{% endif %}
                         {% if booking.is_contractor %}<p>Contractor</p>{% endif %}

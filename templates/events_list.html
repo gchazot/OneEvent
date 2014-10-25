@@ -93,7 +93,7 @@
                     <button type="button" class="btn btn-success disabled enable-tooltip"
                         data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Choices Closed</button>
                     {% endif %}
-                    {% if event_info.event.is_booking_open %}
+                    {% if event_info.user_can_cancel %}
                     <a href="{% url 'cancel_booking' booking_id=event_info.booking.id %}" class="btn btn-danger">Unregister</a>
                     {% else %}
                     <button type="button" class="btn btn-danger disabled enable-tooltip"

@@ -341,9 +341,15 @@ class ParticipantBooking(models.Model):
         '''
         Check that the user can update the booking
         '''
-        return (self.event.is_booking_open()
-                and self.event.is_choices_open()
-                and user == self.person)
+        still_open = self.event.is_booking_open() and self.event.is_choices_open()
+        return still_open and user == self.person
+
+    def user_can_cancel(self, user):
+        '''
+        Check that the user can cancel the booking
+        '''
+        return ((self.event.is_booking_open() and user == self.person)
+                or user in self.event.organisers.all())
 
     def user_can_update_payment(self, user):
         '''

@@ -41,7 +41,9 @@ def events_list(request, events, context={}):
                 continue
             # Look for a possible booking by the user
             try:
-                event_info['booking'] = evt.get_active_bookings().get(person=request.user)
+                user_booking = evt.get_active_bookings().get(person=request.user)
+                event_info['booking'] = user_booking
+                event_info['user_can_cancel'] = user_booking.user_can_cancel(request.user)
             except ParticipantBooking.DoesNotExist:
                 pass
             event_info['user_can_book'] = evt.user_can_book(request.user)
@@ -137,7 +139,7 @@ def update_booking(request, booking_id):
 def cancel_booking(request, booking_id):
     booking = get_object_or_404(ParticipantBooking, id=booking_id)
 
-    if not booking.user_can_update(request.user):
+    if not booking.user_can_cancel(request.user):
         messages.error(request, 'You are not authorised to cancel this booking !')
         return redirect('index')
 
@@ -146,7 +148,10 @@ def cancel_booking(request, booking_id):
         booking.cancelledOn = timezone.now()
         booking.save()
         messages.warning(request, 'Registration cancelled')
-        return redirect('my_events')
+        if request.user == booking.person:
+            return redirect('my_events')
+        else:
+            return redirect('manage_event', event_id=booking.event.id)
     else:
         timezone.activate(booking.event.get_tzinfo())
         return render_to_response('cancel_booking.html',

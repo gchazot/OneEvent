@@ -7,6 +7,10 @@ from django.forms import Form
 from django.forms.fields import ChoiceField
 from OneEvent.models import ParticipantOption, EventChoiceOption, Event, Message
 from django.forms.models import ModelForm
+from django.core.urlresolvers import reverse
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit, Reset
+from crispy_forms.bootstrap import TabHolder, Tab
 
 
 class BookingForm(Form):
@@ -45,6 +49,27 @@ class BookingForm(Form):
 class EventForm(ModelForm):
     class Meta:
         model = Event
+
+    def __init__(self, *args, **kwargs):
+        super(EventForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.form_action = reverse('manage_event',
+                                          kwargs={'event_id': self.instance.id})
+
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-3'
+        self.helper.field_class = 'col-lg-6'
+        self.helper.layout = TabHolder(
+            Tab('Basics', 'title', 'start', 'end', 'city', 'pub_status'),
+            Tab('Venue', 'location_name', 'location_address'),
+            Tab('Organisers', 'owner', 'organisers'),
+            Tab('Closing Dates', 'booking_close', 'choices_close'),
+            Tab('Prices', 'price_for_employees', 'price_for_contractors', 'price_currency'),
+            Tab('Employee/Contractor Groups', 'employees_groups', 'contractors_groups')
+        )
+        self.helper.add_input(Submit('submit', 'Save Changes'))
+        self.helper.add_input(Reset('reset', 'Reset'))
 
 
 class MessageForm(ModelForm):

@@ -42,7 +42,7 @@ class Event(models.Model):
     title = models.CharField(max_length=64, unique=True)
     start = models.DateTimeField(help_text='Local start date and time')
     end = models.DateTimeField(blank=True, null=True,
-                               help_text='Local end date and time (optional)')
+                               help_text='Local end date and time')
     city = models.CharField(max_length=32, choices=CITY_CHOICES,
                             help_text='Timezone of your event')
 

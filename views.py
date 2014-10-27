@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect, get_object_or_404, render_to_resp
 from django.contrib.auth.decorators import login_required
 from django.db.models.query_utils import Q
 from django.template.context import RequestContext
-from django.http.response import HttpResponse
+from django.http.response import HttpResponse, Http404
 from django.template.defaultfilters import slugify
 from django.contrib import messages
 from django.utils import timezone
@@ -161,7 +161,13 @@ def cancel_booking(request, booking_id):
 
 @login_required
 def manage_event(request, event_id):
-    event = get_object_or_404(Event, id=event_id)
+    try:
+        event = Event.objects.prefetch_related(
+            'bookings__person',
+            'bookings__options__option'
+        ).get(id=event_id)
+    except Event.DoesNotExist:
+        return Http404
 
     if not event.user_can_update(request.user):
         messages.error(request, 'You are not authorised to manage this event !')

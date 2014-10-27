@@ -39,7 +39,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for choice, options in event.get_options_counts.items %}
+                {% for choice, options in event.get_options_counts.iteritems %}
                 <tr>
                     <th>{{ choice.title }}</th>
                     {% for option, total in options.items %}

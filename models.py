@@ -15,6 +15,7 @@ from icalendar.prop import vCalAddress, vText
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
+from django.contrib.auth.models import User
 
 
 def end_of_day(when, timezone):
@@ -79,6 +80,14 @@ class Event(models.Model):
             result += u' to {0:%x %H:%M}'.format(self.end)
         return result
 
+    def __init__(self, *args, **kwargs):
+        '''
+        Constructor to initialise some instance-level variables
+        '''
+        super(Event, self).__init__(*args, **kwargs)
+        # Cache dictionnary to save DB queries
+        self.users_values_cache = None
+
     def clean(self):
         '''
         Validate this model
@@ -91,33 +100,67 @@ class Event(models.Model):
         if self.booking_close and self.choices_close and self.booking_close > self.choices_close:
             raise ValidationError("Bookings must close before choices")
 
+    def _populate_users_cache(self):
+        '''
+        Fill in the cache of info about users related to this event
+        '''
+        if self.users_values_cache is not None:
+            return
+
+        self.users_values_cache = {}
+
+        def add_cache(user, category):
+            user_cache = self.users_values_cache.get(user, {})
+            user_cache[category] = True
+            self.users_values_cache[user] = user_cache
+
+        for orga in self.organisers.all():
+            add_cache(orga.id, 'orga')
+
+        employees_groups_ids = self.employees_groups.values_list('id', flat=True)
+        employees = User.objects.filter(groups__id__in=employees_groups_ids).distinct()
+        for employee in employees.values_list('id', flat=True):
+            add_cache(employee, 'empl')
+
+        contractors_groups_ids = self.contractors_groups.values_list('id', flat=True)
+        contractors = User.objects.filter(groups__id__in=contractors_groups_ids).distinct()
+        for contractor in contractors.values_list('id', flat=True):
+            add_cache(contractor, 'contr')
+
+    def _get_from_users_cache(self, user_id, key, default=None):
+        '''
+        @return: the value for a user_id/key pair from teh cache.
+        @param default: default value if user/key is not found
+        '''
+        self._populate_users_cache()
+        return self.users_values_cache.get(user_id, {}).get(key, default)
+
     def user_is_organiser(self, user):
         '''
         Check if the given user is part of the organisers of the event
         '''
-        return user in self.organisers.all()
+        self._populate_users_cache()
+        return self._get_from_users_cache(user.id, 'orga', False)
 
     def user_is_employee(self, user):
         '''
         Check if the user is part of the employees groups of the event
         '''
-        common_groups = user.groups.all() & self.employees_groups.all()
-        logging.debug("is_employee:{0}:{1}".format(user, common_groups))
-        return common_groups.count() > 0
+        self._populate_users_cache()
+        return self._get_from_users_cache(user.id, 'empl', False)
 
     def user_is_contractor(self, user):
         '''
         Check if the user is part of the contractors groups of the event
         '''
-        common_groups = user.groups.all() & self.contractors_groups.all()
-        logging.debug("is_contractor:{0}:{1}".format(user, common_groups))
-        return common_groups.count() > 0
+        self._populate_users_cache()
+        return self._get_from_users_cache(user.id, 'contr', False)
 
     def user_can_update(self, user):
         '''
         Check that the given user can update the event
         '''
-        return user.is_superuser or user in self.organisers.all()
+        return user.is_superuser or self.user_is_organiser(user)
 
     def user_can_list(self, user):
         '''
@@ -222,8 +265,7 @@ class Event(models.Model):
         for option in event_options:
             choice_counts = result.get(option.choice) or {}
             choice_counts[option] = part_options.filter(option=option).count()
-            result[option.choice] = choice_counts
-        return result
+            yield option.choice, choice_counts
 
     def get_collected_money_sums(self):
         '''
@@ -233,7 +275,11 @@ class Event(models.Model):
         sums of values per organiser and per participant class
         '''
         organisers_sums = {}
-        bookings = self.bookings.filter(paidTo__isnull=False)
+        bookings = self.bookings.select_related(
+            'person',
+            'paidTo'
+        ).filter(paidTo__isnull=False)
+
         for booking in bookings:
             if booking.is_employee():
                 entry_name = "Employees"
@@ -250,18 +296,15 @@ class Event(models.Model):
             orga_entries[entry_name] = total + entry_price
             organisers_sums[booking.paidTo] = orga_entries
 
-        result = []
         overall_totals = {}
         for orga, orga_entries in organisers_sums.iteritems():
             orga_entries["Total"] = sum(organisers_sums[orga].values())
-            result.append((orga, orga_entries,))
+            yield (orga, orga_entries,)
 
             for entry_name, entry_value in orga_entries.iteritems():
                 entry_total = overall_totals.get(entry_name) or Decimal(0)
                 overall_totals[entry_name] = entry_total + entry_value
-        result.append(("Total", overall_totals,))
-
-        return result
+        yield ("Total", overall_totals,)
 
 
 class EventChoice(models.Model):

@@ -16,6 +16,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from django.contrib.auth.models import User
+from django.db.models.aggregates import Count
 
 
 def end_of_day(when, timezone):
@@ -260,12 +261,16 @@ class Event(models.Model):
         '''
         result = {}
         event_options = EventChoiceOption.objects.filter(choice__event=self)
-        part_options = ParticipantOption.objects.filter(booking__event=self,
-                                                        booking__cancelledBy=None)
+        event_options = event_options.filter(participantoption__booking__cancelledBy=None)
+        event_options = event_options.annotate(total=Count('participantoption'))
+        event_options = event_options.select_related('choice')
+        event_options = event_options.select_related('choice')
+
         for option in event_options:
             choice_counts = result.get(option.choice) or {}
-            choice_counts[option] = part_options.filter(option=option).count()
-            yield option.choice, choice_counts
+            choice_counts[option] = option.total
+            result[option.choice] = choice_counts
+        return result
 
     def get_collected_money_sums(self):
         '''
@@ -317,6 +322,7 @@ class EventChoice(models.Model):
 
     class Meta:
         unique_together = ('event', 'title')
+        ordering = ['id']
 
     def __unicode__(self):
         return u'{0}: {1} choice'.format(self.event.title, self.title)
@@ -333,6 +339,7 @@ class EventChoiceOption(models.Model):
 
     class Meta:
         unique_together = ('choice', 'title')
+        ordering = ['choice__id', 'id']
 
     def __unicode__(self):
         if self.default:
@@ -356,6 +363,7 @@ class ParticipantBooking(models.Model):
 
     class Meta:
         unique_together = ('event', 'person')
+        ordering = ['id']
 
     def __unicode__(self):
         return u'{0} : {1}'.format(self.event.title, self.person)
@@ -602,6 +610,7 @@ class ParticipantOption(models.Model):
 
     class Meta:
         unique_together = ('booking', 'option')
+        ordering = ['option__choice__id', 'option__id', 'id']
 
     def __unicode__(self):
         return u'{0} -> {1}'.format(self.booking, self.option)

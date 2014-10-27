@@ -68,7 +68,8 @@
                 <tr>
                     <th rowspan=2>Name</th>
                     <th rowspan=2>Employment</th>
-                    <th rowspan=2>Payment Status</th>
+                    <th rowspan=2>Actions</th>
+                    <th rowspan=2>Booking Status</th>
                     {% if event.choices.count > 0 %}
                     <th colspan=0>Choices</th>
                     {% endif %}
@@ -82,38 +83,64 @@
             <tbody>
                 {% for booking in event.bookings.all %}
                 <tr class="{{ booking.get_payment_status_class }}">
-                    <td>
+                    <td><!-- Name -->
                         {{ booking.person.get_full_name }}
-                        {% if not booking.cancelledBy %}
-                        <div class="text-right">
-                        <a href="{% url 'cancel_booking' booking_id=booking.id %}"
-                            data-toggle="tooltip" data-placement="top" title="Cancel Booking">
-                            <span class="glyphicon glyphicon-remove-circle"></span></a>
-                        </div>
-                        {% endif %}
                     </td>
-                    <td>
+
+                    <td><!-- Employment -->
                         {% if booking.is_employee %}<p>Employee</p>{% endif %}
                         {% if booking.is_contractor %}<p>Contractor</p>{% endif %}
                     </td>
-                    <td>
+
+                    <td><!--  Actions -->
+                        {% if booking.cancelledBy and booking.paidTo%}
+                        <div><a href="{% url 'cancel_payment' booking_id=booking.id %}"
+                            class="btn btn-warning btn-sm">
+                            <span class="glyphicon glyphicon-euro"></span>
+                            Refund
+                        </a></div>
+                        {% endif %}
+                        {% if not booking.paidTo and booking.must_pay > 0 %}
+                        <div><a href="{% url 'confirm_payment' booking_id=booking.id %}"
+                            class='btn btn-success btn-sm'>
+                            <span class="glyphicon glyphicon-ok"></span>
+                            Confirm Payment
+                        </a></div>
+                        {% endif %}
+                        {% if not booking.cancelledBy %}
+                            {% if booking.user.email %}
+                            <div><a href="{% url 'send_booking_invite' booking_id=booking.id %}"
+                                class="btn btn-info btn-sm">
+                                <span class="glyphicon glyphicon-calendar"></span>
+                                Send invite
+                            </a></div>
+                            {% endif %}
+                        <div><a href="{% url 'cancel_booking' booking_id=booking.id %}"
+                            class="btn btn-danger btn-xs">
+                            <span class="glyphicon glyphicon-ban-circle"></span>
+                            Cancel booking
+                        </a></div>
+                        {% endif %}
+                    </td>
+
+                    <td><!-- Booking status -->
                        {% if booking.cancelledBy %}
-                           <p><span class='btn btn-warning disabled'>Cancelled</span>
-                           by {{booking.cancelledBy.get_full_name}} on {{booking.cancelledOn|date:"D, d N Y H:i"}}</p>
+                           <div><span class="label label-default">Cancelled</span>
+                           by {{booking.cancelledBy.get_full_name}} on {{booking.cancelledOn|date:"d N Y H:i"}}</div>
                            {% if booking.paidTo %}
-                               <p><span class='btn btn-danger disabled'>Payment received !</span>
-                               by {{ booking.paidTo.get_full_name }} on {{ booking.datePaid|date:"D, d N Y H:i" }}</p>
-                               <p><a href="{% url 'cancel_payment' booking_id=booking.id %}"
-                               class='btn btn-danger'>Refund</a></p>
+                               <div><span class='label label-danger'>Payment received</span>
+                               by {{ booking.paidTo.get_full_name }} on {{ booking.datePaid|date:"d N Y H:i" }}</div>
                            {% endif %}
                        {% elif booking.paidTo %}
-                           Paid to {{ booking.paidTo.get_full_name }} on {{ booking.datePaid|date:"D, d N Y H:i" }}
+                           <div><span class='label label-success'>Payment received</span>
+                           by  {{ booking.paidTo.get_full_name }} on {{ booking.datePaid|date:"d N Y H:i" }}</div>
                        {% elif booking.must_pay > 0 %}
-                           <a href="{% url 'confirm_payment' booking_id=booking.id %}"
-                               class='btn btn-success'>Confirm Payment</a>
+                           <div><span class='label label-warning'>No payment received</span></div>
                        {% else %}
-                           <span class='btn btn-success disabled'>No payment needed</span>
+                           <div><span class='label label-success'>No payment needed</span></div>
                        {% endif %}
+
+                    <!-- Options -->
                     {% for option in booking.options.all %}
                     <td>
                         {{ option.option.title }}

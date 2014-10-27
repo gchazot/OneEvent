@@ -24,11 +24,20 @@
     </div>
 </div>
 
+<!--  Thank you http://stackoverflow.com/questions/24469602/how-to-prevent-accordion-from-toggling-when-button-in-header-is-clicked -->
+<script type="text/javascript">
+window.avoid_collapse_toggle = function(e) {
+    e.stopPropagation();
+}
+</script>
+
 {% if event.choices.count > 0 %}
 <div class="panel panel-info collapsible-caret">
     <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseTwo">
         <strong>Choices summary</strong>
-        <a href="{% url 'dl_event_options_summary' event_id=event.id %}" class="btn btn-default">Download</a>
+        <a href="{% url 'dl_event_options_summary' event_id=event.id %}"
+            onclick="avoid_collapse_toggle(event)"
+            class="btn btn-default">Download</a>
     </div>
     <div id="collapseTwo" class="panel-collapse collapse in table-responsive" >
         <table class="panel-body table table-bordered table-striped">
@@ -60,6 +69,7 @@
     <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseThree">
         <strong>Participants</strong>
         <a href="{% url 'dl_participants_list' event_id=event.id %}"
+            onclick="avoid_collapse_toggle(event)"
             class="btn btn-default" data-toggle="" data-target="">Download</a>
     </div>
     <div id="collapseThree" class="panel-collapse collapse table-responsive">

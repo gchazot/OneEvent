@@ -19,7 +19,6 @@
     <div id="collapseOne" class="panel-collapse collapse">
     <div class="panel-body">
         {% crispy form %}
-        </form>
     </div>
     </div>
 </div>
@@ -110,7 +109,7 @@ window.avoid_collapse_toggle = function(e) {
                             Refund
                         </a></div>
                         {% endif %}
-                        {% if not booking.paidTo and booking.must_pay > 0 %}
+                        {% if not booking.cancelledBy and not booking.paidTo and booking.must_pay > 0 %}
                         <div><a href="{% url 'confirm_payment' booking_id=booking.id %}"
                             class='btn btn-success btn-sm'>
                             <span class="glyphicon glyphicon-ok"></span>
@@ -118,9 +117,9 @@ window.avoid_collapse_toggle = function(e) {
                         </a></div>
                         {% endif %}
                         {% if not booking.cancelledBy %}
-                            {% if booking.user.email %}
+                            {% if booking.person.email %}
                             <div><a href="{% url 'send_booking_invite' booking_id=booking.id %}"
-                                class="btn btn-info btn-sm">
+                                class="btn btn-info btn-xs">
                                 <span class="glyphicon glyphicon-calendar"></span>
                                 Send invite
                             </a></div>

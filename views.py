@@ -35,10 +35,11 @@ def events_list(request, events, context={}):
     context['events'] = []
     for evt in events:
         event_info = {'event': evt, 'booking': None}
+        # Hide events that the user can not list
+        if not evt.user_can_list(request.user):
+            continue
+
         if request.user.is_authenticated():
-            # Hide events that the user can not list
-            if not evt.user_can_list(request.user):
-                continue
             # Look for a possible booking by the user
             try:
                 user_booking = evt.get_active_bookings().get(person=request.user)
@@ -48,6 +49,7 @@ def events_list(request, events, context={}):
                 pass
             event_info['user_can_book'] = evt.user_can_book(request.user)
             event_info['user_can_update'] = evt.user_can_update(request.user)
+
         context['events'].append(event_info)
 
     return render(request, 'events_list.html', context, context_instance=RequestContext(request))

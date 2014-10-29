@@ -166,19 +166,25 @@ class Event(models.Model):
     def user_can_list(self, user):
         '''
         Check that the given user can view the event in the list
+        @param user: The user signed in. If not specified, assume anonymous user
         '''
         if self.pub_status == 'PUB':
             return True
+        elif user.is_anonymous():
+            # All other statuses are invisible to anonymous
+            return False
         elif self.pub_status == 'REST':
             return (user.is_superuser
                     or self.user_is_organiser(user)
                     or self.user_is_employee(user)
-                    or self.user_is_contractor(user))
+                    or self.user_is_contractor(user)
+                    )
         elif self.pub_status == 'PRIV' or self.pub_status == 'UNPUB':
             user_has_booking = self.bookings.filter(person=user, cancelledBy=None).count() > 0
             return (user.is_superuser
                     or user_has_booking
-                    or self.user_is_organiser(user))
+                    or self.user_is_organiser(user)
+                    )
         elif self.pub_status == 'ARCH':
             return False
         else:
@@ -188,6 +194,10 @@ class Event(models.Model):
         '''
         Check if the given user can book the event
         '''
+        if user.is_anonymous():
+            # All statuses are non-bookable by anonymous
+            return False
+
         if self.pub_status == 'PUB':
             return True
         elif self.pub_status == 'REST':

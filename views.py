@@ -280,26 +280,33 @@ def dl_participants_list(request, event_id):
 
     bookings = event.bookings.order_by('person__last_name', 'person__first_name')
 
-    writer.writerow([u'Last name', u'First name', u'Employment',
-                     u'Cancelled', u'Payment status', u'Choices'])
+    writer.writerow([u'Last name', u'First name', u'email', u'Employment',
+                     u'Cancelled', u'Cancelled By',
+                     u'Payment status', u'Paid to',
+                     u'Choices'])
     for booking in bookings:
         if booking.paidTo is not None:
             local_datePaid = booking.datePaid.astimezone(booking.event.get_tzinfo())
-            payment = u"{0} on {1}".format(booking.paidTo.get_full_name(),
+            payment = u'Paid'
+            paid_to = u'{0} on {1}'.format(booking.paidTo.get_full_name(),
                                            local_datePaid.strftime(dt_format))
-        elif booking.must_pay() > 0:
-            payment = u"MUST PAY {0} ({1})".format(booking.must_pay(), event.price_currency)
         else:
-            payment = u"No payment needed"
+            paid_to = u''
+            if booking.must_pay() > 0:
+                payment = u'Must pay {0} ({1})'.format(booking.must_pay(), event.price_currency)
+            else:
+                payment = u'Not needed'
 
         if booking.cancelledBy is not None:
+            cancelled = u'Yes'
             local_dateCancelled = booking.cancelledOn.astimezone(booking.event.get_tzinfo())
-            cancelled = u"By {0} on {1}".format(booking.cancelledBy.get_full_name(),
+            cancelled_by = u"{0} on {1}".format(booking.cancelledBy.get_full_name(),
                                                 local_dateCancelled.strftime(dt_format))
             if booking.paidTo is None:
                 payment = u"N/A"
         else:
             cancelled = u"No"
+            cancelled_by = u''
 
         if booking.is_employee():
             employment = u'Employee'
@@ -308,8 +315,9 @@ def dl_participants_list(request, event_id):
         else:
             employment = u'Unknown'
 
-        row = [booking.person.last_name, booking.person.first_name, employment,
-               cancelled, payment]
+        row = [booking.person.last_name, booking.person.first_name,
+               booking.person.email, employment,
+               cancelled, cancelled_by, payment, paid_to]
         for option in booking.options.all():
             row.append(option.option.title)
         writer.writerow(row)

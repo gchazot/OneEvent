@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
 
 {% block navbar_header_text %}Manage Event{% endblock %}
 
@@ -10,18 +9,6 @@
 
 {% block content %}
 <div class="row">
-
-<div class="panel panel-info collapsible-caret">
-    <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseOne">
-        <strong>Event details</strong>
-    </div>
-
-    <div id="collapseOne" class="panel-collapse collapse">
-    <div class="panel-body">
-        {% crispy form %}
-    </div>
-    </div>
-</div>
 
 <!--  Thank you http://stackoverflow.com/questions/24469602/how-to-prevent-accordion-from-toggling-when-button-in-header-is-clicked -->
 <script type="text/javascript">

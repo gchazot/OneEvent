@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block navbar_header_text %}Edit Event{% endblock %}
+
+{% block heading_action %}Edit{% endblock %}
+{% block heading_title %}{{ event.title }}
+    <small>{{ event.start|date:"D, d N Y H:i" }}</small>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+
+<div class="panel panel-info collapsible-caret">
+    <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseOne">
+        <strong>Event details</strong>
+    </div>
+
+    <div id="collapseOne" class="panel-collapse collapse in">
+    <div class="panel-body">
+        {% crispy form %}
+    </div>
+    </div>
+</div>
+
+<!--
+<div class="panel panel-info collapsible-caret">
+    <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseTwo">
+        <strong>Event options</strong>
+    </div>
+
+    <div id="collapseTwo" class="panel-collapse collapse">
+    <div class="panel-body">
+        <!-- Form to edit options ->
+    </div>
+    </div>
+</div>
+ -->
+</div>
+{% endblock %}

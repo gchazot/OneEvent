@@ -14,6 +14,7 @@ urlpatterns = patterns(
     url(r'^events/all$', 'all_events', name='all_events'),
 
     url(r'^event/(?P<event_id>\d+)$', 'manage_event', name='manage_event'),
+    url(r'^event/(?P<event_id>\d+)/edit$', 'edit_event', name='edit_event'),
     url(r'^event/(?P<event_id>\d+)/options_summary$', 'dl_event_options_summary',
         name='dl_event_options_summary'),
     url(r'^event/(?P<event_id>\d+)/participants_list$', 'dl_participants_list',

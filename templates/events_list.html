@@ -80,6 +80,7 @@
                 <td>{% for orga in event_info.event.organisers.all %}<p>{{orga.get_full_name}}</p>{% endfor %}</td>
                 {% if user.is_authenticated %}
                 <td>
+                <div>
                 {% if event_info.booking %}
                     {% if event_info.event.is_choices_open %}
                     <a href="{% url 'update_booking' booking_id=event_info.booking.id %}" class="btn btn-success">
@@ -107,9 +108,16 @@
                             data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Event Closed</button>
                     {% endif %}
                 {% endif %}
+                </div>
+
                 {% if event_info.user_can_update %}
-                    <a href="{% url 'manage_event' event_id=event_info.event.id %}" class="btn btn-default">Manage</a>
-                    <p>({{event_info.event.get_pub_status_display }})</p>
+                <div>
+                    <a href="{% url 'manage_event' event_id=event_info.event.id %}"
+                       class="btn btn-sm btn-primary">Manage</a>
+                    <a href="{% url 'edit_event' event_id=event_info.event.id %}"
+                       class="btn btn-sm btn-warning">Edit</a>
+                    ({{event_info.event.get_pub_status_display }})
+                </div>
                 {% endif %}
                 </td>
                 {% endif %}

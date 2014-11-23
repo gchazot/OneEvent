@@ -175,6 +175,22 @@ def manage_event(request, event_id):
         messages.error(request, 'You are not authorised to manage this event !')
         return redirect('index')
 
+    # Activate the timezone from the event
+    timezone.activate(event.get_tzinfo())
+
+    return render_to_response('manage_event.html',
+                              {'event': event},
+                              context_instance=RequestContext(request))
+
+
+@login_required
+def edit_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    if not event.user_can_update(request.user):
+        messages.error(request, 'You are not authorised to edit this event !')
+        return redirect('index')
+
     # Activate the timezone from form data before processing the form
     # Use a separate form! otherwise the data is already processed
     tz_form = EventForm(request.POST or None, instance=event)
@@ -187,7 +203,7 @@ def manage_event(request, event_id):
         form.save()
         if request.user in event.organisers.all():
             messages.success(request, 'Event details updated'.format(event.title))
-            return redirect('manage_event', event_id=event_id)
+            return redirect('edit_event', event_id=event_id)
         else:
             messages.success(request, 'You removed yourself from the organisers of {0}'.format(event.title))
             return redirect('index')
@@ -197,7 +213,7 @@ def manage_event(request, event_id):
         # Not saving a form. Activate the timezone from the event
         timezone.activate(event.get_tzinfo())
 
-    return render_to_response('manage_event.html',
+    return render_to_response('edit_event.html',
                               {'event': event, 'form': form},
                               context_instance=RequestContext(request))
 

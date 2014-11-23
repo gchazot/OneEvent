@@ -402,7 +402,7 @@ class ParticipantBooking(models.Model):
         '''
         Check that the user can update the booking
         '''
-        still_open = self.event.is_booking_open() and self.event.is_choices_open()
+        still_open = self.event.is_choices_open()
         return still_open and user == self.person
 
     def user_can_cancel(self, user):

@@ -235,6 +235,46 @@ def confirm_payment(request, booking_id, cancel=False):
 
 
 @login_required
+def confirm_exempt(request, booking_id, cancel=False):
+    booking = get_object_or_404(ParticipantBooking, id=booking_id)
+
+    if not booking.user_can_update_payment(request.user):
+        messages.error(request, 'You are not authorised to manage payment for this event !')
+        return redirect('index')
+
+    if cancel and not booking.exempt_of_payment:
+        messages.error(request, 'This booking is not exempt of payment')
+        return redirect('manage_event', event_id=booking.event.id)
+    elif not cancel and booking.exempt_of_payment:
+        messages.error(request, 'This booking is already exempt of payment')
+        return redirect('manage_event', event_id=booking.event.id)
+
+    if request.method == 'POST':
+        if not cancel:
+            booking.paidTo = request.user
+            booking.datePaid = timezone.now()
+            booking.exempt_of_payment = True
+        else:
+            booking.paidTo = None
+            booking.datePaid = None
+            booking.exempt_of_payment = False
+        booking.save()
+
+        if not cancel:
+            messages.success(request,
+                             'Exemption confirmed for {0}'.format(booking.person.get_full_name()))
+        else:
+            messages.success(request,
+                             'Exemption cancelled for {0}'.format(booking.person.get_full_name()))
+        return redirect('manage_event', event_id=booking.event.id)
+    else:
+        timezone.activate(booking.event.get_tzinfo())
+        return render_to_response('confirm_exempt.html',
+                                  {'booking': booking, 'cancel': cancel},
+                                  context_instance=RequestContext(request))
+
+
+@login_required
 def dl_event_options_summary(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 

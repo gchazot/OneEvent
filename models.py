@@ -293,7 +293,7 @@ class Event(models.Model):
         bookings = self.bookings.select_related(
             'person',
             'paidTo'
-        ).filter(paidTo__isnull=False)
+        ).filter(paidTo__isnull=False, exempt_of_payment=False)
 
         for booking in bookings:
             if booking.is_employee():
@@ -370,6 +370,7 @@ class ParticipantBooking(models.Model):
 
     paidTo = models.ForeignKey('auth.User', blank=True, null=True, related_name='received_payments')
     datePaid = models.DateTimeField(blank=True, null=True)
+    exempt_of_payment = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('event', 'person')
@@ -383,7 +384,9 @@ class ParticipantBooking(models.Model):
         Validate the contents of this Model
         '''
         super(ParticipantBooking, self).clean()
-        if self.paidTo is not None and self.must_pay() == 0:
+        if (self.paidTo is not None
+                and self.must_pay() == 0
+                and not self.exempt_of_payment):
             raise ValidationError("{0} does not have to pay for {1}".format(self.person,
                                                                             self.event))
         # Reset the date paid against paid To
@@ -433,7 +436,12 @@ class ParticipantBooking(models.Model):
     def must_pay(self):
         '''
         Returns the amount that the person has to pay for the booking
+        @return the amount to be paid as a Decimal value, 0 if no paiment is needed. If the
+        amount can not be determined, returns 9999.99
         '''
+        if self.exempt_of_payment:
+            return Decimal(0)
+
         if self.is_employee():
             if self.event.price_for_employees is not None:
                 return self.event.price_for_employees
@@ -444,24 +452,29 @@ class ParticipantBooking(models.Model):
                 return self.event.price_for_contractors
             else:
                 return Decimal(0)
-        else:
+        elif (self.event.price_for_employees is not None
+              or self.event.price_for_contractors is not None):
             logging.error("User {0} is neither employee not contractor for {1}".format(self.person,
                                                                                        self.event))
-            return Decimal(999.99)
+            return Decimal(9999.99)
+        else:
+            return Decimal(0)
 
     def get_payment_status_class(self):
         '''
-        Return the status of payment (as a CSS class)
+        Return the status of payment (as a Bootstrap context CSS class)
         '''
-        if self.cancelledBy is not None:
-            if self.paidTo is None:
-                return ''
-            else:
+        if self.paidTo is not None:
+            if self.cancelledBy is not None:
                 return 'danger'
-        else:
-            if self.must_pay() == Decimal(0) or self.paidTo is not None:
+            else:
                 return 'success'
-            elif self.paidTo is None:
+        else:
+            if self.cancelledBy is not None:
+                return 'default'
+            elif self.must_pay() == Decimal(0):
+                return 'success'
+            else:
                 return 'warning'
         return ''
 
@@ -633,9 +646,10 @@ class ParticipantOption(models.Model):
         dupes = ParticipantOption.objects.filter(booking=self.booking,
                                                  option__choice=self.option.choice)
         if dupes.count() > 0:
-            error = 'Participant {0} already has a choice for {1}'.format(self.booking,
-                                                                          self.option.choice)
-            raise ValidationError(error)
+            if dupes.count() != 1 or dupes[0].option != self.option:
+                error = 'Participant {0} already has a choice for {1}'.format(self.booking,
+                                                                              self.option.choice)
+                raise ValidationError(error)
 
 
 class Message(models.Model):

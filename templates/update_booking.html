@@ -78,14 +78,20 @@
             {% if not booking.cancelledBy or booking.paidTo %}
             <p><label>Payment:</label>
                 <span class="bg-{{booking.get_payment_status_class}}">
-                {% if booking.paidTo %}
-                Paid to {{booking.paidTo.get_full_name}} on {{booking.datePaid|date:"D, d N Y H:i"}}
+                {% if booking.exempt_of_payment %}
+                    Exempted of payment by {{booking.paidTo.get_full_name}} on {{booking.datePaid|date:"D, d N Y H:i"}}
+                {% elif booking.paidTo %}
+                    Paid to {{booking.paidTo.get_full_name}} on {{booking.datePaid|date:"D, d N Y H:i"}}
                 {% elif booking.must_pay == 0 %}
-                No payment needed
+                    {% if booking.exempt_of_payment %}
+                    Exempted of payment by {{booking.paidTo.get_full_name}} on {{booking.datePaid|date:"D, d N Y H:i"}}
+                    {% else %}
+                    No payment needed
+                    {% endif %}
                 {% else %}
                 Please pay
                 {{ booking.must_pay }}{% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
-                to an organiser
+                to an organiser.
                 {% endif %}
                 </span>
             {% endif %}

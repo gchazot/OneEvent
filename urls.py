@@ -26,6 +26,10 @@ urlpatterns = patterns(
         name='confirm_payment'),
     url(r'^booking/(?P<booking_id>\d+)/payment/cancel$', 'confirm_payment',
         name='cancel_payment', kwargs={'cancel': True}),
+    url(r'^booking/(?P<booking_id>\d+)/payment/exempt$', 'confirm_exempt',
+        name='confirm_exempt'),
+    url(r'^booking/(?P<booking_id>\d+)/payment/unexempt$', 'confirm_exempt',
+        name='cancel_exempt', kwargs={'cancel': True}),
     url(r'^booking/(?P<booking_id>\d+)/send_invite$', 'send_booking_invite',
         name='send_booking_invite'),
     # This one is kept for backward compatibility

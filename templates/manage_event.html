@@ -105,7 +105,7 @@ window.avoid_collapse_toggle = function(e) {
                         {% if booking.cancelledBy and booking.paidTo%}
                         <div><a href="{% url 'cancel_payment' booking_id=booking.id %}"
                             class="btn btn-warning btn-sm">
-                            <span class="glyphicon glyphicon-euro"></span>
+                            <span class="glyphicon glyphicon-gbp"></span>
                             Refund
                         </a></div>
                         {% endif %}
@@ -115,8 +115,20 @@ window.avoid_collapse_toggle = function(e) {
                             <span class="glyphicon glyphicon-ok"></span>
                             Confirm Payment
                         </a></div>
+                        <div><a href="{% url 'confirm_exempt' booking_id=booking.id %}"
+                            class='btn btn-warning btn-xs'>
+                            <span class="glyphicon glyphicon-heart-empty"></span>
+                            Exempt of Payment
+                        </a></div>
                         {% endif %}
                         {% if not booking.cancelledBy %}
+                            {% if booking.exempt_of_payment %}
+                            <div><a href="{% url 'cancel_exempt' booking_id=booking.id %}"
+                                class='btn btn-warning btn-xs'>
+                                <span class="glyphicon glyphicon-flash"></span>
+                                Cancel Exemption
+                            </a></div>
+                            {% endif %}
                             {% if booking.person.email %}
                             <div><a href="{% url 'send_booking_invite' booking_id=booking.id %}"
                                 class="btn btn-info btn-xs">
@@ -133,21 +145,27 @@ window.avoid_collapse_toggle = function(e) {
                     </td>
 
                     <td><!-- Booking status -->
-                       {% if booking.cancelledBy %}
-                           <div><span class="label label-default">Cancelled</span>
-                           by {{booking.cancelledBy.get_full_name}} on {{booking.cancelledOn|date:"d N Y H:i"}}</div>
-                           {% if booking.paidTo %}
-                               <div><span class='label label-danger'>Payment received</span>
-                               by {{ booking.paidTo.get_full_name }} on {{ booking.datePaid|date:"d N Y H:i" }}</div>
-                           {% endif %}
-                       {% elif booking.paidTo %}
-                           <div><span class='label label-success'>Payment received</span>
-                           by  {{ booking.paidTo.get_full_name }} on {{ booking.datePaid|date:"d N Y H:i" }}</div>
-                       {% elif booking.must_pay > 0 %}
-                           <div><span class='label label-warning'>No payment received</span></div>
-                       {% else %}
-                           <div><span class='label label-success'>No payment needed</span></div>
-                       {% endif %}
+                        {% if booking.cancelledBy %}
+                            <div><span class="label label-default">Cancelled</span>
+                            by {{booking.cancelledBy.get_full_name}} on {{booking.cancelledOn|date:"d N Y H:i"}}</div>
+                        {% endif %}
+
+                        <div><span class='label label-{{ booking.get_payment_status_class }}'>
+                        {% if booking.exempt_of_payment %}
+                            Exempted of payment
+                        {% elif booking.paidTo %}
+                            Payment received
+                        {% elif booking.must_pay > 0 %}
+                            No payment received
+                        {% else %}
+                            No payment needed
+                        {% endif %}
+                        </span>
+                        {% if booking.exempt_of_payment or booking.paidTo %}
+                            by {{ booking.paidTo.get_full_name }} on {{ booking.datePaid|date:"d N Y H:i" }}
+                        {% endif %}
+                        </div>
+                    </td>
 
                     <!-- Options -->
                     {% for option in booking.options.all %}

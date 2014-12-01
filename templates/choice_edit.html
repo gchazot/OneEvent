@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_field %}
+
+{% block navbar_header_text %}{% if choice.id %}Edit Choice{% else %}New Choice{% endif %}{% endblock %}
+
+{% block heading_action %}{% if choice.id %}Edit Choice{% else %}New Choice{% endif %}{% endblock %}
+
+{% block heading_title %}{{ choice.event.title }}
+    <small>{{ choice.event.start|date:"D, d N Y H:i" }}</small>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <form method="post" class="form-horizontal"
+    {% if choice.id %}
+        action="{% url 'edit_choice' choice_id=choice.id %}">
+    {% else %}
+        action="{% url 'add_choice' event_id=choice.event.id %}">
+    {% endif %}
+
+        <p>{% crispy choice_form %}</p>
+        {% crispy options_formset options_helper %}
+    </form>
+</div>
+{% endblock %}

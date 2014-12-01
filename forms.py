@@ -5,12 +5,12 @@ Created on 23 Sep 2014
 '''
 from django.forms import Form
 from django.forms.fields import ChoiceField
-from OneEvent.models import ParticipantOption, EventChoiceOption, Event, Message
-from django.forms.models import ModelForm
+from OneEvent.models import Event, EventChoice, EventChoiceOption, ParticipantOption, Message
+from django.forms.models import ModelForm, inlineformset_factory
 from django.core.urlresolvers import reverse
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, Reset
-from crispy_forms.bootstrap import TabHolder, Tab
+from crispy_forms.layout import Submit, Reset, Layout, Field, Div, HTML
+from crispy_forms.bootstrap import TabHolder, Tab, FormActions
 
 
 class BookingForm(Form):
@@ -70,6 +70,73 @@ class EventForm(ModelForm):
         )
         self.helper.add_input(Submit('submit', 'Save Changes'))
         self.helper.add_input(Reset('reset', 'Reset'))
+
+
+class ChoiceForm(ModelForm):
+    class Meta:
+        model = EventChoice
+        fields = ['title']
+
+    def __init__(self, *args, **kwargs):
+        super(ChoiceForm, self).__init__(*args, **kwargs)
+
+        self.fields['title'].label = 'Choice Title'
+
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Field('title'),
+            FormActions(
+                Submit('save', 'Save', css_class='btn-success'),
+                Reset('reset', 'Reset', css_class='btn-warning'),
+                HTML('<a href="{0}" class="btn btn-danger">Cancel</a>'.format(
+                  reverse('edit_event', kwargs={'event_id': self.instance.event.id}))),
+                css_class='text-center'
+            )
+        )
+        self.helper.label_class = 'col-xs-3'
+        self.helper.field_class = 'col-xs-7'
+
+
+OptionFormSet = inlineformset_factory(EventChoice, EventChoiceOption,
+                                      extra=3, can_delete=True)
+
+
+class OptionFormSetHelper(FormHelper):
+    def __init__(self, *args, **kwargs):
+        super(OptionFormSetHelper, self).__init__(*args, **kwargs)
+
+        self.form_tag = False
+        self.layout = Layout(
+            Div(
+                Div(
+                    HTML('Option #{{ forloop.counter }}'),
+                    css_class='panel-heading'
+                ),
+                Div(
+                    Div(
+                        Field('title'),
+                        css_class='row'
+                    ),
+                    Div(
+                        Div(css_class='col-xs-2'),
+                        Div(
+                            Field('default'),
+                            css_class='col-xs-2'
+                        ),
+                        Div(
+                            Field('DELETE'),
+                            css_class='col-xs-2'
+                        ),
+                        css_class='row'
+                    ),
+                    css_class='panel-body'
+                ),
+                css_class='panel panel-info'
+            )
+        )
+        self.label_class = 'col-xs-2'
+        self.field_class = 'col-xs-9'
 
 
 class MessageForm(ModelForm):

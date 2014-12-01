@@ -13,28 +13,60 @@
 
 <div class="panel panel-info collapsible-caret">
     <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseOne">
-        <strong>Event details</strong>
+        <strong>Details</strong>
     </div>
 
     <div id="collapseOne" class="panel-collapse collapse in">
     <div class="panel-body">
-        {% crispy form %}
+        {% crispy event_form %}
     </div>
     </div>
 </div>
 
-<!--
+
 <div class="panel panel-info collapsible-caret">
     <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseTwo">
-        <strong>Event options</strong>
+        <strong>Choices</strong>
     </div>
 
     <div id="collapseTwo" class="panel-collapse collapse">
     <div class="panel-body">
-        <!-- Form to edit options ->
+        <table class="table">
+        {% for choice in event.choices.all %}
+            {% if forloop.first %}
+            <thead>
+                <tr><th>Choice</th><th>Options</th><th><!--Actions--></th></tr>
+            </thead>
+            {% else %}
+            <tbody>
+            {% endif %}
+            <tr>
+                <th rowspan="{{ choice.opions.count }}">{{ choice.title }}</th>
+                <td>
+                {% for option in choice.options.all %}
+                    <p>{{ option.title }}</p>
+                {% endfor %}
+                </td>
+                <td>
+                    <p><a href="{% url 'edit_choice' choice_id=choice.id %}"
+                        class="btn btn-sm btn-warning">Edit</a></p>
+                    <p><a href="{% url 'delete_choice' choice_id=choice.id %}"
+                        class="btn btn-sm btn-danger">Delete</a></p>
+                </td>
+            </tr>
+            {% if forloop.last %}
+            </tbody>
+            {% endif %}
+        {% empty %}
+        <tr><th>No choice defined for this event</th></tr>
+        {% endfor %}
+        </table>
+        <div>
+            <a href="{% url 'add_choice' event_id=event.id %}" class="btn btn-success">Add a choice</a>
+        </div>
     </div>
     </div>
 </div>
- -->
+
 </div>
 {% endblock %}

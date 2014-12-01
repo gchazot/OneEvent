@@ -1,0 +1,14 @@
+{% extends "base_confirmation.html" %}
+
+{% block navbar_header_text %}Delete Choice{% endblock %}
+
+{% block heading_action %}Delete Choice{% endblock %}
+{% block heading_title %}{{ choice.title }}
+    <small>{{ choice.event.title }}</small>
+{% endblock %}
+
+{% block additional_info %}
+<h2 class="text-danger">You will loose choices made by all participants !</h2>
+{% endblock %}
+
+{% block post_url %}{% url 'delete_choice' choice_id=choice.id %}{% endblock %}

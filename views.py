@@ -17,8 +17,12 @@ import unicode_csv
 from timezones import get_tzinfo
 
 from OneEvent.models import Event, ParticipantBooking, Message
-from OneEvent.forms import BookingForm, EventForm, MessageForm, ReplyMessageForm
+from OneEvent.forms import (BookingForm, EventForm, ChoiceForm, OptionFormSet, OptionFormSetHelper,
+                            MessageForm, ReplyMessageForm)
 from datetime import timedelta
+from models import EventChoice
+from django.core.urlresolvers import reverse
+
 
 # A default datetime format (too lazy to use the one in settings)
 dt_format = '%a, %d %b %Y %H:%M'
@@ -105,7 +109,7 @@ def create_booking(request, event_id):
         messages.warning(request, 'Please confirm your registration here!')
         return redirect('update_booking', booking_id=booking.id)
     else:
-        messages.error(request, 'Bookings are closed for "{0}"!'.format(event.title))
+        messages.error(request, u'Bookings are closed for "{0}"!'.format(event.title))
         return redirect('index')
 
 
@@ -198,24 +202,89 @@ def edit_event(request, event_id):
         tz = get_tzinfo(tz_form.cleaned_data['city'])
         timezone.activate(tz)
 
-    form = EventForm(request.POST or None, instance=event)
-    if form.is_valid():
-        form.save()
+    event_form = EventForm(request.POST or None, instance=event)
+    if event_form.is_valid():
+        event_form.save()
         if request.user in event.organisers.all():
             messages.success(request, 'Event details updated'.format(event.title))
             return redirect('edit_event', event_id=event_id)
         else:
-            messages.success(request, 'You removed yourself from the organisers of {0}'.format(event.title))
+            messages.success(request,
+                             u'You removed yourself from the organisers of {0}'.format(event.title))
             return redirect('index')
     else:
-        if form.is_bound:
+        if event_form.is_bound:
             messages.error(request, 'Unable to update event details, see below for errors!')
         # Not saving a form. Activate the timezone from the event
         timezone.activate(event.get_tzinfo())
 
     return render_to_response('edit_event.html',
-                              {'event': event, 'form': form},
+                              {'event': event, 'event_form': event_form},
                               context_instance=RequestContext(request))
+
+
+def _choice_edit_form(request, choice):
+    '''
+    Handle the edition of a choice from the form page
+    Not to be called directly
+    '''
+    if not choice.event.user_can_update(request.user):
+        messages.error(request, 'You are not authorised to edit this event !')
+        return redirect('index')
+
+    choice_form = ChoiceForm(request.POST or None, instance=choice)
+    options_formset = OptionFormSet(request.POST or None, instance=choice)
+    options_helper = OptionFormSetHelper()
+
+    if choice_form.is_valid() and options_formset.is_valid():
+        choice_form.save()
+        options_formset.save()
+        messages.success(request, 'Choice updated')
+        return redirect('edit_event', event_id=choice.event.id)
+    else:
+        if choice_form.is_bound or options_formset.is_bound:
+            messages.error(request, 'Unable to update choice, see errors below!')
+
+    timezone.activate(choice.event.get_tzinfo())
+    return render_to_response('choice_edit.html',
+                              {'choice': choice,
+                               'choice_form': choice_form,
+                               'options_formset': options_formset,
+                               'options_helper': options_helper},
+                              context_instance=RequestContext(request))
+
+
+@login_required
+def add_choice(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    new_choice = EventChoice(event=event)
+    return _choice_edit_form(request, new_choice)
+
+
+@login_required
+def edit_choice(request, choice_id):
+    choice = get_object_or_404(EventChoice, id=choice_id)
+    return _choice_edit_form(request, choice)
+
+
+@login_required
+def delete_choice(request, choice_id):
+    choice = get_object_or_404(EventChoice, id=choice_id)
+
+    if not choice.event.user_can_update(request.user):
+        messages.error(request, 'You are not authorised to edit this event !')
+        return redirect('index')
+
+    if request.method == 'POST':
+        choice.delete()
+        messages.success(request, u'Choice deleted: {0}'.format(choice.title))
+
+        return redirect('edit_event', event_id=choice.event.id)
+    else:
+        timezone.activate(choice.event.get_tzinfo())
+        return render_to_response('choice_delete.html',
+                                  {'choice': choice},
+                                  context_instance=RequestContext(request))
 
 
 @login_required
@@ -237,10 +306,10 @@ def confirm_payment(request, booking_id, cancel=False):
 
         if not cancel:
             messages.success(request,
-                             'Payment confirmed for {0}'.format(booking.person.get_full_name()))
+                             u'Payment confirmed for {0}'.format(booking.person.get_full_name()))
         else:
             messages.success(request,
-                             'Refund confirmed for {0}'.format(booking.person.get_full_name()))
+                             u'Refund confirmed for {0}'.format(booking.person.get_full_name()))
 
         return redirect('manage_event', event_id=booking.event.id)
     else:
@@ -278,10 +347,10 @@ def confirm_exempt(request, booking_id, cancel=False):
 
         if not cancel:
             messages.success(request,
-                             'Exemption confirmed for {0}'.format(booking.person.get_full_name()))
+                             u'Exemption confirmed for {0}'.format(booking.person.get_full_name()))
         else:
             messages.success(request,
-                             'Exemption cancelled for {0}'.format(booking.person.get_full_name()))
+                             u'Exemption cancelled for {0}'.format(booking.person.get_full_name()))
         return redirect('manage_event', event_id=booking.event.id)
     else:
         timezone.activate(booking.event.get_tzinfo())

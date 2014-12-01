@@ -20,6 +20,10 @@ urlpatterns = patterns(
     url(r'^event/(?P<event_id>\d+)/participants_list$', 'dl_participants_list',
         name='dl_participants_list'),
     url(r'^event/(?P<event_id>\d+)/new_booking$', 'create_booking', name='create_booking'),
+    url(r'^event/(?P<event_id>\d+)/new_choice$', 'add_choice', name='add_choice'),
+
+    url(r'^choice/(?P<choice_id>\d+)$', 'edit_choice', name='edit_choice'),
+    url(r'^choice/(?P<choice_id>\d+)/delete$', 'delete_choice', name='delete_choice'),
 
     url(r'^booking/(?P<booking_id>\d+)$', 'update_booking', name='update_booking'),
     url(r'^booking/(?P<booking_id>\d+)/cancel$', 'cancel_booking', name='cancel_booking'),

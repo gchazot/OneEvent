@@ -54,7 +54,7 @@ class EventForm(ModelForm):
         super(EventForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_method = 'post'
-        self.helper.form_action = reverse('manage_event',
+        self.helper.form_action = reverse('edit_event',
                                           kwargs={'event_id': self.instance.id})
 
         self.helper.form_class = 'form-horizontal'

@@ -44,7 +44,10 @@
                 <th rowspan="{{ choice.opions.count }}">{{ choice.title }}</th>
                 <td>
                 {% for option in choice.options.all %}
-                    <p>{{ option.title }}</p>
+                    <p>
+                        {{ option.title }}
+                        {% if option.default %}<span class="label label-default">default</span>{% endif %}
+                    </p>
                 {% endfor %}
                 </td>
                 <td>

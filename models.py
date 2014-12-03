@@ -456,7 +456,7 @@ class ParticipantBooking(models.Model):
               or self.event.price_for_contractors is not None):
             logging.error("User {0} is neither employee not contractor for {1}".format(self.person,
                                                                                        self.event))
-            return Decimal(9999.99)
+            return Decimal(999999) / 100  # To make sure there is no floating point rounding
         else:
             return Decimal(0)
 

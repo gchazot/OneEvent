@@ -11,6 +11,7 @@ from django.core.urlresolvers import reverse
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Reset, Layout, Field, Div, HTML
 from crispy_forms.bootstrap import TabHolder, Tab, FormActions
+from django.core.exceptions import ValidationError
 
 
 class BookingForm(Form):
@@ -90,7 +91,7 @@ class ChoiceForm(ModelForm):
                 Submit('save', 'Save', css_class='btn-success'),
                 Reset('reset', 'Reset', css_class='btn-warning'),
                 HTML('<a href="{0}" class="btn btn-danger">Cancel</a>'.format(
-                  reverse('edit_event', kwargs={'event_id': self.instance.event.id}))),
+                    reverse('edit_event', kwargs={'event_id': self.instance.event.id}))),
                 css_class='text-center'
             )
         )
@@ -98,8 +99,35 @@ class ChoiceForm(ModelForm):
         self.helper.field_class = 'col-xs-7'
 
 
-OptionFormSet = inlineformset_factory(EventChoice, EventChoiceOption,
-                                      extra=3, can_delete=True)
+OptionFormSetBase = inlineformset_factory(EventChoice, EventChoiceOption,
+                                          extra=3, can_delete=True)
+
+
+class OptionFormSet(OptionFormSetBase):
+    def clean(self):
+        '''
+        Validate that the overall set of options is valid
+        '''
+        super(OptionFormSet, self).clean()
+        # If any error in underlying forms, don't bother
+        if any(self.errors):
+            return
+
+        # Check that a single "Default" Option will remain and store it
+        self.new_default = None
+        for form in self.forms:
+            if form.instance.default and not form.cleaned_data['DELETE']:
+                if self.new_default is not None:
+                    raise ValidationError("You can not have more than one Default Option.")
+                else:
+                    self.new_default = form.instance
+        if self.new_default is None:
+            raise ValidationError("You must have one Default Option.")
+
+        # Store the deleted Options
+        self.deleted_options = [form.instance
+                                for form in self.deleted_forms
+                                if form.instance.pk]
 
 
 class OptionFormSetHelper(FormHelper):

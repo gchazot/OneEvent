@@ -16,12 +16,10 @@ from django.utils import timezone
 import unicode_csv
 from timezones import get_tzinfo
 
-from OneEvent.models import Event, ParticipantBooking, Message
+
+from OneEvent.models import Event, ParticipantBooking, Message, EventChoice, ParticipantOption
 from OneEvent.forms import (BookingForm, EventForm, ChoiceForm, OptionFormSet, OptionFormSetHelper,
                             MessageForm, ReplyMessageForm)
-from datetime import timedelta
-from models import EventChoice
-from django.core.urlresolvers import reverse
 
 
 # A default datetime format (too lazy to use the one in settings)
@@ -232,18 +230,38 @@ def _choice_edit_form(request, choice):
         messages.error(request, 'You are not authorised to edit this event !')
         return redirect('index')
 
+    is_new_choice = not bool(choice.pk)
+
     choice_form = ChoiceForm(request.POST or None, instance=choice)
     options_formset = OptionFormSet(request.POST or None, instance=choice)
     options_helper = OptionFormSetHelper()
 
     if choice_form.is_valid() and options_formset.is_valid():
+        # Update existing bookings with a deleted option to the new default
+        for deleted_option in options_formset.deleted_options:
+            part_options = ParticipantOption.objects.filter(option=deleted_option)
+            part_options.update(option=options_formset.new_default)
+
+        # Save choice changes
         choice_form.save()
         options_formset.save()
+
+        # If a new choice, choose default option for all bookings
+        if is_new_choice:
+            bookings = ParticipantBooking.objects.filter(event=choice.event,
+                                                         cancelledBy__exact=None)
+            for bkg in bookings:
+                print u"Adding option to booking {0} : {1}".format(bkg, options_formset.new_default)
+                bkg.options.create(option=options_formset.new_default)
+
         messages.success(request, 'Choice updated')
         return redirect('edit_event', event_id=choice.event.id)
     else:
         if choice_form.is_bound or options_formset.is_bound:
-            messages.error(request, 'Unable to update choice, see errors below!')
+            if is_new_choice:
+                messages.error(request, 'Unable to create choice, see errors below!')
+            else:
+                messages.error(request, 'Unable to update choice, see errors below!')
 
     timezone.activate(choice.event.get_tzinfo())
     return render_to_response('choice_edit.html',

@@ -2,9 +2,9 @@
 {% load crispy_forms_tags %}
 {% load crispy_forms_field %}
 
-{% block navbar_header_text %}{% if choice.id %}Edit Choice{% else %}New Choice{% endif %}{% endblock %}
+{% block navbar_header_text %}{% if choice.id %}Edit{% else %}New{% endif %} Choice{% endblock %}
 
-{% block heading_action %}{% if choice.id %}Edit Choice{% else %}New Choice{% endif %}{% endblock %}
+{% block heading_action %}{% if choice.id %}Edit{% else %}New{% endif %} Choice{% endblock %}
 
 {% block heading_title %}{{ choice.event.title }}
     <small>{{ choice.event.start|date:"D, d N Y H:i" }}</small>

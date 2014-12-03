@@ -55,8 +55,11 @@ class EventForm(ModelForm):
         super(EventForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_method = 'post'
-        self.helper.form_action = reverse('edit_event',
-                                          kwargs={'event_id': self.instance.id})
+        if self.instance.pk:
+            self.helper.form_action = reverse('edit_event',
+                                              kwargs={'event_id': self.instance.id})
+        else:
+            self.helper.form_action = reverse('event_create')
 
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-3'
@@ -69,7 +72,7 @@ class EventForm(ModelForm):
             Tab('Prices', 'price_for_employees', 'price_for_contractors', 'price_currency'),
             Tab('Employee/Contractor Groups', 'employees_groups', 'contractors_groups')
         )
-        self.helper.add_input(Submit('submit', 'Save Changes'))
+        self.helper.add_input(Submit('submit', 'Save'))
         self.helper.add_input(Reset('reset', 'Reset'))
 
 

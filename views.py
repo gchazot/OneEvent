@@ -15,6 +15,7 @@ from django.utils import timezone
 
 import unicode_csv
 from timezones import get_tzinfo
+from datetime import timedelta
 
 
 from OneEvent.models import Event, ParticipantBooking, Message, EventChoice, ParticipantOption
@@ -83,6 +84,7 @@ def my_events(request):
     context = {'events_shown': 'mine'}
     query = Q(bookings__person=request.user, bookings__cancelledBy=None)
     query = query | Q(organisers=request.user)
+    query = query | Q(owner=request.user)
     events = Event.objects.filter(query).distinct()
     if events.count() > 0:
         return events_list(request, events, context)
@@ -185,13 +187,12 @@ def manage_event(request, event_id):
                               context_instance=RequestContext(request))
 
 
-@login_required
-def edit_event(request, event_id):
-    event = get_object_or_404(Event, id=event_id)
-
-    if not event.user_can_update(request.user):
-        messages.error(request, 'You are not authorised to edit this event !')
-        return redirect('index')
+def _event_edit_form(request, event):
+    '''
+    Handle the edition of an event from the form page
+    Not to be used directly as a view
+    '''
+    is_new_event = not bool(event.pk)
 
     # Activate the timezone from form data before processing the form
     # Use a separate form! otherwise the data is already processed
@@ -203,11 +204,14 @@ def edit_event(request, event_id):
     event_form = EventForm(request.POST or None, instance=event)
     if event_form.is_valid():
         event_form.save()
-        if request.user in event.organisers.all():
-            messages.success(request, 'Event details updated'.format(event.title))
-            return redirect('edit_event', event_id=event_id)
+        if is_new_event:
+            messages.success(request, 'Event created')
+            return redirect('edit_event', event_id=event.id)
+        elif event.user_is_organiser(request.user):
+            messages.success(request, 'Event details updated')
+            return redirect('edit_event', event_id=event.id)
         else:
-            messages.success(request,
+            messages.warning(request,
                              u'You removed yourself from the organisers of {0}'.format(event.title))
             return redirect('index')
     else:
@@ -221,10 +225,29 @@ def edit_event(request, event_id):
                               context_instance=RequestContext(request))
 
 
+@login_required
+def edit_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    if not event.user_can_update(request.user):
+        messages.error(request, 'You are not authorised to edit this event !')
+        return redirect('index')
+
+    return _event_edit_form(request, event)
+
+
+@login_required
+def event_create(request):
+    new_event = Event(owner=request.user,
+                      city='London')
+    return _event_edit_form(request, new_event)
+
+
+@login_required
 def _choice_edit_form(request, choice):
     '''
     Handle the edition of a choice from the form page
-    Not to be called directly
+    Not to be used directly as a view
     '''
     if not choice.event.user_can_update(request.user):
         messages.error(request, 'You are not authorised to edit this event !')
@@ -272,14 +295,12 @@ def _choice_edit_form(request, choice):
                               context_instance=RequestContext(request))
 
 
-@login_required
 def add_choice(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     new_choice = EventChoice(event=event)
     return _choice_edit_form(request, new_choice)
 
 
-@login_required
 def edit_choice(request, choice_id):
     choice = get_object_or_404(EventChoice, id=choice_id)
     return _choice_edit_form(request, choice)

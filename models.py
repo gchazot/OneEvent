@@ -48,14 +48,21 @@ class Event(models.Model):
     city = models.CharField(max_length=32, choices=CITY_CHOICES,
                             help_text='Timezone of your event')
 
-    pub_status = models.CharField(max_length=8, choices=PUB_STATUS_CHOICES, default='UNPUB',
-                                  verbose_name='Publication status')
+    pub_status = models.CharField(
+        max_length=8, choices=PUB_STATUS_CHOICES, default='UNPUB',
+        verbose_name='Publication status',
+        help_text='Public: Visible and bookable by all; ' +
+                  'Restricted: Visible and Bookable by invited groups; ' +
+                  'Private: Visible by participant, bookable by all; ' +
+                  'Unpublished: Visible by organisers, not bookable; ' +
+                  'Archived: Not visible, not bookable')
 
     location_name = models.CharField(max_length=64, null=True, blank=True,
                                      help_text='Venue of your event')
     location_address = models.TextField(null=True, blank=True)
 
-    owner = models.ForeignKey('auth.User', related_name='events_owned')
+    owner = models.ForeignKey('auth.User', related_name='events_owned',
+                              help_text='Main organiser')
     organisers = models.ManyToManyField('auth.User', blank=True, related_name='events_organised')
 
     booking_close = models.DateTimeField(blank=True, null=True,
@@ -130,7 +137,7 @@ class Event(models.Model):
 
     def _get_from_users_cache(self, user_id, key, default=None):
         '''
-        @return: the value for a user_id/key pair from teh cache.
+        @return: the value for a user_id/key pair from the cache.
         @param default: default value if user/key is not found
         '''
         self._populate_users_cache()
@@ -141,7 +148,9 @@ class Event(models.Model):
         Check if the given user is part of the organisers of the event
         '''
         self._populate_users_cache()
-        return self._get_from_users_cache(user.id, 'orga', False)
+        is_orga = self._get_from_users_cache(user.id, 'orga', False)
+        is_owner = (user == self.owner)
+        return is_orga or is_owner
 
     def user_is_employee(self, user):
         '''
@@ -413,13 +422,13 @@ class ParticipantBooking(models.Model):
         Check that the user can cancel the booking
         '''
         return ((self.event.is_booking_open() and user == self.person)
-                or user in self.event.organisers.all())
+                or self.event.user_is_organiser(user))
 
     def user_can_update_payment(self, user):
         '''
         Check that the user can update payment informations
         '''
-        return user in self.event.organisers.all()
+        return self.event.user_is_organiser(user)
 
     def is_employee(self):
         '''

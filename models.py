@@ -265,7 +265,13 @@ class Event(models.Model):
         '''
         Return the active bookings
         '''
-        return self.bookings.filter(cancelledBy=None)
+        return self.bookings.filter(cancelledBy__isnull=True)
+
+    def get_cancelled_bookings(self):
+        '''
+        Return the cancelled bookings
+        '''
+        return self.bookings.filter(cancelledBy__isnull=False)
 
     def get_participants_ids(self):
         '''

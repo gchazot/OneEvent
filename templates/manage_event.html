@@ -80,7 +80,13 @@ window.avoid_collapse_toggle = function(e) {
                 {% for booking in event.bookings.all %}
                 <tr class="{{ booking.get_payment_status_class }}">
                     <td><!-- Name -->
-                        {{ booking.person.get_full_name }}
+                        <p>{{ booking.person.get_full_name }}</p>
+                        {% if booking.person.email %}
+                        <p><a href="mailto:{{booking.person.email}}?Subject={{booking.event.title|urlencode}}"
+                              title="Email participant" target="_blank">
+                            <span class="glyphicon glyphicon-envelope"></span>
+                         </a></p>
+                         {% endif %}
                     </td>
 
                     <td><!-- Employment -->

@@ -420,8 +420,16 @@ class ParticipantBooking(models.Model):
         '''
         Check that the user can update the booking
         '''
-        still_open = self.event.is_choices_open()
-        return still_open and user == self.person
+        if self.event.user_is_organiser(user):
+            # Organisers can always update
+            return True
+        elif user == self.person:
+            # updating a cancelled booking is like re-booking
+            if self.cancelledBy is not None:
+                return self.event.user_can_book(user)
+            else:
+                return self.event.is_choices_open()
+        return False
 
     def user_can_cancel(self, user):
         '''

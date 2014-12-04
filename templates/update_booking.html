@@ -12,6 +12,15 @@
 {% block content %}
 
 <div class="row">
+    {% if booking.person != user %}
+    <div class="panel panel-danger">
+        <div class="panel-heading text-center"><h4>
+            <span class="glyphicon glyphicon-warning-sign"></span>
+            You are editing a booking for: {{booking.person.get_full_name}}
+        </h4></div>
+    </div>
+    {% endif %}
+
     <div class="panel panel-info collapsible-caret">
         <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseOne">
             <strong>Event info</strong>

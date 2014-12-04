@@ -144,6 +144,11 @@ window.hide_cancelled_toggle = function(e){
                             Cancel booking
                         </a></div>
                         {% endif %}
+                        <div><a href="{% url 'update_booking' booking_id=booking.id %}"
+                            class="btn btn-warning btn-xs">
+                            <span class="glyphicon glyphicon-pencil"></span>
+                            Edit booking
+                        </a></div>
                     </td>
 
                     <td><!-- Booking status -->

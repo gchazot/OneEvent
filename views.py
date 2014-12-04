@@ -117,10 +117,6 @@ def create_booking(request, event_id):
 def update_booking(request, booking_id):
     booking = get_object_or_404(ParticipantBooking, id=booking_id)
 
-    if not booking.event.user_can_book(request.user):
-        messages.error(request, 'It is not possible to register/update this booking')
-        return redirect('index')
-
     if not booking.user_can_update(request.user):
         messages.error(request, 'You are not authorised to update this booking !')
         return redirect('index')

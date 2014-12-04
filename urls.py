@@ -20,7 +20,9 @@ urlpatterns = patterns(
         name='dl_event_options_summary'),
     url(r'^event/(?P<event_id>\d+)/participants_list$', 'dl_participants_list',
         name='dl_participants_list'),
-    url(r'^event/(?P<event_id>\d+)/new_booking$', 'create_booking', name='create_booking'),
+    url(r'^event/(?P<event_id>\d+)/book$', 'create_booking', name='create_booking'),
+    url(r'^event/(?P<event_id>\d+)/book_on_behalf$', 'create_booking_on_behalf',
+        name='create_booking_on_behalf'),
     url(r'^event/(?P<event_id>\d+)/new_choice$', 'add_choice', name='add_choice'),
 
     url(r'^choice/(?P<choice_id>\d+)$', 'edit_choice', name='edit_choice'),

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block navbar_header_text %}Create Booking{% endblock %}
+
+{% block heading_action %}Create Booking{% endblock %}
+{% block heading_title %}{{ event.title }}
+    <small>{{ event.start|date:"D, d N Y H:i" }}</small>
+{% endblock %}
+
+{% block content %}
+    {% crispy form %}
+{% endblock %}

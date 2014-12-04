@@ -28,7 +28,9 @@ window.hide_cancelled_toggle = function(evt){
         <strong>Choices summary</strong>
         <a href="{% url 'dl_event_options_summary' event_id=event.id %}"
             onclick="avoid_collapse_toggle(event)"
-            class="btn btn-default">Download</a>
+            class="btn btn-info">
+            <span class="glyphicon glyphicon-download-alt"></span> Download list
+        </a>
     </div>
     <div id="collapseTwo" class="panel-collapse collapse in table-responsive" >
         <table class="panel-body table table-bordered table-striped">
@@ -61,10 +63,17 @@ window.hide_cancelled_toggle = function(evt){
         <strong>Participants</strong>
         <a href="{% url 'dl_participants_list' event_id=event.id %}"
             onclick="avoid_collapse_toggle(event)"
-            class="btn btn-default" data-toggle="" data-target="">Download</a>
-        <span class="pull-right">
+            class="btn  btn-info" data-toggle="" data-target="">
+            <span class="glyphicon glyphicon-download-alt"></span> Download list
+        </a>
+        <a href="{% url 'create_booking_on_behalf' event_id=event.id %}"
+            onclick="avoid_collapse_toggle(event)"
+            class="btn  btn-success" data-toggle="" data-target="">
+            <span class="glyphicon glyphicon-plus"></span> Add participant
+        </a>
+        <div class="checkbox pull-right">
             <input type="checkbox" onclick="hide_cancelled_toggle(event)">Show Cancelled
-        </span>
+        </div>
     </div>
     <div id="collapseThree" class="panel-collapse collapse table-responsive">
         <table class="panel-body table table-bordered">
@@ -94,6 +103,10 @@ window.hide_cancelled_toggle = function(evt){
                         <p><a href="mailto:{{booking.person.email}}?Subject={{booking.event.title|urlencode}}"
                               title="Email participant" target="_blank">
                             <span class="glyphicon glyphicon-envelope"></span>
+                         </a>
+                         <a href="{% url 'send_booking_invite' booking_id=booking.id %}"
+                            title="Send invite">
+                             <span class="glyphicon glyphicon-calendar"></span>
                          </a></p>
                          {% endif %}
                     </td>
@@ -118,24 +131,17 @@ window.hide_cancelled_toggle = function(evt){
                             Confirm Payment
                         </a></div>
                         <div><a href="{% url 'confirm_exempt' booking_id=booking.id %}"
-                            class='btn btn-warning btn-xs'>
-                            <span class="glyphicon glyphicon-heart-empty"></span>
+                            class='btn btn-default btn-xs'>
+                            <span class="glyphicon glyphicon-thumbs-up"></span>
                             Exempt of Payment
                         </a></div>
                         {% endif %}
                         {% if not booking.cancelledBy %}
                             {% if booking.exempt_of_payment %}
                             <div><a href="{% url 'cancel_exempt' booking_id=booking.id %}"
-                                class='btn btn-warning btn-xs'>
-                                <span class="glyphicon glyphicon-flash"></span>
+                                class='btn btn-default btn-xs'>
+                                <span class="glyphicon glyphicon-thumbs-down"></span>
                                 Cancel Exemption
-                            </a></div>
-                            {% endif %}
-                            {% if booking.person.email %}
-                            <div><a href="{% url 'send_booking_invite' booking_id=booking.id %}"
-                                class="btn btn-info btn-xs">
-                                <span class="glyphicon glyphicon-calendar"></span>
-                                Send invite
                             </a></div>
                             {% endif %}
                         <div><a href="{% url 'cancel_booking' booking_id=booking.id %}"

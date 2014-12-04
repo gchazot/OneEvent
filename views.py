@@ -20,7 +20,8 @@ from datetime import timedelta
 
 from OneEvent.models import Event, ParticipantBooking, Message, EventChoice, ParticipantOption
 from OneEvent.forms import (BookingForm, EventForm, ChoiceForm, OptionFormSet, OptionFormSetHelper,
-                            MessageForm, ReplyMessageForm)
+                            CreateBookingOnBehalfForm, MessageForm, ReplyMessageForm)
+from django.contrib.auth.models import User
 
 
 # A default datetime format (too lazy to use the one in settings)
@@ -111,6 +112,40 @@ def create_booking(request, event_id):
     else:
         messages.error(request, u'Bookings are closed for "{0}"!'.format(event.title))
         return redirect('index')
+
+
+@login_required
+def create_booking_on_behalf(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    if not event.user_is_organiser(request.user):
+        messages.error(request, 'You can not create a booking on behalf for this event')
+        return redirect('index')
+
+    form = CreateBookingOnBehalfForm(event.id, request.POST or None)
+    if form.is_valid():
+        target_user = User.objects.get(username=form.cleaned_data['username'])
+        booking, created = ParticipantBooking.objects.get_or_create(
+            event=event,
+            person=target_user,
+            defaults={'cancelledBy': request.user,
+                      'cancelledOn': timezone.now()})
+
+        if created:
+            messages.success(request,
+                             u'Booking created for {0}. Please confirm it.'.format(
+                                 target_user.get_full_name()))
+        else:
+            messages.warning(request,
+                             u'Booking exists for {0}. You may edit it.'.format(
+                                 target_user.get_full_name()))
+
+        return redirect('update_booking', booking_id=booking.id)
+    else:
+        timezone.activate(event.get_tzinfo())
+        return render_to_response('create_booking_on_behalf.html',
+                                  {'form': form, 'event': event},
+                                  context_instance=RequestContext(request))
 
 
 @login_required

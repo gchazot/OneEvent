@@ -12,6 +12,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Reset, Layout, Field, Div, HTML
 from crispy_forms.bootstrap import TabHolder, Tab, FormActions
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
 
 
 class BookingForm(Form):
@@ -168,6 +169,23 @@ class OptionFormSetHelper(FormHelper):
         )
         self.label_class = 'col-xs-2'
         self.field_class = 'col-xs-9'
+
+
+class CreateBookingOnBehalfForm(Form):
+    username = ChoiceField(label='Create a booking for',
+                           choices=((u.username, u.get_full_name())
+                                    for u in User.objects.order_by('last_name', 'first_name')))
+
+    def __init__(self, event_id, *args, **kwargs):
+        super(CreateBookingOnBehalfForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.form_action = reverse('create_booking_on_behalf',
+                                          kwargs={'event_id': event_id})
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-3'
+        self.helper.field_class = 'col-lg-6'
+        self.helper.add_input(Submit('submit', 'Create Booking'))
 
 
 class MessageForm(ModelForm):

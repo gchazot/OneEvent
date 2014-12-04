@@ -16,9 +16,9 @@ window.avoid_collapse_toggle = function(e) {
     e.stopPropagation();
 }
 
-window.hide_cancelled_toggle = function(e){
-    $('tr.cancelled').toggleClass("hidden");
-    avoid_collapse_toggle(e);
+window.hide_cancelled_toggle = function(evt){
+    $('tr.cancelled').toggleClass("hidden", !evt.target.checked);
+    avoid_collapse_toggle(evt);
 };
 </script>
 

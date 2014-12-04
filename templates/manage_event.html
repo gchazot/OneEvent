@@ -119,7 +119,7 @@ window.hide_cancelled_toggle = function(evt){
                     <td><!--  Actions -->
                         {% if booking.cancelledBy and booking.paidTo%}
                         <div><a href="{% url 'cancel_payment' booking_id=booking.id %}"
-                            class="btn btn-warning btn-sm">
+                            class="btn btn-danger btn-sm">
                             <span class="glyphicon glyphicon-gbp"></span>
                             Refund
                         </a></div>
@@ -131,30 +131,33 @@ window.hide_cancelled_toggle = function(evt){
                             Confirm Payment
                         </a></div>
                         <div><a href="{% url 'confirm_exempt' booking_id=booking.id %}"
-                            class='btn btn-default btn-xs'>
+                            class='btn btn-default btn-sm bg-success'>
                             <span class="glyphicon glyphicon-thumbs-up"></span>
                             Exempt of Payment
                         </a></div>
                         {% endif %}
-                        {% if not booking.cancelledBy %}
-                            {% if booking.exempt_of_payment %}
+                        {% if not booking.cancelledBy and booking.exempt_of_payment %}
                             <div><a href="{% url 'cancel_exempt' booking_id=booking.id %}"
-                                class='btn btn-default btn-xs'>
+                                class='btn btn-default btn-sm bg-danger'>
                                 <span class="glyphicon glyphicon-thumbs-down"></span>
                                 Cancel Exemption
                             </a></div>
-                            {% endif %}
-                        <div><a href="{% url 'cancel_booking' booking_id=booking.id %}"
-                            class="btn btn-danger btn-xs">
-                            <span class="glyphicon glyphicon-ban-circle"></span>
-                            Cancel booking
-                        </a></div>
                         {% endif %}
-                        <div><a href="{% url 'update_booking' booking_id=booking.id %}"
-                            class="btn btn-warning btn-xs">
-                            <span class="glyphicon glyphicon-pencil"></span>
-                            Edit booking
-                        </a></div>
+                        <div>
+                            <a href="{% url 'update_booking' booking_id=booking.id %}"
+                                class="btn btn-warning btn-xs">
+                                <span class="glyphicon glyphicon-pencil"></span>
+                                Edit
+                            </a>
+                            {% if not booking.cancelledBy %}
+                            <a href="{% url 'cancel_booking' booking_id=booking.id %}"
+                                class="btn btn-danger btn-xs">
+                                <span class="glyphicon glyphicon-ban-circle"></span>
+                                Cancel
+                            </a>
+                            {% endif %}
+
+                        </div>
                     </td>
 
                     <td><!-- Booking status -->

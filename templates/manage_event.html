@@ -214,6 +214,7 @@ window.hide_cancelled_toggle = function(evt){
     </div>
 </div>
 
+{% if event.price_for_employees > 0 or event.price_for_contractors > 0 %}
 <div class="panel panel-info collapsible-caret">
     <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseFour">
         <strong>Collected money</strong>
@@ -259,6 +260,7 @@ window.hide_cancelled_toggle = function(evt){
         </table>
     </div>
 </div>
+{% endif %}
 
 </div>
 {% endblock %}

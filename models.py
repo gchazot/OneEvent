@@ -384,6 +384,7 @@ class ParticipantBooking(models.Model):
     event = models.ForeignKey('Event', related_name='bookings')
     person = models.ForeignKey('auth.User', related_name='bookings')
 
+    confirmedOn = models.DateTimeField(blank=True, null=True)
     cancelledBy = models.ForeignKey('auth.User', blank=True, null=True, related_name='cancelled_bookings')
     cancelledOn = models.DateTimeField(blank=True, null=True)
 
@@ -419,6 +420,10 @@ class ParticipantBooking(models.Model):
             self.cancelledOn = timezone.now()
         if self.cancelledBy is None and self.cancelledOn is not None:
             self.cancelledOn = None
+
+        # Checked that the booking is not cancelled and confirmed
+        if self.cancelledBy is not None and self.confirmedOn is not None:
+            raise ValidationError("Booking can not be both cancelled and confirmed")
 
     def user_can_update(self, user):
         '''

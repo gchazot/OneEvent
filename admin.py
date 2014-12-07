@@ -183,7 +183,7 @@ class ParticipantOptionInline(LimitedAdminInlineMixin, admin.TabularInline):
 
 class ParticipantBookingAdmin(admin.ModelAdmin):
     inlines = (ParticipantOptionInline,)
-    list_display = ('event', 'person', 'cancelledBy', 'cancelledOn')
+    list_display = ('event', 'person', 'cancelledBy', 'cancelledOn', 'confirmedOn')
 
 
 admin.site.register(Event, EventAdmin)

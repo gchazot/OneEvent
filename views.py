@@ -162,16 +162,21 @@ def update_booking(request, booking_id):
         messages.error(request, 'You are not authorised to update this booking !')
         return redirect('index')
 
+    timezone.activate(booking.event.get_tzinfo())
+
+    booking_was_cancelled = (booking.cancelledBy is not None)
+
     form = BookingForm(booking, request.POST or None)
     if form.is_valid():
         form.save()
-        booking.cancelledBy = None
-        booking.cancelledOn = None
+        if booking_was_cancelled:
+            booking.confirmedOn = timezone.now()
+            booking.cancelledBy = None
+            booking.cancelledOn = None
         booking.save()
         messages.success(request, 'Registration updated')
         return redirect('my_events')
 
-    timezone.activate(booking.event.get_tzinfo())
     return render_to_response('update_booking.html',
                               {'booking': booking,
                                'form': form},
@@ -186,7 +191,10 @@ def cancel_booking(request, booking_id):
         messages.error(request, 'You are not authorised to cancel this booking !')
         return redirect('index')
 
+    timezone.activate(booking.event.get_tzinfo())
+
     if request.method == 'POST':
+        booking.confirmedOn = None
         booking.cancelledBy = request.user
         booking.cancelledOn = timezone.now()
         booking.save()
@@ -196,7 +204,6 @@ def cancel_booking(request, booking_id):
         else:
             return redirect('manage_event', event_id=booking.event.id)
     else:
-        timezone.activate(booking.event.get_tzinfo())
         return render_to_response('cancel_booking.html',
                                   {'booking': booking},
                                   context_instance=RequestContext(request))
@@ -482,7 +489,7 @@ def dl_participants_list(request, event_id):
     bookings = event.bookings.order_by('person__last_name', 'person__first_name')
 
     writer.writerow([u'Last name', u'First name', u'email', u'Employment',
-                     u'Cancelled', u'Cancelled By',
+                     u'Cancelled', u'Cancelled By', u'Confirmed On',
                      u'Payment status', u'Paid to',
                      u'Choices'])
     for booking in bookings:
@@ -509,6 +516,12 @@ def dl_participants_list(request, event_id):
             cancelled = u"No"
             cancelled_by = u''
 
+        if booking.confirmedOn is not None:
+            local_date_confirmed = booking.confirmedOn.astimezone(booking.event.get_tzinfo())
+            confirmed_on = local_date_confirmed.strftime(dt_format)
+        else:
+            confirmed_on = 'N/A'
+
         if booking.is_employee():
             employment = u'Employee'
         elif booking.is_contractor():
@@ -518,7 +531,8 @@ def dl_participants_list(request, event_id):
 
         row = [booking.person.last_name, booking.person.first_name,
                booking.person.email, employment,
-               cancelled, cancelled_by, payment, paid_to]
+               cancelled, cancelled_by, confirmed_on,
+               payment, paid_to]
         for option in booking.options.all():
             row.append(option.option.title)
         writer.writerow(row)

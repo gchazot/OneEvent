@@ -6,13 +6,13 @@ Created on 23 Sep 2014
 from django.forms import Form
 from django.forms.fields import ChoiceField
 from OneEvent.models import Event, EventChoice, EventChoiceOption, ParticipantOption, Message
-from django.forms.models import ModelForm, inlineformset_factory
+from django.forms.models import ModelForm, inlineformset_factory, ModelMultipleChoiceField
 from django.core.urlresolvers import reverse
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Reset, Layout, Field, Div, HTML
 from crispy_forms.bootstrap import TabHolder, Tab, FormActions
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 
 
 class BookingForm(Form):
@@ -49,6 +49,9 @@ class BookingForm(Form):
 
 
 class EventForm(ModelForm):
+    employees_groups = ModelMultipleChoiceField(queryset=Group.objects.all().order_by('name'))
+    contractors_groups = ModelMultipleChoiceField(queryset=Group.objects.all().order_by('name'))
+
     class Meta:
         model = Event
 

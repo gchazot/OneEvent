@@ -8,24 +8,13 @@
 {% endblock %}
 
 {% block content %}
-<!--  Thank you http://stackoverflow.com/questions/24469602/how-to-prevent-accordion-from-toggling-when-button-in-header-is-clicked -->
-<script type="text/javascript">
-window.avoid_collapse_toggle = function(e) {
-    e.stopPropagation();
-}
-
-window.hide_cancelled_toggle = function(evt){
-    $('tr.cancelled').toggleClass("hidden", !evt.target.checked);
-    avoid_collapse_toggle(evt);
-};
-</script>
 
 <div class="row">
 <div class='col-sm-3'>
     <a href="{% url 'edit_event' event_id=event.id %}"
        class="btn btn-warning">Edit the event</a>
 </div>
-<div class='col-sm-9'>
+<div class='col-sm-9l'>
     <h4 class="text-right">
         <a href="{% url 'create_booking' event_id=event.id %}">
             <span class="glyphicon glyphicon-share"></span>
@@ -118,7 +107,9 @@ window.hide_cancelled_toggle = function(evt){
                               title="Email participant" target="_blank">
                             <span class="glyphicon glyphicon-envelope"></span>
                          </a>
-                         <a href="{% url 'send_booking_invite' booking_id=booking.id %}"
+                         <a onclick="send_invite(
+                                 '{% url 'send_booking_invite' booking_id=booking.id %}',
+                                 '{{ booking.person.get_full_name }}');"
                             title="Send invite">
                              <span class="glyphicon glyphicon-calendar"></span>
                          </a></p>

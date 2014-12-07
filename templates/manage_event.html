@@ -8,8 +8,6 @@
 {% endblock %}
 
 {% block content %}
-<div class="row">
-
 <!--  Thank you http://stackoverflow.com/questions/24469602/how-to-prevent-accordion-from-toggling-when-button-in-header-is-clicked -->
 <script type="text/javascript">
 window.avoid_collapse_toggle = function(e) {
@@ -21,6 +19,22 @@ window.hide_cancelled_toggle = function(evt){
     avoid_collapse_toggle(evt);
 };
 </script>
+
+<div class="row">
+<div class='col-sm-3'>
+    <a href="{% url 'edit_event' event_id=event.id %}"
+       class="btn btn-warning">Edit the event</a>
+</div>
+<div class='col-sm-9'>
+    <h4 class="text-right">
+        <a href="{% url 'create_booking' event_id=event.id %}">
+            <span class="glyphicon glyphicon-share"></span>
+            URL to register to this event (right-click -> Copy link address)</a>
+    </h4>
+</div>
+</div>
+
+<div class="row">
 
 {% if event.choices.count > 0 %}
 <div class="panel panel-info collapsible-caret">

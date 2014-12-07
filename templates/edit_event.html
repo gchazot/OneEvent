@@ -11,7 +11,20 @@
 
 {% block content %}
 <div class="row">
+<div class='col-sm-3'>
+    <a href="{% url 'manage_event' event_id=event.id %}"
+       class="btn btn-primary">Manage the event</a>
+</div>
+<div class='col-sm-9'>
+    <h4 class="text-right">
+        <a href="{% url 'create_booking' event_id=event.id %}">
+            <span class="glyphicon glyphicon-share"></span>
+            URL to register to this event (right-click -> Copy link address)</a>
+    </h4>
+</div>
+</div>
 
+<div class="row">
 <div class="panel panel-info collapsible-caret">
     <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseOne">
         <strong>Details</strong>

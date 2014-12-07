@@ -172,10 +172,11 @@ class Event(models.Model):
         '''
         return user.is_superuser or self.user_is_organiser(user)
 
-    def user_can_list(self, user):
+    def user_can_list(self, user, list_archived):
         '''
         Check that the given user can view the event in the list
         @param user: The user signed in. If not specified, assume anonymous user
+        @param list_archived: Boolean to indicated it archived events are visible
         '''
         if self.pub_status == 'PUB':
             return True
@@ -195,7 +196,10 @@ class Event(models.Model):
                     or self.user_is_organiser(user)
                     )
         elif self.pub_status == 'ARCH':
-            return False
+            if list_archived:
+                return user.is_superuser or self.user_is_organiser(user)
+            else:
+                return False
         else:
             raise Exception("Unknown publication status: {0}".format(self.pub_status))
 

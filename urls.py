@@ -12,6 +12,7 @@ urlpatterns = patterns(
     url(r'^events/future$', 'future_events', name='future_events'),
     url(r'^events/past$', 'past_events', name='past_events'),
     url(r'^events/all$', 'all_events', name='all_events'),
+    url(r'^events/archive$', 'archived_events', name='archived_events'),
 
     url(r'^event/new$', 'event_create', name='event_create'),
     url(r'^event/(?P<event_id>\d+)$', 'manage_event', name='manage_event'),

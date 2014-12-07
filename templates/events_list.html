@@ -21,6 +21,8 @@
                     All Events
                 {% elif events_shown == 'mine' %}
                     My Events
+                {% elif events_shown == 'arch' %}
+                    Archived Events
                 {% endif %}
             </span>
             <span class="caret"></span>
@@ -30,6 +32,8 @@
             <li><a href="{% url 'all_events' %}">All events</a></li>
             <li><a href="{% url 'future_events' %}">Coming up</a></li>
             <li><a href="{% url 'past_events' %}">Past events</a></li>
+            <li class="divider"></li>
+            <li><a href="{% url 'archived_events' %}">Archived events</a></li>
             <li class="divider"></li>
             <li><a href="{% url 'event_create' %}">
                  <span class="glyphicon glyphicon-plus"></span>

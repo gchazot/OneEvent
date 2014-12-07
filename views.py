@@ -35,12 +35,12 @@ def index(request):
         return redirect('all_events')
 
 
-def events_list(request, events, context={}):
+def events_list(request, events, context, show_archived=False):
     context['events'] = []
     for evt in events:
         event_info = {'event': evt, 'booking': None}
         # Hide events that the user can not list
-        if not evt.user_can_list(request.user):
+        if not evt.user_can_list(request.user, show_archived):
             continue
 
         if request.user.is_authenticated():
@@ -78,6 +78,12 @@ def past_events(request):
 def all_events(request):
     context = {'events_shown': 'all'}
     return events_list(request, Event.objects.all(), context)
+
+
+def archived_events(request):
+    context = {'events_shown': 'arch'}
+    events = Event.objects.filter(pub_status='ARCH')
+    return events_list(request, events, context, True)
 
 
 @login_required

@@ -49,8 +49,10 @@ class BookingForm(Form):
 
 
 class EventForm(ModelForm):
-    employees_groups = ModelMultipleChoiceField(queryset=Group.objects.all().order_by('name'))
-    contractors_groups = ModelMultipleChoiceField(queryset=Group.objects.all().order_by('name'))
+    employees_groups = ModelMultipleChoiceField(required=False,
+                                                queryset=Group.objects.all().order_by('name'))
+    contractors_groups = ModelMultipleChoiceField(required=False,
+                                                  queryset=Group.objects.all().order_by('name'))
 
     class Meta:
         model = Event

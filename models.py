@@ -1,23 +1,24 @@
+import logging
+from decimal import Decimal
+
 from django.db import models
 from django.core.exceptions import ValidationError
-from decimal import Decimal
-import logging
 from django.utils import timezone
-from timezones import CITY_CHOICES, get_tzinfo
 from django.utils.safestring import mark_safe
 from django.template import loader
 from django.core.mail import mail_admins
 from django.core.mail.message import EmailMultiAlternatives
 from django.db.models.query_utils import Q
+from django.contrib.auth.models import User
+from django.db.models.aggregates import Count
+from timezones import CITY_CHOICES, get_tzinfo, add_to_zones_map
 
 import icalendar
 from icalendar.prop import vCalAddress, vText
-from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
-from django.contrib.auth.models import User
-from django.db.models.aggregates import Count
-
+from email import Encoders
 
 def end_of_day(when, timezone):
     '''
@@ -551,9 +552,11 @@ class ParticipantBooking(models.Model):
     def get_calendar_entry(self):
         '''
         Build the iCalendar string for the event
+        iCal validator, useful for debugging: http://icalvalid.cloudapp.net/
         '''
         event = self.event
         event_tz = event.get_tzinfo()
+        creation_time = timezone.now()
 
         # Generate some description strings
         title, desc_plain, _desc_html = self.get_invite_texts()
@@ -563,28 +566,59 @@ class ParticipantBooking(models.Model):
         cal.add('prodid', '-//OneEvent event entry//onevent//EN')
         cal.add('version', '2.0')
         cal.add('calscale', 'GREGORIAN')
-        cal.add('method', 'PUBLISH')
+        cal.add('method', 'REQUEST')
+
+        # Generate timezone infos relevant to the event
+        tzmap = {}
+        tzmap = add_to_zones_map(tzmap, event_tz.zone, event.start)
+        tzmap = add_to_zones_map(tzmap, event_tz.zone, event.get_real_end())
+        tzmap = add_to_zones_map(tzmap, timezone.get_default_timezone_name(), creation_time)
+
+        for (tzid, transitions) in tzmap.items():
+            cal_tz = icalendar.Timezone()
+            cal_tz.add('tzid', tzid)
+            cal_tz.add('x-lic-location', tzid)
+
+            for (transition, tzinfo) in transitions.items():
+
+                if tzinfo['dst']:
+                    cal_tz_sub = icalendar.TimezoneDaylight()
+                else:
+                    cal_tz_sub = icalendar.TimezoneStandard()
+
+                cal_tz_sub.add('tzname', tzinfo['name'])
+                cal_tz_sub.add('dtstart', transition)
+                cal_tz_sub.add('tzoffsetfrom', tzinfo['tzoffsetfrom'])
+                cal_tz_sub.add('tzoffsetto', tzinfo['tzoffsetto'])
+                cal_tz.add_component(cal_tz_sub)
+            cal.add_component(cal_tz)
+
         cal_evt = icalendar.Event()
-        cal_evt.add('summary', title)
+
         cal_evt.add('uid', 'event{0}-booking{1}@oneevent'.format(event.id, self.id))
-        cal_evt.add('dtstamp', timezone.now())
+        cal_evt.add('dtstamp', creation_time)
         cal_evt.add('dtstart', event.start.astimezone(event_tz))
         cal_evt.add('dtend', event.get_real_end().astimezone(event_tz))
+        cal_evt.add('created', creation_time)
+        cal_evt.add('sequence', '1')
+
+        cal_evt.add('summary', title)
         cal_evt.add('description', desc_plain)
+        cal_evt.add('location', vText('{0} - {1}'.format(event.city, event.location_name)))
+
+        cal_evt.add('category', 'Event')
         cal_evt.add('status', 'CONFIRMED')
         cal_evt.add('transp', 'OPAQUE')
         cal_evt.add('priority', '5')
         cal_evt.add('class', 'PUBLIC')
-        cal_evt['location'] = vText('{0} - {1}'.format(event.city, event.location_name))
 
         organiser = vCalAddress('mailto:{0}'.format(event.owner.email))
         organiser.params['cn'] = vText(event.owner.get_full_name())
         organiser.params['role'] = vText('CHAIR')
-        cal_evt['organizer'] = organiser
+        cal_evt.add('organizer', organiser, encode=0)
 
         attendee = vCalAddress('mailto:{0}'.format(self.person.email))
         attendee.params['cutype'] = vText('INDIVIDUAL')
-        attendee.params['x-num-guests'] = vText('0')
         attendee.params['role'] = vText('REQ-PARTICIPANT')
         attendee.params['partstat'] = vText('NEEDS-ACTION')
         attendee.params['rsvp'] = vText('FALSE')
@@ -602,19 +636,20 @@ class ParticipantBooking(models.Model):
         title, desc_plain, desc_html = self.get_invite_texts()
         cal_text = self.get_calendar_entry()
 
-        part_plain = MIMEText(desc_plain, "plain", 'utf-8')
-        del(part_plain['MIME-Version'])
+        # "Parts" used in various formats
+#         part_plain = MIMEText(desc_plain, "plain", 'utf-8')
+#         del(part_plain['MIME-Version'])
 
         part_html = MIMEText(desc_html, 'html', 'utf-8')
         del(part_html['MIME-Version'])
 
-        part_cal = MIMEText(cal_text, 'calendar; method=REQUEST', 'utf-8')
-        del(part_cal['MIME-Version'])
+#         part_cal = MIMEText(cal_text, 'calendar; method=REQUEST', 'utf-8')
+#         del(part_cal['MIME-Version'])
 
-        ical_atch = MIMEApplication(cal_text,
-                                    'ics; charset="UTF-8"; name="%s"' % ("invite.ics"))
-        del(ical_atch['MIME-Version'])
-        ical_atch.add_header('Content-Disposition', 'attachment', filename='invite.ics')
+#         ical_atch = MIMEApplication(cal_text,
+#                                     'ics; charset="UTF-8"; name="%s"' % ("invite.ics"))
+#         del(ical_atch['MIME-Version'])
+#         ical_atch.add_header('Content-Disposition', 'attachment', filename='invite.ics')
 
         # The "Lotus Notes" fomat
 #         msgAlternative = MIMEMultipart('alternative')
@@ -637,20 +672,42 @@ class ParticipantBooking(models.Model):
 #                                      to=['g.chazot@gmail.com'])
 #         msg.attach(msgMixed)
 
-        # The "Google Calendar" format
-        msgAlternative = MIMEMultipart('alternative')
-        del(msgAlternative['MIME-Version'])
-        msgAlternative.add_header('Content-class', 'urn:content-classes:calendarmessage')
-        msgAlternative.attach(part_plain)
-        msgAlternative.attach(part_html)
-        msgAlternative.attach(part_cal)
+#         # The "Google Calendar" format
+#         msgAlternative = MIMEMultipart('alternative')
+#         del(msgAlternative['MIME-Version'])
+#         msgAlternative.add_header('Content-class', 'urn:content-classes:calendarmessage')
+#         msgAlternative.attach(part_plain)
+#         msgAlternative.attach(part_html)
+#         msgAlternative.attach(part_cal)
+#
+#         # Create the message object
+#         msg = EmailMultiAlternatives(subject=title,
+#                                      body=None,
+#                                      to=[self.person.email])
+#         msg.attach(msgAlternative)
+#         msg.attach(ical_atch)
 
+
+        # The "Outlook" format
         # Create the message object
         msg = EmailMultiAlternatives(subject=title,
                                      body=None,
-                                     to=[self.person.email])
-        msg.attach(msgAlternative)
-        msg.attach(ical_atch)
+                                     to=[self.person.email],
+                                     from_email=self.event.owner.email)
+        msg.extra_headers['Content-class'] = 'urn:content-classes:calendarmessage'
+        msg.attach(part_html)
+
+        filename = "invite.ics"
+        part = MIMEBase('text', "calendar", method="REQUEST", name=filename)
+        part.set_payload(cal_text)
+        Encoders.encode_base64(part)
+        part.add_header('Content-Description', filename)
+        part.add_header("Content-class", "urn:content-classes:calendarmessage")
+        part.add_header("Filename", filename)
+        part.add_header("Path", filename)
+        msg.attach(part)
+
+        print cal_text
 
         # Send the message
         return msg.send(fail_silently=False) == 1

@@ -17,8 +17,8 @@ import icalendar
 from icalendar.prop import vCalAddress, vText
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
-from email.mime.application import MIMEApplication
 from email import Encoders
+
 
 def end_of_day(when, timezone):
     '''
@@ -48,6 +48,8 @@ class Event(models.Model):
                                help_text='Local end date and time')
     city = models.CharField(max_length=32, choices=CITY_CHOICES,
                             help_text='Timezone of your event')
+
+    description = models.TextField(blank=True)
 
     pub_status = models.CharField(
         max_length=8, choices=PUB_STATUS_CHOICES, default='UNPUB',
@@ -348,7 +350,6 @@ class EventChoice(models.Model):
     '''
     event = models.ForeignKey('Event', related_name='choices')
     title = models.CharField(max_length=64)
-    description = models.TextField(blank=True)
 
     class Meta:
         unique_together = ('event', 'title')
@@ -364,7 +365,6 @@ class EventChoiceOption(models.Model):
     '''
     choice = models.ForeignKey('EventChoice', related_name='options')
     title = models.CharField(max_length=256)
-    description = models.TextField(blank=True)
     default = models.BooleanField(default=False)
 
     class Meta:
@@ -521,31 +521,70 @@ class ParticipantBooking(models.Model):
 
         title_text = 'Invitation to {0}'.format(event.title)
 
-        plain_text = 'You have registered to an event\n\
-                      Add it to your calendar!\n\
-                      Event: {0}\n\
-                      Start: {1}\n\
-                      End: {2}\n\
-                      Location: {3}\n\
-                      Address: {4}\n'.format(event.title,
-                                             event.start.astimezone(event_tz),
-                                             event.get_real_end().astimezone(event_tz),
-                                             event.location_name,
-                                             event.location_address)
+        plain_lines = [
+            u'You have registered to an event',
+            u'Add it to your calendar!',
+            u'',
+            u'Event: {0}',
+            u'Start: {1}',
+            u'End: {2}',
+            u'Location: {3}',
+            u'Address: {4}',
+            u'Description: {5}'
+        ]
+        plain_text = u'\n'.join(plain_lines).format(
+            event.title,
+            event.start.astimezone(event_tz),
+            event.get_real_end().astimezone(event_tz),
+            event.location_name,
+            event.location_address,
+            event.description
+        )
 
-        html_text = '<h2>You have registered to an event</h2>\n\
-                     <h4>Add it to your calendar!</h4>\n\
-                     <ul>\n\
-                     <li><label>Event: </label>{0}</li>\n\
-                     <li><label>Start: </label>{1}</li>\n\
-                     <li><label>End: </label>{2}</li>\n\
-                     <li><label>Location: </label>{3}</li>\n\
-                     <li><label>Address: </label>{4}</li>\n\
-                     </ul>\n'.format(event.title,
-                                     event.start.astimezone(event_tz),
-                                     event.get_real_end().astimezone(event_tz),
-                                     event.location_name,
-                                     event.location_address)
+        html_lines = [
+            u'<h2>You have registered to an event</h2>',
+            u'<h4>Add it to your calendar!</h4>',
+            u'<ul>',
+            u'<li><label>Event: </label>{0}</li>',
+            u'<li><label>Start: </label>{1}</li>',
+            u'<li><label>End: </label>{2}</li>',
+            u'<li><label>Location: </label>{3}</li>',
+            u'<li><label>Address: </label>{4}</li>',
+            u'</ul>',
+            u'<hr />',
+            u'<p>{5}</p>'
+        ]
+        html_text = u'\n'.join(html_lines).format(
+            event.title,
+            event.start.astimezone(event_tz),
+            event.get_real_end().astimezone(event_tz),
+            event.location_name,
+            event.location_address,
+            event.description
+        )
+
+        if self.options.count() > 0:
+            plain_lines = [
+                u'',
+                u'Your Choices:'
+            ]
+            html_lines = [
+                u'<hr />',
+                u'<h4>Your Choices</h4>',
+                u'<ul>'
+            ]
+            for part_opt in self.options.all():
+                plain_lines.append(
+                    u'* {0} : {1}'.format(part_opt.option.choice.title,
+                                          part_opt.option.title)
+                )
+                html_lines.append(
+                    u'<li><label>{0} : </label>{1}</li>'.format(part_opt.option.choice.title,
+                                                                part_opt.option.title)
+                )
+            plain_text = plain_text + u'\n'.join(plain_lines)
+            html_lines.append(u'</ul>')
+            html_text = html_text + u'\n'.join(html_lines)
 
         return (title_text, plain_text, html_text)
 
@@ -633,7 +672,7 @@ class ParticipantBooking(models.Model):
         '''
         Send a calendar entry to the participant
         '''
-        title, desc_plain, desc_html = self.get_invite_texts()
+        title, _desc_plain, desc_html = self.get_invite_texts()
         cal_text = self.get_calendar_entry()
 
         # "Parts" used in various formats
@@ -686,7 +725,6 @@ class ParticipantBooking(models.Model):
 #                                      to=[self.person.email])
 #         msg.attach(msgAlternative)
 #         msg.attach(ical_atch)
-
 
         # The "Outlook" format
         # Create the message object

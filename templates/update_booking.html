@@ -27,47 +27,55 @@
         </div>
         <div id="collapseOne" class="panel-collapse collapse">
         <div class="panel-body">
-            <p><label>Location:</label>
-                {{ booking.event.city }}</p>
-            <p><label>Starts: </label>
-                {{ booking.event.start|date:"D, d N Y H:i" }}</p>
+            <div class="col-md-6">
+                <p><label>Location:</label>
+                    {{ booking.event.city }}</p>
+                <p><label>Starts: </label>
+                    {{ booking.event.start|date:"D, d N Y H:i" }}</p>
 
-            {% if booking.event.end %}
-            <p><label>Ends: </label>
-                {{ booking.event.end|date:"D, d N Y H:i" }}</p>
-            {% endif %}
+                {% if booking.event.end %}
+                <p><label>Ends: </label>
+                    {{ booking.event.end|date:"D, d N Y H:i" }}</p>
+                {% endif %}
 
-            <p><label>Organisers: </label><ul>
-            {% for orga in booking.event.organisers.all %}<li>{{ orga.get_full_name }}</li>{% endfor %}
-            </ul></p>
+                <p><label>Organisers: </label><ul>
+                {% for orga in booking.event.organisers.all %}<li>{{ orga.get_full_name }}</li>{% endfor %}
+                </ul></p>
 
-            {% if booking.event.booking_close %}
-            <p><label>Bookings close: </label>
-                {{ booking.event.booking_close|date:"D, d N Y H:i" }}</p>
-            {% endif %}
-            {% if booking.event.choices_close %}
-            <p><label>Choices close: </label>
-                {{ booking.event.choices_close|date:"D, d N Y H:i" }}</p>
-            {% endif %}
+                {% if booking.event.booking_close %}
+                <p><label>Bookings close: </label>
+                    {{ booking.event.booking_close|date:"D, d N Y H:i" }}</p>
+                {% endif %}
+                {% if booking.event.choices_close %}
+                <p><label>Choices close: </label>
+                    {{ booking.event.choices_close|date:"D, d N Y H:i" }}</p>
+                {% endif %}
 
-            <p><label>Price for Employees: </label>
-                {{ booking.event.price_for_employees }}
-                {% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
-            </p>
+                <p><label>Price for Employees: </label>
+                    {{ booking.event.price_for_employees }}
+                    {% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
+                </p>
 
-            <p><label>Price for Contractors: </label>
-                {{ booking.event.price_for_contractors }}
-                {% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
-            </p>
-
-            {% if booking.event.location_name %}
-            <p><label>Venue: </label>
-                {{booking.event.location_name}}</p>
-            {% endif %}
-            {% if booking.event.location_address %}
-            <p><label>Address: </label>
-                <pre>{{booking.event.location_address}}</pre></p>
-            {% endif %}
+                <p><label>Price for Contractors: </label>
+                    {{ booking.event.price_for_contractors }}
+                    {% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
+                </p>
+            </div>
+            <hr class="hidden-md hidden-lg"/>
+            <div class="col-md-6">
+                {% if booking.event.location_name %}
+                <p><label>Venue: </label>
+                    {{booking.event.location_name}}</p>
+                {% endif %}
+                {% if booking.event.location_address %}
+                <p><label>Address: </label>
+                    <pre>{{booking.event.location_address}}</pre></p>
+                {% endif %}
+                {% if booking.event.description %}
+                <p><label>Description: </label>
+                    <pre>{{booking.event.description}}</pre></p>
+                {% endif %}
+            </div>
         </div>
         </div>
     </div>

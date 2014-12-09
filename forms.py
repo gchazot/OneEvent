@@ -72,6 +72,7 @@ class EventForm(ModelForm):
         self.helper.field_class = 'col-lg-6'
         self.helper.layout = TabHolder(
             Tab('Basics', 'title', 'start', 'end', 'city', 'pub_status'),
+            Tab('Description', 'description'),
             Tab('Venue', 'location_name', 'location_address'),
             Tab('Organisers', 'owner', 'organisers'),
             Tab('Closing Dates', 'booking_close', 'choices_close'),

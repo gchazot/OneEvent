@@ -11,12 +11,12 @@
 
 <div class="row">
 <div class='col-sm-3'>
-    <a href="{% url 'edit_event' event_id=event.id %}"
+    <a href="{% url 'event_update' event_id=event.id %}"
        class="btn btn-warning">Edit the event</a>
 </div>
 <div class='col-sm-9l'>
     <h4 class="text-right">
-        <a href="{% url 'create_booking' event_id=event.id %}">
+        <a href="{% url 'booking_create' event_id=event.id %}">
             <span class="glyphicon glyphicon-share"></span>
             URL to register to this event (right-click -> Copy link address)</a>
     </h4>
@@ -29,7 +29,7 @@
 <div class="panel panel-info collapsible-caret">
     <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseTwo">
         <strong>Choices summary</strong>
-        <a href="{% url 'dl_event_options_summary' event_id=event.id %}"
+        <a href="{% url 'event_download_options_summary' event_id=event.id %}"
             onclick="avoid_collapse_toggle(event)"
             class="btn btn-info">
             <span class="glyphicon glyphicon-download-alt"></span> Download list
@@ -64,12 +64,12 @@
 <div class="panel panel-info collapsible-caret">
     <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseThree">
         <strong>Participants</strong>
-        <a href="{% url 'dl_participants_list' event_id=event.id %}"
+        <a href="{% url 'event_download_participants_list' event_id=event.id %}"
             onclick="avoid_collapse_toggle(event)"
             class="btn  btn-info" data-toggle="" data-target="">
             <span class="glyphicon glyphicon-download-alt"></span> Download list
         </a>
-        <a href="{% url 'create_booking_on_behalf' event_id=event.id %}"
+        <a href="{% url 'booking_create_on_behalf' event_id=event.id %}"
             onclick="avoid_collapse_toggle(event)"
             class="btn  btn-success" data-toggle="" data-target="">
             <span class="glyphicon glyphicon-plus"></span> Add participant
@@ -108,7 +108,7 @@
                             <span class="glyphicon glyphicon-envelope"></span>
                          </a>
                          <a onclick="send_invite(
-                                 '{% url 'send_booking_invite' booking_id=booking.id %}',
+                                 '{% url 'booking_send_invite' booking_id=booking.id %}',
                                  '{{ booking.person.get_full_name }}');"
                             title="Send invite">
                              <span class="glyphicon glyphicon-calendar"></span>
@@ -123,39 +123,39 @@
 
                     <td><!--  Actions -->
                         {% if booking.cancelledBy and booking.paidTo%}
-                        <div><a href="{% url 'cancel_payment' booking_id=booking.id %}"
+                        <div><a href="{% url 'booking_payment_cancel' booking_id=booking.id %}"
                             class="btn btn-danger btn-sm">
                             <span class="glyphicon glyphicon-gbp"></span>
                             Refund
                         </a></div>
                         {% endif %}
                         {% if not booking.cancelledBy and not booking.paidTo and booking.must_pay > 0 %}
-                        <div><a href="{% url 'confirm_payment' booking_id=booking.id %}"
+                        <div><a href="{% url 'booking_payment_confirm' booking_id=booking.id %}"
                             class='btn btn-success btn-sm'>
                             <span class="glyphicon glyphicon-ok"></span>
                             Confirm Payment
                         </a></div>
-                        <div><a href="{% url 'confirm_exempt' booking_id=booking.id %}"
+                        <div><a href="{% url 'booking_payment_exempt' booking_id=booking.id %}"
                             class='btn btn-default btn-sm bg-success'>
                             <span class="glyphicon glyphicon-thumbs-up"></span>
                             Exempt of Payment
                         </a></div>
                         {% endif %}
                         {% if not booking.cancelledBy and booking.exempt_of_payment %}
-                            <div><a href="{% url 'cancel_exempt' booking_id=booking.id %}"
+                            <div><a href="{% url 'booking_payment_unexempt' booking_id=booking.id %}"
                                 class='btn btn-default btn-sm bg-danger'>
                                 <span class="glyphicon glyphicon-thumbs-down"></span>
                                 Cancel Exemption
                             </a></div>
                         {% endif %}
                         <div>
-                            <a href="{% url 'update_booking' booking_id=booking.id %}"
+                            <a href="{% url 'booking_update' booking_id=booking.id %}"
                                 class="btn btn-warning btn-xs">
                                 <span class="glyphicon glyphicon-pencil"></span>
                                 Edit
                             </a>
                             {% if not booking.cancelledBy %}
-                            <a href="{% url 'cancel_booking' booking_id=booking.id %}"
+                            <a href="{% url 'booking_cancel' booking_id=booking.id %}"
                                 class="btn btn-danger btn-xs">
                                 <span class="glyphicon glyphicon-ban-circle"></span>
                                 Cancel

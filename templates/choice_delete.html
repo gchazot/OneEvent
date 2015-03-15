@@ -11,4 +11,4 @@
 <h2 class="text-danger">You will loose choices made by all participants !</h2>
 {% endblock %}
 
-{% block post_url %}{% url 'delete_choice' choice_id=choice.id %}{% endblock %}
+{% block post_url %}{% url 'choice_delete' choice_id=choice.id %}{% endblock %}

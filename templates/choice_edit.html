@@ -14,9 +14,9 @@
 <div class="row">
     <form method="post" class="form-horizontal"
     {% if choice.id %}
-        action="{% url 'edit_choice' choice_id=choice.id %}">
+        action="{% url 'choice_update' choice_id=choice.id %}">
     {% else %}
-        action="{% url 'add_choice' event_id=choice.event.id %}">
+        action="{% url 'choice_create' event_id=choice.event.id %}">
     {% endif %}
 
         <p>{% crispy choice_form %}</p>

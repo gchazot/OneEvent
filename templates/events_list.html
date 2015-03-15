@@ -28,12 +28,12 @@
             <span class="caret"></span>
         </a>
         <ul class="dropdown-menu" role="menu">
-            <li><a href="{% url 'my_events' %}">My events</a></li>
-            <li><a href="{% url 'all_events' %}">All events</a></li>
-            <li><a href="{% url 'future_events' %}">Coming up</a></li>
-            <li><a href="{% url 'past_events' %}">Past events</a></li>
+            <li><a href="{% url 'events_list_mine' %}">My events</a></li>
+            <li><a href="{% url 'events_list_all' %}">All events</a></li>
+            <li><a href="{% url 'events_list_future' %}">Coming up</a></li>
+            <li><a href="{% url 'events_list_past' %}">Past events</a></li>
             <li class="divider"></li>
-            <li><a href="{% url 'archived_events' %}">Archived events</a></li>
+            <li><a href="{% url 'events_list_archived' %}">Archived events</a></li>
             <li class="divider"></li>
             <li><a href="{% url 'event_create' %}">
                  <span class="glyphicon glyphicon-plus"></span>
@@ -92,7 +92,7 @@
                 <div>
                 {% if event_info.booking %}
                     {% if event_info.event.is_choices_open %}
-                    <a href="{% url 'update_booking' booking_id=event_info.booking.id %}" class="btn btn-success">
+                    <a href="{% url 'booking_update' booking_id=event_info.booking.id %}" class="btn btn-success">
                         {% if event_info.event.choices.count > 0  %}
                         Choices
                         {% else %}
@@ -104,14 +104,14 @@
                         data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Choices Closed</button>
                     {% endif %}
                     {% if event_info.user_can_cancel %}
-                    <a href="{% url 'cancel_booking' booking_id=event_info.booking.id %}" class="btn btn-danger">Unregister</a>
+                    <a href="{% url 'booking_cancel' booking_id=event_info.booking.id %}" class="btn btn-danger">Unregister</a>
                     {% else %}
                     <button type="button" class="btn btn-danger disabled enable-tooltip"
                         data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Event Closed</button>
                     {% endif %}
                 {% elif event_info.user_can_book %}
                     {% if event_info.event.is_booking_open %}
-                    <a href="{% url 'create_booking' event_id=event_info.event.id %}" class="btn btn-info">Register !</a>
+                    <a href="{% url 'booking_create' event_id=event_info.event.id %}" class="btn btn-info">Register !</a>
                     {% else %}
                         <button type="button" class="btn btn-info disabled enable-tooltip"
                             data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Event Closed</button>
@@ -121,9 +121,9 @@
 
                 {% if event_info.user_can_update %}
                 <div>
-                    <a href="{% url 'manage_event' event_id=event_info.event.id %}"
+                    <a href="{% url 'event_manage' event_id=event_info.event.id %}"
                        class="btn btn-sm btn-primary">Manage</a>
-                    <a href="{% url 'edit_event' event_id=event_info.event.id %}"
+                    <a href="{% url 'event_update' event_id=event_info.event.id %}"
                        class="btn btn-sm btn-warning">Edit</a>
                     ({{event_info.event.get_pub_status_display }})
                 </div>

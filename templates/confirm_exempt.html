@@ -21,8 +21,8 @@
 
 {% block post_url %}
     {% if cancel %}
-        {% url 'cancel_exempt' booking_id=booking.id %}
+        {% url 'booking_payment_unexempt' booking_id=booking.id %}
     {% else %}
-        {% url 'confirm_exempt' booking_id=booking.id %}
+        {% url 'booking_payment_exempt' booking_id=booking.id %}
     {% endif %}
 {% endblock %}

@@ -7,4 +7,4 @@
     <small>{{ booking.event.start|date:"D, d N Y H:i" }}</small>
 {% endblock %}
 
-{% block post_url %}{% url 'cancel_booking' booking_id=booking.id %}{% endblock %}
+{% block post_url %}{% url 'booking_cancel' booking_id=booking.id %}{% endblock %}

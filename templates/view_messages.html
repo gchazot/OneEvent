@@ -12,7 +12,7 @@
 {% block content %}
 
 <div class="row">
-    <a href="{% url 'create_message' %}" class="btn btn-info"
+    <a href="{% url 'message_create' %}" class="btn btn-info"
         data-toggle="tooltip" data-placement="top" title="Send a message to the admin">
         <span class="glyphicon glyphicon-envelope"></span>
         Contact the admin
@@ -36,7 +36,7 @@
     <div id="collapse_{{thread_head.id}}" class="panel-collapse collapse table-responsive">
         <div class="container">
             <div class="row" align="center">
-                <a href="{% url 'reply_message' thread_id=thread_head.id %}" class="btn btn-default"
+                <a href="{% url 'message_reply' thread_id=thread_head.id %}" class="btn btn-default"
                     data-toggle="tooltip" data-placement="top" title="Reply in this thread">
                     <span class="glyphicon glyphicon-share-alt"></span>
                     Reply in this thread

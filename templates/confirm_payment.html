@@ -10,9 +10,9 @@
 
 {% block post_url %}
     {% if cancel %}
-        {% url 'cancel_payment' booking_id=booking.id %}
+        {% url 'booking_payment_cancel' booking_id=booking.id %}
     {% else %}
-        {% url 'confirm_payment' booking_id=booking.id %}
+        {% url 'booking_payment_confirm' booking_id=booking.id %}
     {% endif %}
 {% endblock %}
 

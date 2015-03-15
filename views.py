@@ -30,9 +30,9 @@ dt_format = '%a, %d %b %Y %H:%M'
 
 def index(request):
     if request.user.is_authenticated():
-        return redirect('my_events')
+        return redirect('events_list_mine')
     else:
-        return redirect('all_events')
+        return redirect('events_list_all')
 
 
 def events_list(request, events, context, show_archived=False):
@@ -59,7 +59,7 @@ def events_list(request, events, context, show_archived=False):
     return render(request, 'events_list.html', context, context_instance=RequestContext(request))
 
 
-def future_events(request):
+def events_list_future(request):
     context = {'events_shown': 'fut'}
     now = timezone.now()
     query = Q(end__gt=now) | Q(end=None, start__gte=now)
@@ -67,7 +67,7 @@ def future_events(request):
     return events_list(request, events, context)
 
 
-def past_events(request):
+def events_list_past(request):
     context = {'events_shown': 'past'}
     now = timezone.now()
     query = Q(end__lte=now) | Q(end=None, start__lte=now)
@@ -75,19 +75,19 @@ def past_events(request):
     return events_list(request, events, context)
 
 
-def all_events(request):
+def events_list_all(request):
     context = {'events_shown': 'all'}
     return events_list(request, Event.objects.all(), context)
 
 
-def archived_events(request):
+def events_list_archived(request):
     context = {'events_shown': 'arch'}
     events = Event.objects.filter(pub_status='ARCH')
     return events_list(request, events, context, True)
 
 
 @login_required
-def my_events(request):
+def events_list_mine(request):
     context = {'events_shown': 'mine'}
     query = Q(bookings__person=request.user, bookings__cancelledBy=None)
     query = query | Q(organisers=request.user)
@@ -97,11 +97,11 @@ def my_events(request):
         return events_list(request, events, context)
     else:
         messages.debug(request, "You have no event yet")
-        return redirect('all_events')
+        return redirect('events_list_all')
 
 
 @login_required
-def create_booking(request, event_id):
+def booking_create(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
     if not event.user_can_book(request.user):
@@ -110,18 +110,18 @@ def create_booking(request, event_id):
 
     if event.is_booking_open():
         booking, _ = Booking.objects.get_or_create(event=event,
-                                                              person=request.user,
-                                                              defaults={'cancelledBy': request.user,
-                                                                        'cancelledOn': timezone.now()})
+                                                   person=request.user,
+                                                   defaults={'cancelledBy': request.user,
+                                                             'cancelledOn': timezone.now()})
         messages.warning(request, 'Please confirm your registration here!')
-        return redirect('update_booking', booking_id=booking.id)
+        return redirect('booking_update', booking_id=booking.id)
     else:
         messages.error(request, u'Bookings are closed for "{0}"!'.format(event.title))
         return redirect('index')
 
 
 @login_required
-def create_booking_on_behalf(request, event_id):
+def booking_create_on_behalf(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
     if not event.user_is_organiser(request.user):
@@ -146,16 +146,16 @@ def create_booking_on_behalf(request, event_id):
                              u'Booking exists for {0}. You may edit it.'.format(
                                  target_user.get_full_name()))
 
-        return redirect('update_booking', booking_id=booking.id)
+        return redirect('booking_update', booking_id=booking.id)
     else:
         timezone.activate(event.get_tzinfo())
-        return render_to_response('create_booking_on_behalf.html',
+        return render_to_response('booking_create_on_behalf.html',
                                   {'form': form, 'event': event},
                                   context_instance=RequestContext(request))
 
 
 @login_required
-def update_booking(request, booking_id):
+def booking_update(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
 
     if not booking.user_can_update(request.user):
@@ -175,16 +175,16 @@ def update_booking(request, booking_id):
             booking.cancelledOn = None
         booking.save()
         messages.success(request, 'Registration updated')
-        return redirect('my_events')
+        return redirect('events_list_mine')
 
-    return render_to_response('update_booking.html',
+    return render_to_response('booking_update.html',
                               {'booking': booking,
                                'form': form},
                               context_instance=RequestContext(request))
 
 
 @login_required
-def cancel_booking(request, booking_id):
+def booking_cancel(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
 
     if not booking.user_can_cancel(request.user):
@@ -200,9 +200,9 @@ def cancel_booking(request, booking_id):
         booking.save()
         messages.warning(request, 'Registration cancelled')
         if request.user == booking.person:
-            return redirect('my_events')
+            return redirect('events_list_mine')
         else:
-            return redirect('manage_event', event_id=booking.event.id)
+            return redirect('event_manage', event_id=booking.event.id)
     else:
         return render_to_response('cancel_booking.html',
                                   {'booking': booking},
@@ -210,7 +210,7 @@ def cancel_booking(request, booking_id):
 
 
 @login_required
-def manage_event(request, event_id):
+def event_manage(request, event_id):
     try:
         event = Event.objects.prefetch_related(
             'bookings__person',
@@ -226,7 +226,7 @@ def manage_event(request, event_id):
     # Activate the timezone from the event
     timezone.activate(event.get_tzinfo())
 
-    return render_to_response('manage_event.html',
+    return render_to_response('event_manage.html',
                               {'event': event},
                               context_instance=RequestContext(request))
 
@@ -250,10 +250,10 @@ def _event_edit_form(request, event):
         event_form.save()
         if is_new_event:
             messages.success(request, 'Event created')
-            return redirect('edit_event', event_id=event.id)
+            return redirect('event_update', event_id=event.id)
         elif event.user_is_organiser(request.user):
             messages.success(request, 'Event details updated')
-            return redirect('edit_event', event_id=event.id)
+            return redirect('event_update', event_id=event.id)
         else:
             messages.warning(request,
                              u'You removed yourself from the organisers of {0}'.format(event.title))
@@ -264,13 +264,13 @@ def _event_edit_form(request, event):
         # Not saving a form. Activate the timezone from the event
         timezone.activate(event.get_tzinfo())
 
-    return render_to_response('edit_event.html',
+    return render_to_response('event_update.html',
                               {'event': event, 'event_form': event_form},
                               context_instance=RequestContext(request))
 
 
 @login_required
-def edit_event(request, event_id):
+def event_update(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
     if not event.user_can_update(request.user):
@@ -322,7 +322,7 @@ def _choice_edit_form(request, choice):
                 bkg.options.create(option=options_formset.new_default)
 
         messages.success(request, 'Choice updated')
-        return redirect('edit_event', event_id=choice.event.id)
+        return redirect('event_update', event_id=choice.event.id)
     else:
         if choice_form.is_bound or options_formset.is_bound:
             if is_new_choice:
@@ -339,19 +339,19 @@ def _choice_edit_form(request, choice):
                               context_instance=RequestContext(request))
 
 
-def add_choice(request, event_id):
+def choice_create(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     new_choice = Choice(event=event)
     return _choice_edit_form(request, new_choice)
 
 
-def edit_choice(request, choice_id):
+def choice_update(request, choice_id):
     choice = get_object_or_404(Choice, id=choice_id)
     return _choice_edit_form(request, choice)
 
 
 @login_required
-def delete_choice(request, choice_id):
+def choice_delete(request, choice_id):
     choice = get_object_or_404(Choice, id=choice_id)
 
     if not choice.event.user_can_update(request.user):
@@ -362,7 +362,7 @@ def delete_choice(request, choice_id):
         choice.delete()
         messages.success(request, u'Choice deleted: {0}'.format(choice.title))
 
-        return redirect('edit_event', event_id=choice.event.id)
+        return redirect('event_update', event_id=choice.event.id)
     else:
         timezone.activate(choice.event.get_tzinfo())
         return render_to_response('choice_delete.html',
@@ -371,7 +371,7 @@ def delete_choice(request, choice_id):
 
 
 @login_required
-def confirm_payment(request, booking_id, cancel=False):
+def booking_payment_confirm(request, booking_id, cancel=False):
     booking = get_object_or_404(Booking, id=booking_id)
 
     if not booking.user_can_update_payment(request.user):
@@ -394,7 +394,7 @@ def confirm_payment(request, booking_id, cancel=False):
             messages.success(request,
                              u'Refund confirmed for {0}'.format(booking.person.get_full_name()))
 
-        return redirect('manage_event', event_id=booking.event.id)
+        return redirect('event_manage', event_id=booking.event.id)
     else:
         timezone.activate(booking.event.get_tzinfo())
         return render_to_response('confirm_payment.html',
@@ -403,7 +403,7 @@ def confirm_payment(request, booking_id, cancel=False):
 
 
 @login_required
-def confirm_exempt(request, booking_id, cancel=False):
+def booking_payment_exempt(request, booking_id, cancel=False):
     booking = get_object_or_404(Booking, id=booking_id)
 
     if not booking.user_can_update_payment(request.user):
@@ -412,10 +412,10 @@ def confirm_exempt(request, booking_id, cancel=False):
 
     if cancel and not booking.exempt_of_payment:
         messages.error(request, 'This booking is not exempt of payment')
-        return redirect('manage_event', event_id=booking.event.id)
+        return redirect('event_manage', event_id=booking.event.id)
     elif not cancel and booking.exempt_of_payment:
         messages.error(request, 'This booking is already exempt of payment')
-        return redirect('manage_event', event_id=booking.event.id)
+        return redirect('event_manage', event_id=booking.event.id)
 
     if request.method == 'POST':
         if not cancel:
@@ -434,7 +434,7 @@ def confirm_exempt(request, booking_id, cancel=False):
         else:
             messages.success(request,
                              u'Exemption cancelled for {0}'.format(booking.person.get_full_name()))
-        return redirect('manage_event', event_id=booking.event.id)
+        return redirect('event_manage', event_id=booking.event.id)
     else:
         timezone.activate(booking.event.get_tzinfo())
         return render_to_response('confirm_exempt.html',
@@ -443,7 +443,7 @@ def confirm_exempt(request, booking_id, cancel=False):
 
 
 @login_required
-def dl_event_options_summary(request, event_id):
+def event_download_options_summary(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
     if not event.user_can_update(request.user):
@@ -471,7 +471,7 @@ def dl_event_options_summary(request, event_id):
 
 
 @login_required
-def dl_participants_list(request, event_id):
+def event_download_participants_list(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
     if not event.user_can_update(request.user):
@@ -541,7 +541,7 @@ def dl_participants_list(request, event_id):
 
 
 @login_required
-def view_messages(request):
+def messages_list(request):
     threads = Message.objects.filter(thread_head=None)
     if not request.user.is_superuser:
         threads = threads.filter(sender=request.user)
@@ -557,7 +557,7 @@ def view_messages(request):
 
 
 @login_required
-def create_message(request, thread_id=None):
+def message_create(request, thread_id=None):
     # Pre-populate some fields of the message
     new_msg = Message(sender=request.user)
     if thread_id is None:
@@ -575,13 +575,13 @@ def create_message(request, thread_id=None):
     user_msgs = Message.objects.filter(created__gte=limit, sender=request.user)
     if user_msgs.count() >= 10:
         messages.error(request, 'Sorry you have used your message quota')
-        return redirect('view_messages')
+        return redirect('messages_list')
 
     if form.is_valid():
         new_message = form.save()
         new_message.send_message_notification()
         messages.success(request, 'Your message has been sent')
-        return redirect('view_messages')
+        return redirect('messages_list')
 
     return render_to_response('create_message.html',
                               {'form': form, 'thread_id': thread_id},
@@ -589,10 +589,10 @@ def create_message(request, thread_id=None):
 
 
 @login_required
-def send_booking_invite(request, booking_id):
+def booking_send_invite(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
     if booking.send_calendar_invite():
         messages.success(request, 'Invitation sent to your email')
     else:
         messages.error(request, 'Failure sending the invitation')
-    return redirect('update_booking', booking_id=booking_id)
+    return redirect('booking_update', booking_id=booking_id)

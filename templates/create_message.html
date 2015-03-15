@@ -13,9 +13,9 @@
 {% block content %}
 <div class="row">
     {% if thread_id %}
-    <form action="{% url 'reply_message' thread_id=thread_id %}" method="post">
+    <form action="{% url 'message_reply' thread_id=thread_id %}" method="post">
     {% else %}
-    <form action="{% url 'create_message' %}" method="post">
+    <form action="{% url 'message_create' %}" method="post">
     {% endif %}
         {% csrf_token %}
         {{ form|crispy }}

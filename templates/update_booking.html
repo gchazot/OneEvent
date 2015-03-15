@@ -115,8 +115,8 @@
             </p>
             {% if not booking.cancelledBy %}
             <p>
-            <a href="{% url 'send_booking_invite' booking_id=booking.id %}" class="btn btn-info">Receive Calendar Entry</a>
-            <a href="{% url 'cancel_booking' booking_id=booking.id %}" class="btn btn-danger">Unregister</a>
+            <a href="{% url 'booking_send_invite' booking_id=booking.id %}" class="btn btn-info">Receive Calendar Entry</a>
+            <a href="{% url 'booking_cancel' booking_id=booking.id %}" class="btn btn-danger">Unregister</a>
             </p>
             {% endif %}
         </div>
@@ -132,12 +132,12 @@
         </div>
         <div id="collapseThree" class="panel-collapse collapse in">
         <div class="panel-body">
-            <form action="{% url 'update_booking' booking_id=booking.id %}" method="post">
+            <form action="{% url 'booking_update' booking_id=booking.id %}" method="post">
             {% csrf_token %}
             {{ form|crispy }}
             <input type="submit" class="btn btn-success"
                 value="Confirm {% if booking.cancelledBy %}Registration{% else %}Changes{% endif %}"/>
-            <a href="{% url 'my_events' %}" class="btn btn-warning">
+            <a href="{% url 'events_list_mine' %}" class="btn btn-warning">
                 Cancel {% if booking.cancelledBy %}Registration{% else %}Changes{% endif %}</a>
             </form>
         </div>

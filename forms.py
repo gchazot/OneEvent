@@ -62,7 +62,7 @@ class EventForm(ModelForm):
         self.helper = FormHelper()
         self.helper.form_method = 'post'
         if self.instance.pk:
-            self.helper.form_action = reverse('edit_event',
+            self.helper.form_action = reverse('event_update',
                                               kwargs={'event_id': self.instance.id})
         else:
             self.helper.form_action = reverse('event_create')
@@ -101,7 +101,7 @@ class ChoiceForm(ModelForm):
                 Submit('save', 'Save', css_class='btn-success'),
                 Reset('reset', 'Reset', css_class='btn-warning'),
                 HTML('<a href="{0}" class="btn btn-danger">Cancel</a>'.format(
-                    reverse('edit_event', kwargs={'event_id': self.instance.event.id}))),
+                    reverse('event_update', kwargs={'event_id': self.instance.event.id}))),
                 css_class='text-center'
             )
         )
@@ -186,7 +186,7 @@ class CreateBookingOnBehalfForm(Form):
         super(CreateBookingOnBehalfForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_method = 'post'
-        self.helper.form_action = reverse('create_booking_on_behalf',
+        self.helper.form_action = reverse('booking_create_on_behalf',
                                           kwargs={'event_id': event_id})
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-3'

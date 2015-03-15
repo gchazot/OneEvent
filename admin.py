@@ -4,8 +4,8 @@ Created on 5 Jun 2014
 @author: germs
 '''
 from django.contrib import admin
-from models import (Event, EventChoice, EventChoiceOption, ParticipantBooking,
-                    ParticipantOption, Message)
+from models import (Event, Choice, Option, Booking,
+                    BookingOption, Message)
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.utils import timezone
@@ -95,20 +95,20 @@ class LimitedAdminInlineMixin(object):
         return getattr(self, 'filters', ())
 
 
-class EventChoiceOptionInline(admin.TabularInline):
-    model = EventChoiceOption
+class OptionInline(admin.TabularInline):
+    model = Option
     fields = ('title', 'default',)
 
 
-class EventChoiceAdmin(admin.ModelAdmin):
+class ChoiceAdmin(admin.ModelAdmin):
     fields = ('event', 'title', )
     readonly_fields = ('event',)
-    inlines = [EventChoiceOptionInline]
+    inlines = [OptionInline]
     list_display = ('event', 'title')
 
 
-class EventChoiceInline(admin.TabularInline, EditLinkToInlineObjectMixin):
-    model = EventChoice
+class ChoiceInline(admin.TabularInline, EditLinkToInlineObjectMixin):
+    model = Choice
     fields = ('title', 'edit_link',)
     readonly_fields = ('edit_link',)
 
@@ -124,7 +124,7 @@ class EventAdmin(admin.ModelAdmin):
         ('price_for_employees', 'price_for_contractors', 'price_currency'),
         ('employees_groups', 'contractors_groups'),
     )
-    inlines = (EventChoiceInline,)
+    inlines = (ChoiceInline,)
     list_display = ('title', 'city', 'start_local', 'end_local')
 
     dt_format = '%a, %d %b %Y %H:%M:%S %Z'
@@ -174,19 +174,19 @@ class EventAdmin(admin.ModelAdmin):
         return super(EventAdmin, self).change_view(request, object_id, form_url, extra_context)
 
 
-class ParticipantOptionInline(LimitedAdminInlineMixin, admin.TabularInline):
-    model = ParticipantOption
+class BookingOptionInline(LimitedAdminInlineMixin, admin.TabularInline):
+    model = BookingOption
 
     def get_filters(self, obj):
         return (('option', {'choice__event': obj.event}),)
 
 
-class ParticipantBookingAdmin(admin.ModelAdmin):
-    inlines = (ParticipantOptionInline,)
+class BookingAdmin(admin.ModelAdmin):
+    inlines = (BookingOptionInline,)
     list_display = ('event', 'person', 'cancelledBy', 'cancelledOn', 'confirmedOn')
 
 
 admin.site.register(Event, EventAdmin)
-admin.site.register(EventChoice, EventChoiceAdmin)
-admin.site.register(ParticipantBooking, ParticipantBookingAdmin)
+admin.site.register(Choice, ChoiceAdmin)
+admin.site.register(Booking, BookingAdmin)
 admin.site.register(Message, admin.ModelAdmin)

@@ -289,10 +289,10 @@ class Event(models.Model):
     def get_options_counts(self):
         '''
         Get a summary of the options chosen for this event
-        @return: a map of the form {EventChoice: {EventChoiceOption: count}}
+        @return: a map of the form {Choice: {Option: count}}
         '''
         result = {}
-        event_options = EventChoiceOption.objects.filter(choice__event=self)
+        event_options = Option.objects.filter(choice__event=self)
         event_options = event_options.filter(participantoption__booking__cancelledBy=None)
         event_options = event_options.annotate(total=Count('participantoption'))
         event_options = event_options.select_related('choice')
@@ -344,7 +344,7 @@ class Event(models.Model):
         yield ("Total", overall_totals,)
 
 
-class EventChoice(models.Model):
+class Choice(models.Model):
     '''
     A choice that participants have to make for an event
     '''
@@ -359,11 +359,11 @@ class EventChoice(models.Model):
         return u'{0}: {1} choice'.format(self.event.title, self.title)
 
 
-class EventChoiceOption(models.Model):
+class Option(models.Model):
     '''
     An option available for a choice of an event
     '''
-    choice = models.ForeignKey('EventChoice', related_name='options')
+    choice = models.ForeignKey('Choice', related_name='options')
     title = models.CharField(max_length=256)
     default = models.BooleanField(default=False)
 
@@ -378,7 +378,7 @@ class EventChoiceOption(models.Model):
             return u'{0} : option {1}'.format(self.choice, self.title)
 
 
-class ParticipantBooking(models.Model):
+class Booking(models.Model):
     '''
     Entry recording a user registration to an event
     '''
@@ -404,7 +404,7 @@ class ParticipantBooking(models.Model):
         '''
         Validate the contents of this Model
         '''
-        super(ParticipantBooking, self).clean()
+        super(Booking, self).clean()
         if (self.paidTo is not None
                 and self.must_pay() == 0
                 and not self.exempt_of_payment):
@@ -751,12 +751,12 @@ class ParticipantBooking(models.Model):
         return msg.send(fail_silently=False) == 1
 
 
-class ParticipantOption(models.Model):
+class BookingOption(models.Model):
     '''
     A choice made by a booking for an event
     '''
-    booking = models.ForeignKey('ParticipantBooking', related_name='options')
-    option = models.ForeignKey('EventChoiceOption', null=True, blank=True)
+    booking = models.ForeignKey('Booking', related_name='options')
+    option = models.ForeignKey('Option', null=True, blank=True)
 
     class Meta:
         unique_together = ('booking', 'option')
@@ -769,9 +769,9 @@ class ParticipantOption(models.Model):
         '''
         Validate the contents of this Model
         '''
-        super(ParticipantOption, self).clean()
-        dupes = ParticipantOption.objects.filter(booking=self.booking,
-                                                 option__choice=self.option.choice)
+        super(BookingOption, self).clean()
+        dupes = BookingOption.objects.filter(booking=self.booking,
+                                             option__choice=self.option.choice)
         if dupes.count() > 0:
             if dupes.count() != 1 or dupes[0].option != self.option:
                 error = 'Participant {0} already has a choice for {1}'.format(self.booking,

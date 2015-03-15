@@ -18,7 +18,7 @@ from timezones import get_tzinfo
 from datetime import timedelta
 
 
-from OneEvent.models import Event, ParticipantBooking, Message, EventChoice, ParticipantOption
+from OneEvent.models import Event, Booking, Message, Choice, BookingOption
 from OneEvent.forms import (BookingForm, EventForm, ChoiceForm, OptionFormSet, OptionFormSetHelper,
                             CreateBookingOnBehalfForm, MessageForm, ReplyMessageForm)
 from django.contrib.auth.models import User
@@ -49,7 +49,7 @@ def events_list(request, events, context, show_archived=False):
                 user_booking = evt.get_active_bookings().get(person=request.user)
                 event_info['booking'] = user_booking
                 event_info['user_can_cancel'] = user_booking.user_can_cancel(request.user)
-            except ParticipantBooking.DoesNotExist:
+            except Booking.DoesNotExist:
                 pass
             event_info['user_can_book'] = evt.user_can_book(request.user)
             event_info['user_can_update'] = evt.user_can_update(request.user)
@@ -109,7 +109,7 @@ def create_booking(request, event_id):
         return redirect('index')
 
     if event.is_booking_open():
-        booking, _ = ParticipantBooking.objects.get_or_create(event=event,
+        booking, _ = Booking.objects.get_or_create(event=event,
                                                               person=request.user,
                                                               defaults={'cancelledBy': request.user,
                                                                         'cancelledOn': timezone.now()})
@@ -131,7 +131,7 @@ def create_booking_on_behalf(request, event_id):
     form = CreateBookingOnBehalfForm(event.id, request.POST or None)
     if form.is_valid():
         target_user = User.objects.get(username=form.cleaned_data['username'])
-        booking, created = ParticipantBooking.objects.get_or_create(
+        booking, created = Booking.objects.get_or_create(
             event=event,
             person=target_user,
             defaults={'cancelledBy': request.user,
@@ -156,7 +156,7 @@ def create_booking_on_behalf(request, event_id):
 
 @login_required
 def update_booking(request, booking_id):
-    booking = get_object_or_404(ParticipantBooking, id=booking_id)
+    booking = get_object_or_404(Booking, id=booking_id)
 
     if not booking.user_can_update(request.user):
         messages.error(request, 'You are not authorised to update this booking !')
@@ -185,7 +185,7 @@ def update_booking(request, booking_id):
 
 @login_required
 def cancel_booking(request, booking_id):
-    booking = get_object_or_404(ParticipantBooking, id=booking_id)
+    booking = get_object_or_404(Booking, id=booking_id)
 
     if not booking.user_can_cancel(request.user):
         messages.error(request, 'You are not authorised to cancel this booking !')
@@ -306,7 +306,7 @@ def _choice_edit_form(request, choice):
     if choice_form.is_valid() and options_formset.is_valid():
         # Update existing bookings with a deleted option to the new default
         for deleted_option in options_formset.deleted_options:
-            part_options = ParticipantOption.objects.filter(option=deleted_option)
+            part_options = BookingOption.objects.filter(option=deleted_option)
             part_options.update(option=options_formset.new_default)
 
         # Save choice changes
@@ -315,7 +315,7 @@ def _choice_edit_form(request, choice):
 
         # If a new choice, choose default option for all bookings
         if is_new_choice:
-            bookings = ParticipantBooking.objects.filter(event=choice.event,
+            bookings = Booking.objects.filter(event=choice.event,
                                                          cancelledBy__exact=None)
             for bkg in bookings:
                 print u"Adding option to booking {0} : {1}".format(bkg, options_formset.new_default)
@@ -341,18 +341,18 @@ def _choice_edit_form(request, choice):
 
 def add_choice(request, event_id):
     event = get_object_or_404(Event, id=event_id)
-    new_choice = EventChoice(event=event)
+    new_choice = Choice(event=event)
     return _choice_edit_form(request, new_choice)
 
 
 def edit_choice(request, choice_id):
-    choice = get_object_or_404(EventChoice, id=choice_id)
+    choice = get_object_or_404(Choice, id=choice_id)
     return _choice_edit_form(request, choice)
 
 
 @login_required
 def delete_choice(request, choice_id):
-    choice = get_object_or_404(EventChoice, id=choice_id)
+    choice = get_object_or_404(Choice, id=choice_id)
 
     if not choice.event.user_can_update(request.user):
         messages.error(request, 'You are not authorised to edit this event !')
@@ -372,7 +372,7 @@ def delete_choice(request, choice_id):
 
 @login_required
 def confirm_payment(request, booking_id, cancel=False):
-    booking = get_object_or_404(ParticipantBooking, id=booking_id)
+    booking = get_object_or_404(Booking, id=booking_id)
 
     if not booking.user_can_update_payment(request.user):
         messages.error(request, 'You are not authorised to manage payment for this event !')
@@ -404,7 +404,7 @@ def confirm_payment(request, booking_id, cancel=False):
 
 @login_required
 def confirm_exempt(request, booking_id, cancel=False):
-    booking = get_object_or_404(ParticipantBooking, id=booking_id)
+    booking = get_object_or_404(Booking, id=booking_id)
 
     if not booking.user_can_update_payment(request.user):
         messages.error(request, 'You are not authorised to manage payment for this event !')
@@ -590,7 +590,7 @@ def create_message(request, thread_id=None):
 
 @login_required
 def send_booking_invite(request, booking_id):
-    booking = get_object_or_404(ParticipantBooking, id=booking_id)
+    booking = get_object_or_404(Booking, id=booking_id)
     if booking.send_calendar_invite():
         messages.success(request, 'Invitation sent to your email')
     else:

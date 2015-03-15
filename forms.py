@@ -5,7 +5,7 @@ Created on 23 Sep 2014
 '''
 from django.forms import Form
 from django.forms.fields import ChoiceField
-from OneEvent.models import Event, EventChoice, EventChoiceOption, ParticipantOption, Message
+from OneEvent.models import Event, Choice, Option, BookingOption, Message
 from django.forms.models import ModelForm, inlineformset_factory, ModelMultipleChoiceField
 from django.core.urlresolvers import reverse
 from crispy_forms.helper import FormHelper
@@ -34,7 +34,7 @@ class BookingForm(Form):
         try:
             self.booking.options.get(option=option)
             return 0
-        except ParticipantOption.DoesNotExist:
+        except BookingOption.DoesNotExist:
             if option.default:
                 return 1
         return 2
@@ -44,7 +44,7 @@ class BookingForm(Form):
             if name.startswith(self.choice_id_stem):
                 choice_id = int(name[len(self.choice_id_stem):])
                 bk_option, _ = self.booking.options.get_or_create(option__choice=choice_id)
-                bk_option.option = EventChoiceOption.objects.get(id=value)
+                bk_option.option = Option.objects.get(id=value)
                 bk_option.save()
 
 
@@ -85,7 +85,7 @@ class EventForm(ModelForm):
 
 class ChoiceForm(ModelForm):
     class Meta:
-        model = EventChoice
+        model = Choice
         fields = ['title']
 
     def __init__(self, *args, **kwargs):
@@ -109,7 +109,7 @@ class ChoiceForm(ModelForm):
         self.helper.field_class = 'col-xs-7'
 
 
-OptionFormSetBase = inlineformset_factory(EventChoice, EventChoiceOption,
+OptionFormSetBase = inlineformset_factory(Choice, Option,
                                           extra=3, can_delete=True)
 
 

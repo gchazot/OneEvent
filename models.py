@@ -150,7 +150,6 @@ class Event(models.Model):
         '''
         Check if the given user is part of the organisers of the event
         '''
-        self._populate_users_cache()
         is_orga = self._get_from_users_cache(user.id, 'orga', False)
         is_owner = (user == self.owner)
         return is_orga or is_owner
@@ -159,14 +158,12 @@ class Event(models.Model):
         '''
         Check if the user is part of the employees groups of the event
         '''
-        self._populate_users_cache()
         return self._get_from_users_cache(user.id, 'empl', False)
 
     def user_is_contractor(self, user):
         '''
         Check if the user is part of the contractors groups of the event
         '''
-        self._populate_users_cache()
         return self._get_from_users_cache(user.id, 'contr', False)
 
     def user_can_update(self, user):

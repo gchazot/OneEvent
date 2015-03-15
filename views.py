@@ -204,7 +204,7 @@ def booking_cancel(request, booking_id):
         else:
             return redirect('event_manage', event_id=booking.event.id)
     else:
-        return render_to_response('cancel_booking.html',
+        return render_to_response('booking_cancel.html',
                                   {'booking': booking},
                                   context_instance=RequestContext(request))
 
@@ -397,7 +397,7 @@ def booking_payment_confirm(request, booking_id, cancel=False):
         return redirect('event_manage', event_id=booking.event.id)
     else:
         timezone.activate(booking.event.get_tzinfo())
-        return render_to_response('confirm_payment.html',
+        return render_to_response('booking_payment_confirm.html',
                                   {'booking': booking, 'cancel': cancel},
                                   context_instance=RequestContext(request))
 
@@ -437,7 +437,7 @@ def booking_payment_exempt(request, booking_id, cancel=False):
         return redirect('event_manage', event_id=booking.event.id)
     else:
         timezone.activate(booking.event.get_tzinfo())
-        return render_to_response('confirm_exempt.html',
+        return render_to_response('booking_payment_exempt.html',
                                   {'booking': booking, 'cancel': cancel},
                                   context_instance=RequestContext(request))
 
@@ -551,7 +551,7 @@ def messages_list(request):
         messages = thread_head.full_thread()
         user_threads.append((thread_head, messages,))
 
-    return render_to_response('view_messages.html',
+    return render_to_response('messages_list.html',
                               {'threads': user_threads},
                               context_instance=RequestContext(request))
 
@@ -583,7 +583,7 @@ def message_create(request, thread_id=None):
         messages.success(request, 'Your message has been sent')
         return redirect('messages_list')
 
-    return render_to_response('create_message.html',
+    return render_to_response('message_create.html',
                               {'form': form, 'thread_id': thread_id},
                               context_instance=RequestContext(request))
 

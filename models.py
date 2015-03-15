@@ -290,9 +290,8 @@ class Event(models.Model):
         '''
         result = {}
         event_options = Option.objects.filter(choice__event=self)
-        event_options = event_options.filter(participantoption__booking__cancelledBy=None)
-        event_options = event_options.annotate(total=Count('participantoption'))
-        event_options = event_options.select_related('choice')
+        event_options = event_options.filter(bookingoption__booking__cancelledBy=None)
+        event_options = event_options.annotate(total=Count('bookingoption'))
         event_options = event_options.select_related('choice')
 
         for option in event_options:

@@ -27,6 +27,46 @@ class EventTest(TestCase):
                           start=timezone.now(),
                           owner=default_user())
 
+    def test_isFullyBooked_NoMaxParticipants(self):
+        ev = Event.objects.create(title='event no max participants',
+                                  start=timezone.now(),
+                                  owner=default_user())
+        self.assertFalse(ev.is_fully_booked())
+
+        user1 = User.objects.create(username='myUser')
+        Booking.objects.create(event=ev, person=user1)
+        self.assertFalse(ev.is_fully_booked())
+
+    def test_isFullyBooked_Max1Participant(self):
+        ev = Event.objects.create(title='event no max participants',
+                                  start=timezone.now(),
+                                  owner=default_user(),
+                                  max_participant=1)
+        self.assertFalse(ev.is_fully_booked())
+
+        user1 = User.objects.create(username='myUser1')
+        Booking.objects.create(event=ev, person=user1)
+        self.assertTrue(ev.is_fully_booked())
+
+        user2 = User.objects.create(username='myUser2')
+        Booking.objects.create(event=ev, person=user2)
+        self.assertTrue(ev.is_fully_booked())
+
+    def test_isFullyBooked_Max2Participants(self):
+        ev = Event.objects.create(title='event no max participants',
+                                  start=timezone.now(),
+                                  owner=default_user(),
+                                  max_participant=2)
+        self.assertFalse(ev.is_fully_booked())
+
+        user1 = User.objects.create(username='myUser1')
+        Booking.objects.create(event=ev, person=user1)
+        self.assertFalse(ev.is_fully_booked())
+
+        user2 = User.objects.create(username='myUser2')
+        Booking.objects.create(event=ev, person=user2)
+        self.assertTrue(ev.is_fully_booked())
+
 
 class ChoiceTest(TestCase):
     def setUp(self):

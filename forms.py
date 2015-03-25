@@ -75,7 +75,7 @@ class EventForm(ModelForm):
             Tab('Description', 'description'),
             Tab('Venue', 'location_name', 'location_address'),
             Tab('Organisers', 'owner', 'organisers'),
-            Tab('Closing Dates', 'booking_close', 'choices_close'),
+            Tab('Booking limits', 'max_participant', 'booking_close', 'choices_close'),
             Tab('Prices', 'price_for_employees', 'price_for_contractors', 'price_currency'),
             Tab('Employee/Contractor Groups', 'employees_groups', 'contractors_groups')
         )

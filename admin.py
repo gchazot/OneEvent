@@ -121,6 +121,7 @@ class EventAdmin(admin.ModelAdmin):
         ('location_name', 'location_address'),
         ('owner', 'organisers'),
         ('booking_close', 'choices_close'),
+        ('max_participant'),
         ('price_for_employees', 'price_for_contractors', 'price_currency'),
         ('employees_groups', 'contractors_groups'),
     )

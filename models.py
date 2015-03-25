@@ -269,6 +269,13 @@ class Event(models.Model):
         published = self.pub_status in ('PUB', 'REST', 'PRIV')
         return not self.is_ended() and not closed and published
 
+    def is_fully_booked(self):
+        '''
+        Checks if it is still possible to add a booking regarding the maximum of participants
+        '''
+        return (self.max_participant > 0
+                and self.get_active_bookings().count() >= self.max_participant)
+
     def get_active_bookings(self):
         '''
         Return the active bookings
@@ -283,7 +290,7 @@ class Event(models.Model):
 
     def get_participants_ids(self):
         '''
-        Return the ids of users with active bookings
+        Return the IDs of users with active bookings
         '''
         return self.get_active_bookings().values_list('person__id', flat=True)
 

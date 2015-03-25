@@ -167,7 +167,10 @@ def booking_update(request, booking_id):
     booking_was_cancelled = (booking.cancelledBy is not None)
 
     form = BookingForm(booking, request.POST or None)
-    if form.is_valid():
+
+    if booking_was_cancelled and booking.event.is_fully_booked():
+        messages.error(request, 'Sorry the event is fully booked already')
+    elif form.is_valid():
         form.save()
         if booking_was_cancelled:
             booking.confirmedOn = timezone.now()

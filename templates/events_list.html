@@ -75,6 +75,9 @@
                     <p></p>
                 </td>
                 <td>
+                    {% if event_info.event.max_participant > 0 %}
+                    <p>Bookings: {{event_info.event.get_active_bookings.count}}/{{event_info.event.max_participant}}</p>
+                    {% endif %}
                     {% if event_info.event.booking_close %}
                     <p>Registration closes: {{event_info.event.booking_close|date:"D, d N Y H:i"}}</p>
                     {% endif %}

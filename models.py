@@ -73,6 +73,10 @@ class Event(models.Model):
     choices_close = models.DateTimeField(blank=True, null=True,
                                          help_text='Limit date and time for changing choices')
 
+    max_participant = models.PositiveSmallIntegerField(
+        default=0,
+        help_text='Maximum number of participants to this event (0 = no limit)')
+
     price_for_employees = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     price_for_contractors = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     price_currency = models.CharField(max_length=3, null=True, blank=True,

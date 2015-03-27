@@ -351,6 +351,26 @@ class Event(models.Model):
         yield ("Total", overall_totals,)
 
 
+class Session(models.Model):
+    '''
+    A session from an event being organised
+    '''
+    event = models.ForeignKey('Event', related_name='sessions')
+    title = models.CharField(max_length=64, unique=True)
+    start = models.DateTimeField(help_text='Local start date and time')
+    end = models.DateTimeField(blank=True, null=True,
+                               help_text='Local end date and time')
+    max_participant = models.PositiveSmallIntegerField(
+        default=0,
+        help_text='Maximum number of participants to this session (0 = no limit)')
+
+    class Meta:
+        ordering = ['event', 'title']
+
+    def __unicode__(self):
+        return u'{0}: Session {1}'.format(self.event.title, self.title)
+
+
 class Choice(models.Model):
     '''
     A choice that participants have to make for an event

@@ -4,8 +4,8 @@ Created on 5 Jun 2014
 @author: germs
 '''
 from django.contrib import admin
-from models import (Event, Choice, Option, Booking,
-                    BookingOption, Message)
+from models import (Event, Session, Choice, Option,
+                    Booking, BookingOption, Message)
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.utils import timezone
@@ -113,6 +113,12 @@ class ChoiceInline(admin.TabularInline, EditLinkToInlineObjectMixin):
     readonly_fields = ('edit_link',)
 
 
+class SessionInline(admin.TabularInline):
+    model = Session
+    fields = ('title', 'start', 'end', 'max_participant')
+    extra = 1
+
+
 class EventAdmin(admin.ModelAdmin):
     fields = (
         ('title', 'pub_status'),
@@ -125,7 +131,7 @@ class EventAdmin(admin.ModelAdmin):
         ('price_for_employees', 'price_for_contractors', 'price_currency'),
         ('employees_groups', 'contractors_groups'),
     )
-    inlines = (ChoiceInline,)
+    inlines = (SessionInline, ChoiceInline,)
     list_display = ('title', 'city', 'start_local', 'end_local')
 
     dt_format = '%a, %d %b %Y %H:%M:%S %Z'

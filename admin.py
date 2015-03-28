@@ -185,7 +185,9 @@ class BookingOptionInline(LimitedAdminInlineMixin, admin.TabularInline):
     model = BookingOption
 
     def get_filters(self, obj):
-        return (('option', {'choice__event': obj.event}),)
+        if obj:
+            return (('option', {'choice__event': obj.event}),)
+        return []
 
 
 class BookingAdmin(admin.ModelAdmin):

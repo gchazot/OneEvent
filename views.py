@@ -113,6 +113,9 @@ def booking_create(request, event_id):
                                                    person=request.user,
                                                    defaults={'cancelledBy': request.user,
                                                              'cancelledOn': timezone.now()})
+        if booking.is_cancelled() and event.is_fully_booked():
+            messages.error(request, 'Sorry the event is fully booked already')
+            return redirect('index')
         messages.warning(request, 'Please confirm your registration here!')
         return redirect('booking_update', booking_id=booking.id)
     else:
@@ -137,6 +140,10 @@ def booking_create_on_behalf(request, event_id):
             defaults={'cancelledBy': request.user,
                       'cancelledOn': timezone.now()})
 
+        if booking.is_cancelled() and event.is_fully_booked():
+            messages.error(request, 'Sorry the event is fully booked already')
+            return redirect('event_manage', event_id=event_id)
+
         if created:
             messages.success(request,
                              u'Booking created for {0}. Please confirm it.'.format(
@@ -157,28 +164,34 @@ def booking_create_on_behalf(request, event_id):
 @login_required
 def booking_update(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
+    event = booking.event
 
     if not booking.user_can_update(request.user):
         messages.error(request, 'You are not authorised to update this booking !')
         return redirect('index')
 
-    timezone.activate(booking.event.get_tzinfo())
-
-    booking_was_cancelled = (booking.cancelledBy is not None)
+    timezone.activate(event.get_tzinfo())
 
     form = BookingForm(booking, request.POST or None)
 
-    if booking_was_cancelled and booking.event.is_fully_booked():
-        messages.error(request, 'Sorry the event is fully booked already')
-    elif form.is_valid():
+    if form.is_valid():
+        if booking.is_cancelled() and event.is_fully_booked():
+            messages.error(request, 'Sorry the event is fully booked already')
+            return redirect('index')
+
         form.save()
-        if booking_was_cancelled:
+        if booking.is_cancelled():
             booking.confirmedOn = timezone.now()
             booking.cancelledBy = None
             booking.cancelledOn = None
         booking.save()
-        messages.success(request, 'Registration updated')
-        return redirect('events_list_mine')
+
+        if request.user == booking.person:
+            messages.success(request, 'Registration updated')
+            return redirect('events_list_mine')
+        else:
+            messages.success(request, 'Registration updated for '.format(booking.person.get_full_name()))
+            return redirect('event_manage', event_id=event.id)
 
     return render_to_response('booking_update.html',
                               {'booking': booking,

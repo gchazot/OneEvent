@@ -66,14 +66,20 @@
         <strong>Participants</strong>
         <a href="{% url 'event_download_participants_list' event_id=event.id %}"
             onclick="avoid_collapse_toggle(event)"
-            class="btn  btn-info" data-toggle="" data-target="">
+            class="btn btn-info" data-toggle="" data-target="">
             <span class="glyphicon glyphicon-download-alt"></span> Download list
         </a>
+        {% if not event.is_fully_booked %}
         <a href="{% url 'booking_create_on_behalf' event_id=event.id %}"
             onclick="avoid_collapse_toggle(event)"
-            class="btn  btn-success" data-toggle="" data-target="">
+            class="btn btn-success" data-toggle="" data-target="">
             <span class="glyphicon glyphicon-plus"></span> Add participant
         </a>
+        {% else %}
+        <button type="button" class="btn btn-success disabled">
+            <span class="glyphicon glyphicon-plus"></span> Event Full
+        </button>
+        {% endif %}
         <div class="checkbox pull-right">
             <input type="checkbox" onclick="hide_cancelled_toggle(event)">Show Cancelled
         </div>

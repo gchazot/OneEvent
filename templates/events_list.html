@@ -114,7 +114,12 @@
                     {% endif %}
                 {% elif event_info.user_can_book %}
                     {% if event_info.event.is_booking_open %}
-                    <a href="{% url 'booking_create' event_id=event_info.event.id %}" class="btn btn-info">Register !</a>
+                        {% if event_info.event.is_fully_booked %}
+                        <button type="button" class="btn btn-info disabled enable-tooltip"
+                            data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Event Full</button>
+                        {% else %}
+                        <a href="{% url 'booking_create' event_id=event_info.event.id %}" class="btn btn-info">Register</a>
+                        {% endif %}
                     {% else %}
                         <button type="button" class="btn btn-info disabled enable-tooltip"
                             data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Event Closed</button>

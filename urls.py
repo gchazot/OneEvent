@@ -8,6 +8,7 @@ from django.conf.urls import patterns, url
 urlpatterns = patterns(
     'OneEvent.views',
     url(r'^$', 'index', name='index'),
+
     url(r'^events/mine$', 'events_list_mine', name='events_list_mine'),
     url(r'^events/future$', 'events_list_future', name='events_list_future'),
     url(r'^events/past$', 'events_list_past', name='events_list_past'),

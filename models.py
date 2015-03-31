@@ -494,6 +494,12 @@ class Booking(models.Model):
         '''
         return self.event.user_is_contractor(self.person)
 
+    def is_cancelled(self):
+        '''
+        Indicate if the booking is currently cancelled
+        '''
+        return self.cancelledBy is not None
+
     def must_pay(self):
         '''
         Returns the amount that the person has to pay for the booking

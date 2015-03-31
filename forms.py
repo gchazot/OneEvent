@@ -31,6 +31,12 @@ class BookingForm(Form):
                                                   choices=options_choices)
 
     def _scoreOption(self, option):
+        '''
+        Give a "score" to the given option to allow sorting in the option selection drop-down
+        If the option is the selected one, the score is 0.
+        If it is the default, the score is 1.
+        Otherwise the score is 2.
+        '''
         try:
             self.booking.options.get(option=option)
             return 0

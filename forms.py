@@ -17,18 +17,29 @@ from django.contrib.auth.models import User, Group
 
 class BookingForm(Form):
     choice_id_stem = 'choice_'
+    session_field = 'session'
 
     def __init__(self, booking, *args, **kwargs):
         super(BookingForm, self).__init__(*args, **kwargs)
         self.booking = booking
 
+        # Adding form fields for each choice in the event
+        choice_field_names = []
         for choice in booking.event.choices.all():
             field_name = (self.choice_id_stem + '{0}').format(choice.id)
+            choice_field_names.append(field_name)
             options = list(choice.options.all())
             options.sort(key=self._scoreOption)
             options_choices = [(opt.id, opt.title) for opt in options]
             self.fields[field_name] = ChoiceField(label=choice.title,
                                                   choices=options_choices)
+
+        # Define the Crispy Form helper
+        self.helper = FormHelper()
+        self.helper.form_tag = False  # Handled in the template
+        self.helper.form_class = 'form-horizontal'
+        self.helper.label_class = 'col-lg-3'
+        self.helper.field_class = 'col-lg-9'
 
     def _scoreOption(self, option):
         '''

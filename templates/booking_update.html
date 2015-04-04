@@ -134,7 +134,7 @@
         <div class="panel-body">
             <form action="{% url 'booking_update' booking_id=booking.id %}" method="post">
             {% csrf_token %}
-            {{ form|crispy }}
+            {% crispy form %}
             <input type="submit" class="btn btn-success"
                 value="Confirm {% if booking.cancelledBy %}Registration{% else %}Changes{% endif %}"/>
             <a href="{% url 'events_list_mine' %}" class="btn btn-warning">

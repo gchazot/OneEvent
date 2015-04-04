@@ -365,6 +365,7 @@ class Session(models.Model):
         help_text='Maximum number of participants to this session (0 = no limit)')
 
     class Meta:
+        unique_together = ('event', 'title')
         ordering = ['event', 'title']
 
     def __unicode__(self):

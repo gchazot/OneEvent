@@ -20,6 +20,10 @@ from email.mime.text import MIMEText
 from email import Encoders
 
 
+# A default datetime format (too lazy to use the one in settings)
+dt_format = '%a, %d %b %Y %H:%M'
+
+
 def end_of_day(when, timezone):
     '''
     Returns the end of the day after of the given datetime object

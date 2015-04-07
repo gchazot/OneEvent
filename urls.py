@@ -23,7 +23,7 @@ urlpatterns = patterns(
     url(r'^event/(?P<event_id>\d+)/participants_list$', 'event_download_participants_list',
         name='event_download_participants_list'),
 
-    url(r'^choice/create/(?P<event_id>\d+)', 'choice_create', name='choice_create'),
+    url(r'^choice/create/(?P<event_id>\d+)$', 'choice_create', name='choice_create'),
     url(r'^choice/(?P<choice_id>\d+)/update$', 'choice_update', name='choice_update'),
     url(r'^choice/(?P<choice_id>\d+)/delete$', 'choice_delete', name='choice_delete'),
 

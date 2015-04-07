@@ -1,0 +1,60 @@
+<div class="panel panel-info collapsible-caret">
+    <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseOne">
+        <strong>Event details</strong>
+    </div>
+    <div id="collapseOne" class="panel-collapse collapse">
+    <div class="panel-body">
+        <div class="col-md-4">
+            <p><label>Location:</label>
+                {{ event.city }}</p>
+            <p><label>Starts: </label>
+                {{ event.start|date:"D, d N Y H:i" }}</p>
+
+            {% if event.end %}
+            <p><label>Ends: </label>
+                {{ event.end|date:"D, d N Y H:i" }}</p>
+            {% endif %}
+
+            <p><label>Organisers: </label><ul>
+            {% for orga in event.organisers.all %}<li>{{ orga.get_full_name }}</li>{% endfor %}
+            </ul></p>
+        </div>
+        <hr class="hidden-md hidden-lg"/>
+        <div class="col-md-4">
+            {% if event.booking_close %}
+            <p><label>Bookings close: </label>
+                {{ event.booking_close|date:"D, d N Y H:i" }}</p>
+            {% endif %}
+            {% if event.choices_close %}
+            <p><label>Choices close: </label>
+                {{ event.choices_close|date:"D, d N Y H:i" }}</p>
+            {% endif %}
+
+            <p><label>Price for Employees: </label>
+                {{ event.price_for_employees }}
+                {% if event.price_currency %}({{event.price_currency}}){% endif %}
+            </p>
+
+            <p><label>Price for Contractors: </label>
+                {{ event.price_for_contractors }}
+                {% if event.price_currency %}({{event.price_currency}}){% endif %}
+            </p>
+        </div>
+        <hr class="hidden-md hidden-lg"/>
+        <div class="col-md-4">
+            {% if event.location_name %}
+            <p><label>Venue: </label>
+                {{event.location_name}}</p>
+            {% endif %}
+            {% if event.location_address %}
+            <p><label>Address: </label>
+                <pre>{{event.location_address}}</pre></p>
+            {% endif %}
+            {% if event.description %}
+            <p><label>Description: </label>
+                <pre>{{event.description}}</pre></p>
+            {% endif %}
+        </div>
+    </div>
+    </div>
+</div>

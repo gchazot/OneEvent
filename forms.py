@@ -6,7 +6,8 @@ Created on 23 Sep 2014
 from django.forms import Form
 from django.forms.fields import ChoiceField
 from OneEvent.models import Event, Choice, Option, BookingOption, Message
-from django.forms.models import ModelForm, inlineformset_factory, ModelMultipleChoiceField
+from django.forms.models import ModelForm, inlineformset_factory, ModelMultipleChoiceField,\
+    ModelChoiceField
 from django.core.urlresolvers import reverse
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Reset, Layout, Field, Div, HTML
@@ -15,12 +16,17 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User, Group
 
 
-class BookingForm(Form):
+class SessionChoiceField(ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.get_label()
+
+
+class BookingChoicesForm(Form):
     choice_id_stem = 'choice_'
     session_field = 'session'
 
     def __init__(self, booking, *args, **kwargs):
-        super(BookingForm, self).__init__(*args, **kwargs)
+        super(BookingChoicesForm, self).__init__(*args, **kwargs)
         self.booking = booking
 
         # Adding form fields for each choice in the event
@@ -36,10 +42,17 @@ class BookingForm(Form):
 
         # Define the Crispy Form helper
         self.helper = FormHelper()
-        self.helper.form_tag = False  # Handled in the template
+        self.helper.form_method = 'post'
+        self.helper.form_action = reverse('booking_update',
+                                          kwargs={'booking_id': self.booking.id})
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-lg-3'
         self.helper.field_class = 'col-lg-9'
+        self.helper.layout = Layout(Div(*choice_field_names),
+                                    FormActions(Submit('save', 'Save',
+                                                       css_class='btn btn-success'),
+                                                Reset('reset', 'Reset',
+                                                      css_class='btn btn-warning')))
 
     def _scoreOption(self, option):
         '''
@@ -57,6 +70,9 @@ class BookingForm(Form):
         return 2
 
     def save(self):
+        '''
+        Update Booking with details selected in the validated form
+        '''
         for name, value in self.cleaned_data.items():
             if name.startswith(self.choice_id_stem):
                 choice_id = int(name[len(self.choice_id_stem):])

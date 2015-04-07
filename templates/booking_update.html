@@ -21,64 +21,8 @@
     </div>
     {% endif %}
 
-    <div class="panel panel-info collapsible-caret">
-        <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseOne">
-            <strong>Event info</strong>
-        </div>
-        <div id="collapseOne" class="panel-collapse collapse">
-        <div class="panel-body">
-            <div class="col-md-6">
-                <p><label>Location:</label>
-                    {{ booking.event.city }}</p>
-                <p><label>Starts: </label>
-                    {{ booking.event.start|date:"D, d N Y H:i" }}</p>
+    {% include "event_description_panel_part.html" with event=booking.event only %}
 
-                {% if booking.event.end %}
-                <p><label>Ends: </label>
-                    {{ booking.event.end|date:"D, d N Y H:i" }}</p>
-                {% endif %}
-
-                <p><label>Organisers: </label><ul>
-                {% for orga in booking.event.organisers.all %}<li>{{ orga.get_full_name }}</li>{% endfor %}
-                </ul></p>
-
-                {% if booking.event.booking_close %}
-                <p><label>Bookings close: </label>
-                    {{ booking.event.booking_close|date:"D, d N Y H:i" }}</p>
-                {% endif %}
-                {% if booking.event.choices_close %}
-                <p><label>Choices close: </label>
-                    {{ booking.event.choices_close|date:"D, d N Y H:i" }}</p>
-                {% endif %}
-
-                <p><label>Price for Employees: </label>
-                    {{ booking.event.price_for_employees }}
-                    {% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
-                </p>
-
-                <p><label>Price for Contractors: </label>
-                    {{ booking.event.price_for_contractors }}
-                    {% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
-                </p>
-            </div>
-            <hr class="hidden-md hidden-lg"/>
-            <div class="col-md-6">
-                {% if booking.event.location_name %}
-                <p><label>Venue: </label>
-                    {{booking.event.location_name}}</p>
-                {% endif %}
-                {% if booking.event.location_address %}
-                <p><label>Address: </label>
-                    <pre>{{booking.event.location_address}}</pre></p>
-                {% endif %}
-                {% if booking.event.description %}
-                <p><label>Description: </label>
-                    <pre>{{booking.event.description}}</pre></p>
-                {% endif %}
-            </div>
-        </div>
-        </div>
-    </div>
     <div class="panel panel-{{booking.get_payment_status_class|default:'info'}} collapsible-caret">
         <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseTwo">
             <strong>Registration status</strong>
@@ -86,13 +30,13 @@
         <div id="collapseTwo" class="panel-collapse collapse in" >
         <div class="panel-body">
             <p><label>Registration:</label>
-            {% if booking.cancelledBy %}
+            {% if booking.is_cancelled %}
             Not Confirmed/Cancelled (by {{booking.cancelledBy.get_full_name}} on {{booking.cancelledOn|date:"D, d N Y H:i"}})
             {% else %}
             Confirmed
             </p>
             {% endif %}
-            {% if not booking.cancelledBy or booking.paidTo %}
+            {% if not booking.is_cancelled or booking.paidTo %}
             <p><label>Payment:</label>
                 <span class="bg-{{booking.get_payment_status_class}}">
                 {% if booking.exempt_of_payment %}
@@ -113,7 +57,7 @@
                 </span>
             {% endif %}
             </p>
-            {% if not booking.cancelledBy %}
+            {% if not booking.is_cancelled %}
             <p>
             <a href="{% url 'booking_send_invite' booking_id=booking.id %}" class="btn btn-info">Receive Calendar Entry</a>
             <a href="{% url 'booking_cancel' booking_id=booking.id %}" class="btn btn-danger">Unregister</a>
@@ -131,16 +75,9 @@
             {% endif %}
         </div>
         <div id="collapseThree" class="panel-collapse collapse in">
-        <div class="panel-body">
-            <form action="{% url 'booking_update' booking_id=booking.id %}" method="post">
-            {% csrf_token %}
-            {% crispy form %}
-            <input type="submit" class="btn btn-success"
-                value="Confirm {% if booking.cancelledBy %}Registration{% else %}Changes{% endif %}"/>
-            <a href="{% url 'events_list_mine' %}" class="btn btn-warning">
-                Cancel {% if booking.cancelledBy %}Registration{% else %}Changes{% endif %}</a>
-            </form>
-        </div>
+            <div class="panel-body">
+                {% crispy choices_form %}
+            </div>
         </div>
     </div>
 </div>

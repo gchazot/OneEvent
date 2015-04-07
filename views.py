@@ -19,8 +19,9 @@ from datetime import timedelta
 
 
 from OneEvent.models import Event, Booking, Message, Choice, BookingOption
-from OneEvent.forms import (BookingForm, EventForm, ChoiceForm, OptionFormSet, OptionFormSetHelper,
-                            CreateBookingOnBehalfForm, MessageForm, ReplyMessageForm)
+from OneEvent.forms import (EventForm, ChoiceForm, OptionFormSet, OptionFormSetHelper,
+                            CreateBookingOnBehalfForm, BookingChoicesForm,
+                            MessageForm, ReplyMessageForm)
 from django.contrib.auth.models import User
 
 
@@ -172,14 +173,14 @@ def booking_update(request, booking_id):
 
     timezone.activate(event.get_tzinfo())
 
-    form = BookingForm(booking, request.POST or None)
+    choices_form = BookingChoicesForm(booking, request.POST or None)
 
-    if form.is_valid():
+    if choices_form.is_valid():
         if booking.is_cancelled() and event.is_fully_booked():
             messages.error(request, 'Sorry the event is fully booked already')
             return redirect('index')
 
-        form.save()
+        choices_form.save()
         if booking.is_cancelled():
             booking.confirmedOn = timezone.now()
             booking.cancelledBy = None
@@ -195,7 +196,7 @@ def booking_update(request, booking_id):
 
     return render_to_response('booking_update.html',
                               {'booking': booking,
-                               'form': form},
+                               'choices_form': choices_form},
                               context_instance=RequestContext(request))
 
 
@@ -332,7 +333,7 @@ def _choice_edit_form(request, choice):
         # If a new choice, choose default option for all bookings
         if is_new_choice:
             bookings = Booking.objects.filter(event=choice.event,
-                                                         cancelledBy__exact=None)
+                                              cancelledBy__exact=None)
             for bkg in bookings:
                 print u"Adding option to booking {0} : {1}".format(bkg, options_formset.new_default)
                 bkg.options.create(option=options_formset.new_default)

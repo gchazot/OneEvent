@@ -20,7 +20,7 @@ from datetime import timedelta
 
 from OneEvent.models import Event, Booking, Message, Choice, BookingOption
 from OneEvent.forms import (EventForm, ChoiceForm, OptionFormSet, OptionFormSetHelper,
-                            CreateBookingOnBehalfForm, BookingChoicesForm,
+                            CreateBookingOnBehalfForm, BookingChoicesForm, BookingSessionForm,
                             MessageForm, ReplyMessageForm)
 from django.contrib.auth.models import User
 
@@ -162,21 +162,82 @@ def booking_create_on_behalf(request, event_id):
                                   context_instance=RequestContext(request))
 
 
-@login_required
-def booking_update(request, booking_id):
-    booking = get_object_or_404(Booking, id=booking_id)
-    event = booking.event
+# TODO: I deeply apologise to my future self about all the mess below that handles booking updates
+def _booking_update_finished_redirect(request, booking, updated_field):
+    '''
+    Redirects the user to the appropriate page after the booking update process
+    '''
+    message_text = '{0} updated'.format(updated_field)
+    if request.user == booking.person:
+        messages.success(request, message_text)
+        return redirect('events_list_mine')
+    else:
+        message_text += ' for {1}'.format(booking.person.get_full_name())
+        messages.success(request, message_text)
+        return redirect('event_manage', event_id=booking.event.id)
 
-    if not booking.user_can_update(request.user):
-        messages.error(request, 'You are not authorised to update this booking !')
-        return redirect('index')
 
-    timezone.activate(event.get_tzinfo())
+def _booking_update_session(request, booking, form_target_url):
+    '''
+    Handle the form to select the session for a booking
+    '''
+    session_form = BookingSessionForm(form_target_url, request.POST or None, instance=booking)
+    if session_form.is_valid():
+        if booking.is_cancelled() and booking.event.is_fully_booked():
+            messages.error(request, 'Sorry the event is fully booked already')
+            return redirect('index')
 
+        session_form.save()
+
+        booking.confirmedOn = timezone.now()
+        booking.cancelledBy = None
+        booking.cancelledOn = None
+        booking.save()
+
+        if booking.event.choices.count() > 0:
+            messages.warning(request, 'Session confirmed, please validate your choices.')
+            return redirect('booking_update', booking_id=booking.id)
+        else:
+            return _booking_update_finished_redirect(request, booking, 'Session')
+    else:
+        return render_to_response('booking_update_with_sessions.html',
+                                  {'booking': booking,
+                                   'session_form': session_form},
+                                  context_instance=RequestContext(request))
+
+
+def _booking_update_with_sessions(request, booking):
+    '''
+    View to handle the modification of bookings on events with sessions
+    '''
+    if booking.is_cancelled() or request.GET.get('session_change'):
+        # Step 1: Handling Session selection
+            return _booking_update_session(request, booking, 'booking_update')
+    elif booking.event.choices.count() > 0:
+        # Step 2: Handling Choices
+        choices_form = BookingChoicesForm(booking, request.POST or None)
+        if choices_form.is_valid():
+            choices_form.save()
+
+            return _booking_update_finished_redirect(request, booking, 'Choices')
+        else:
+            return render_to_response('booking_update_with_sessions.html',
+                                      {'booking': booking,
+                                       'choices_form': choices_form},
+                                      context_instance=RequestContext(request))
+    else:
+        # No Choice to handle
+        return _booking_update_finished_redirect(request, booking, 'Session')
+
+
+def _booking_update_no_session(request, booking):
+    '''
+    View to handle the modification of bookings on events without session
+    '''
     choices_form = BookingChoicesForm(booking, request.POST or None)
 
     if choices_form.is_valid():
-        if booking.is_cancelled() and event.is_fully_booked():
+        if booking.is_cancelled() and booking.event.is_fully_booked():
             messages.error(request, 'Sorry the event is fully booked already')
             return redirect('index')
 
@@ -187,17 +248,47 @@ def booking_update(request, booking_id):
             booking.cancelledOn = None
         booking.save()
 
-        if request.user == booking.person:
-            messages.success(request, 'Registration updated')
-            return redirect('events_list_mine')
-        else:
-            messages.success(request, 'Registration updated for '.format(booking.person.get_full_name()))
-            return redirect('event_manage', event_id=event.id)
+        return _booking_update_finished_redirect(request, booking, 'Registration')
 
     return render_to_response('booking_update.html',
                               {'booking': booking,
                                'choices_form': choices_form},
                               context_instance=RequestContext(request))
+
+
+@login_required
+def booking_update(request, booking_id):
+    '''
+    Main view for updates to bookings: session and choices selection, or confirmation
+    '''
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    if not booking.user_can_update(request.user):
+        messages.error(request, 'You are not authorised to update this booking !')
+        return redirect('index')
+
+    timezone.activate(booking.event.get_tzinfo())
+
+    if booking.event.sessions.count() > 0:
+        return _booking_update_with_sessions(request, booking)
+    else:
+        return _booking_update_no_session(request, booking)
+
+
+@login_required
+def booking_session_update(request, booking_id):
+    '''
+    View to change the session on a boking
+    '''
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    if not booking.user_can_update(request.user):
+        messages.error(request, 'You are not authorised to update this booking !')
+        return redirect('index')
+
+    timezone.activate(booking.event.get_tzinfo())
+
+    return _booking_update_session(request, booking, 'booking_session_update')
 
 
 @login_required

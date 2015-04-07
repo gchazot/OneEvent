@@ -375,6 +375,17 @@ class Session(models.Model):
     def __unicode__(self):
         return u'{0}: Session {1}'.format(self.event.title, self.title)
 
+    def get_label(self):
+        '''
+        Generate a label for display in the interface
+        '''
+        label = '{0} ({1}'.format(self.title, self.start.strftime(dt_format))
+        if self.end:
+            label += ' - {0}'.format(self.end.strftime(dt_format))
+        label += ')'
+
+        return label
+
 
 class Choice(models.Model):
     '''

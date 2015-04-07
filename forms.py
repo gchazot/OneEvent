@@ -5,12 +5,12 @@ Created on 23 Sep 2014
 '''
 from django.forms import Form
 from django.forms.fields import ChoiceField
-from OneEvent.models import Event, Choice, Option, BookingOption, Message
+from OneEvent.models import Event, Choice, Option, Booking, BookingOption, Message
 from django.forms.models import ModelForm, inlineformset_factory, ModelMultipleChoiceField,\
     ModelChoiceField
 from django.core.urlresolvers import reverse
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, Reset, Layout, Field, Div, HTML
+from crispy_forms.layout import Submit, Reset, Layout, Field, Div, HTML, Button
 from crispy_forms.bootstrap import TabHolder, Tab, FormActions
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User, Group
@@ -19,6 +19,29 @@ from django.contrib.auth.models import User, Group
 class SessionChoiceField(ModelChoiceField):
     def label_from_instance(self, obj):
         return obj.get_label()
+
+
+class BookingSessionForm(ModelForm):
+    session = SessionChoiceField(label='Select your session', queryset=None, required=True)
+
+    class Meta:
+        model = Booking
+        fields = ['session']
+
+    def __init__(self, target_url, *args, **kwargs):
+        super(BookingSessionForm, self).__init__(*args, **kwargs)
+
+        self.fields['session'].queryset = self.instance.event.sessions.all()
+
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.form_action = reverse(target_url,
+                                          kwargs={'booking_id': self.instance.id})
+        self.helper.layout = Layout('session',
+                                    FormActions(Submit('save', 'Confirm',
+                                                       css_class='btn btn-success'),
+                                                Reset('reset', 'Reset',
+                                                      css_class='btn btn-warning')))
 
 
 class BookingChoicesForm(Form):

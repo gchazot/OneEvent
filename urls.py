@@ -31,6 +31,7 @@ urlpatterns = patterns(
     url(r'^booking/create_on_behalf/(?P<event_id>\d+)$', 'booking_create_on_behalf',
         name='booking_create_on_behalf'),
     url(r'^booking/(?P<booking_id>\d+)/update$', 'booking_update', name='booking_update'),
+    url(r'^booking/(?P<booking_id>\d+)/session$', 'booking_session_update', name='booking_session_update'),
     url(r'^booking/(?P<booking_id>\d+)/cancel$', 'booking_cancel', name='booking_cancel'),
     url(r'^booking/(?P<booking_id>\d+)/payment/confirm$', 'booking_payment_confirm',
         name='booking_payment_confirm'),

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+
+{% block navbar_header_text %}Registration{% endblock %}
+
+{% block heading_action %}Register{% endblock %}
+{% block heading_title %}{{ booking.event.title }}
+    <small>{{ booking.event.start|date:"D, d N Y H:i" }}</small>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    {% if booking.person != user %}
+    <div class="panel panel-danger">
+        <div class="panel-heading text-center"><h4>
+            <span class="glyphicon glyphicon-warning-sign"></span>
+            You are editing a booking for: {{booking.person.get_full_name}}
+        </h4></div>
+    </div>
+    {% endif %}
+
+    {% include "event_description_panel_part.html" with event=booking.event only %}
+
+    <div class="panel panel-{{booking.get_payment_status_class|default:'info'}} collapsible-caret">
+        <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseTwo">
+            <strong>Registration</strong>
+        </div>
+        <div id="collapseTwo" class="panel-collapse collapse in" >
+        <div class="panel-body">
+        {% if session_form %}
+            <div class="col-md-6">
+                <!-- Registration status -->
+                <p><label>Status:</label>
+                    Not Confirmed/Cancelled
+                    (by {{booking.cancelledBy.get_full_name}} on {{booking.cancelledOn|date:"D, d N Y H:i"}})
+                </p>
+                {% if booking.paidTo %}
+                <p><label>Payment:</label>
+                    <span class="bg-{{booking.get_payment_status_class}}">
+                    Paid to {{booking.paidTo.get_full_name}} on {{booking.datePaid|date:"D, d N Y H:i"}}
+                    </span>
+                </p>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <!-- Session selection -->
+                {% crispy session_form %}
+            </div>
+        {% else %}
+            <div class="col-md-6">
+                <!-- Registration status -->
+                <p><label>Status:</label> Confirmed</p>
+                <p><label>Payment:</label>
+                    <span class="bg-{{booking.get_payment_status_class}}">
+                    {% if booking.exempt_of_payment %}
+                        Exempted of payment by {{booking.paidTo.get_full_name}} on {{booking.datePaid|date:"D, d N Y H:i"}}
+                    {% elif booking.paidTo %}
+                        Paid to {{booking.paidTo.get_full_name}} on {{booking.datePaid|date:"D, d N Y H:i"}}
+                    {% elif booking.must_pay == 0 %}
+                        {% if booking.exempt_of_payment %}
+                        Exempted of payment by {{booking.paidTo.get_full_name}} on {{booking.datePaid|date:"D, d N Y H:i"}}
+                        {% else %}
+                        No payment needed
+                        {% endif %}
+                    {% else %}
+                        Please pay
+                        {{ booking.must_pay }}{% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
+                        to an organiser.
+                    {% endif %}
+                    </span>
+                </p>
+                <p><a href="{% url 'booking_send_invite' booking_id=booking.id %}"
+                      class="btn btn-info">Receive Calendar Entry</a></p>
+            </div>
+            <div class="col-md-6">
+                <!-- Session selection -->
+                <p><label>Session:</label> {{ booking.session.get_label }}</p>
+                <p><a href="{% url 'booking_session_update' booking_id=booking.id%}"
+                      class="btn btn-warning">Change Session</a></p>
+                <p><a href="{% url 'booking_cancel' booking_id=booking.id %}"
+                      class="btn btn-danger">Unregister</a></p>
+            </div>
+        {% endif %}
+        </div>
+        </div>
+    </div>
+
+    {% if choices_form %}
+    <div class="panel panel-info collapsible-caret">
+        <div class="panel-heading collapsible-toggle" data-toggle="collapse"data-target="#collapseThree">
+            <strong>Your choices</strong>
+        </div>
+        <div id="collapseThree" class="panel-collapse collapse in">
+            <div class="panel-body">
+                {% crispy choices_form %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

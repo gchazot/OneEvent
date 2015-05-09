@@ -10,6 +10,8 @@
 {% endblock %}
 
 {% block content %}
+
+{% if event.pk %}
 <div class="row">
 <div class='col-sm-3'>
     <a href="{% url 'event_manage' event_id=event.id %}"
@@ -23,6 +25,7 @@
     </h4>
 </div>
 </div>
+{% endif %}
 
 <div class="row">
 <div class="panel panel-info collapsible-caret">

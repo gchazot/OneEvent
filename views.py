@@ -18,10 +18,10 @@ from timezones import get_tzinfo
 from datetime import timedelta
 
 
-from OneEvent.models import Event, Booking, Message, Choice, BookingOption
-from OneEvent.forms import (EventForm, ChoiceForm, OptionFormSet, OptionFormSetHelper,
-                            CreateBookingOnBehalfForm, BookingChoicesForm, BookingSessionForm,
-                            MessageForm, ReplyMessageForm)
+from models import Event, Booking, Message, Choice, BookingOption
+from forms import (EventForm, ChoiceForm, OptionFormSet, OptionFormSetHelper,
+                   CreateBookingOnBehalfForm, BookingChoicesForm, BookingSessionForm,
+                   MessageForm, ReplyMessageForm)
 from django.contrib.auth.models import User
 
 

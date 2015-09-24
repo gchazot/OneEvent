@@ -6,7 +6,7 @@ Created on 22 Sep 2014
 from django.conf.urls import patterns, url
 
 urlpatterns = patterns(
-    'OneEvent.views',
+    'oneevent.views',
     url(r'^$', 'index', name='index'),
 
     url(r'^events/mine$', 'events_list_mine', name='events_list_mine'),

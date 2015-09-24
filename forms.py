@@ -5,7 +5,7 @@ Created on 23 Sep 2014
 '''
 from django.forms import Form
 from django.forms.fields import ChoiceField
-from OneEvent.models import Event, Choice, Option, Booking, BookingOption, Message
+from models import Event, Choice, Option, Booking, BookingOption, Message
 from django.forms.models import ModelForm, inlineformset_factory, ModelMultipleChoiceField,\
     ModelChoiceField
 from django.core.urlresolvers import reverse
@@ -112,6 +112,7 @@ class EventForm(ModelForm):
 
     class Meta:
         model = Event
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(EventForm, self).__init__(*args, **kwargs)
@@ -166,7 +167,7 @@ class ChoiceForm(ModelForm):
 
 
 OptionFormSetBase = inlineformset_factory(Choice, Option,
-                                          extra=3, can_delete=True)
+                                          extra=3, can_delete=True, fields='__all__')
 
 
 class OptionFormSet(OptionFormSetBase):

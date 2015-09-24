@@ -10,7 +10,7 @@ from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.utils import timezone
 from timezones import get_tzinfo
-from django.contrib.admin.util import unquote
+from django.contrib.admin.utils import unquote
 
 
 class EditLinkToInlineObjectMixin(object):

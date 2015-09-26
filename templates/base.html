@@ -70,13 +70,13 @@
 
                     <li>
                     {% if user.is_authenticated %}
-                        <a href="{% url 'django.contrib.auth.views.logout' %}?next={% url 'index' %}"
+                        <a href="{% url 'logout' %}?next={% url 'index' %}"
                             data-toggle="tooltip" data-placement="top" title="Logout">
                             <span class="glyphicon glyphicon-log-out"></span>
                             <span class="hidden-sm hidden-md hidden-lg">Logout</span>
                         </a>
                     {% else %}
-                        <a href="{% url 'django.contrib.auth.views.login' %}?next={% url 'index' %}"
+                        <a href="{% url 'login' %}?next={% url 'index' %}"
                             data-toggle="tooltip" data-placement="top" title="Login">
                             <span class="glyphicon glyphicon-log-in"></span>
                             <span class="">Login</span>

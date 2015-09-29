@@ -118,9 +118,8 @@
                     <th rowspan=2>Employment</th>
                     <th rowspan=2>Actions</th>
                     <th rowspan=2>Booking Status</th>
-                    {% if event.choices.count > 0 %}
-                    <th colspan=0>Choices</th>
-                    {% endif %}
+                    {% if event.sessions.exists %}<th rowspan=2>Session</th>{% endif %}
+                    {% if event.choices.exists %}<th colspan=0>Choices</th>{% endif %}
                 </tr>
                 <tr>
                     {% for choice in event.choices.all %}
@@ -213,12 +212,18 @@
                         {% else %}
                             No payment needed
                         {% endif %}
-                        </span>
+                        </span></div>
+                        <div>
                         {% if booking.exempt_of_payment or booking.paidTo %}
                             by {{ booking.paidTo.get_full_name }} on {{ booking.datePaid|date:"d N Y H:i" }}
                         {% endif %}
                         </div>
                     </td>
+
+                    <!-- Session -->
+                    {% if event.sessions.exists %}
+                    <td>{{ booking.session.title }}</td>
+                    {% endif %}
 
                     <!-- Options -->
                     {% for option in booking.options.all %}

@@ -224,7 +224,7 @@ def _booking_update_with_sessions(request, booking):
     '''
     View to handle the modification of bookings on events with sessions
     '''
-    if booking.is_cancelled() or request.GET.get('session_change'):
+    if booking.is_cancelled() or request.GET.get('session_change') or booking.session is None:
         # Step 1: Handling Session selection
             return _booking_update_session(request, booking, 'booking_update')
     elif booking.event.choices.count() > 0:

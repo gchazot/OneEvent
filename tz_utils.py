@@ -148,7 +148,7 @@ def default_timezone(fallback='UTC'):
     return validated_timezone(timezone, fallback)
 
 
-### Display helpers
+# Display helpers
 def is_same_time(start, end, exact=False):
     """ Test if event starts and ends at same time.
 
@@ -227,7 +227,7 @@ def is_same_day(start, end):
     return start.date() == end.date()
 
 
-### Timezone helpers
+# Timezone helpers
 def utctz():
     """ Return the UTVC zone as a pytz.UTC instance.
 
@@ -480,7 +480,7 @@ def pydt(dt, missing_zone=None, exact=False):
             dt = dt.toZone(missing_zone.zone)
             tz = missing_zone
 
-        year, month, day, hour, min, sec = dt.parts()[:6]
+        year, month, day, hour, mins, sec = dt.parts()[:6]
 
         # seconds (parts[6]) is a float, so we do modulo for microseconds and
         # map then to int
@@ -496,7 +496,7 @@ def pydt(dt, missing_zone=None, exact=False):
 
         # There is a problem with timezone Europe/Paris
         # tz is equal to <DstTzInfo 'Europe/Paris' PMT+0:09:00 STD>
-        dt = datetime(year, month, day, hour, min, sec, micro, tzinfo=tz)
+        dt = datetime(year, month, day, hour, mins, sec, micro, tzinfo=tz)
         # before:
         # datetime.datetime(2011, 3, 14, 14, 19, tzinfo=<DstTzInfo 'Europe/Paris' PMT+0:09:00 STD>)
         # dt = dt.tzinfo.normalize(dt)
@@ -505,7 +505,7 @@ def pydt(dt, missing_zone=None, exact=False):
         # after: datetime.datetime(2011, 3, 14, 19, tzinfo=<DstTzInfo 'Europe/Paris' CET+1:00:00 STD>
         ret = dt
 
-    if ret and exact == False:
+    if ret and not exact:
         ret = ret.replace(microsecond=0)
 
     return ret
@@ -542,7 +542,7 @@ def guesstz(DT):
     return None
 
 
-### Date as integer representation helpers
+# Date as integer representation helpers
 def dt2int(dt):
     """ Calculates an integer from a datetime, resolution is one minute.
     The datetime is always converted to the UTC zone.
@@ -557,7 +557,7 @@ def dt2int(dt):
         return 0
     # TODO: if dt has not timezone information, guess and set it
     dt = utc(dt)
-    value = (((dt.year*12+dt.month)*31+dt.day)*24+dt.hour)*60+dt.minute
+    value = (((dt.year * 12 + dt.month) * 31 + dt.day) * 24 + dt.hour) * 60 + dt.minute
 
     # TODO: unit test me
     if value > MAX32:
@@ -602,7 +602,7 @@ def dt_to_zone(dt, tzstring):
     return dt.astimezone(pytz.timezone(tzstring))
 
 
-### RFC2445 export helpers
+# RFC2445 export helpers
 def rfc2445dt(dt, mode='utc', date=True, time=True):
     """ Convert a datetime or DateTime object into an RFC2445 compatible
     datetime string.
@@ -669,7 +669,7 @@ def rfc2445dt(dt, mode='utc', date=True, time=True):
     date = "%s%s%s%s" % (date and dt.strftime("%Y%m%d") or '',
                          date and time and 'T' or '',
                          time and dt.strftime("%H%M%S") or '',
-                         mode=='utc' and 'Z' or '')
+                         mode == 'utc' and 'Z' or '')
     if mode == 'local':
         return date, dt.tzinfo.zone
     return date

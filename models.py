@@ -406,6 +406,12 @@ class Session(models.Model):
 
         return label
 
+    def get_active_bookings(self):
+        '''
+        Return the active bookings
+        '''
+        return self.event.get_active_bookings().filter(session=self)
+
 
 class Choice(models.Model):
     '''

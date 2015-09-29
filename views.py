@@ -610,10 +610,18 @@ def event_download_participants_list(request, event_id):
 
     bookings = event.bookings.order_by('person__last_name', 'person__first_name')
 
-    writer.writerow([u'Last name', u'First name', u'email', u'Employment',
-                     u'Cancelled', u'Cancelled By', u'Confirmed On',
-                     u'Payment status', u'Paid to',
-                     u'Choices'])
+    header_row = [u'Last name', u'First name', u'email', u'Employment',
+                  u'Cancelled', u'Cancelled By', u'Confirmed On',
+                  u'Payment status', u'Paid to']
+
+    if event.sessions.exists():
+        header_row.append(u'Session')
+
+    if event.choices.exists():
+        header_row.append(u'Choices')
+
+    writer.writerow(header_row)
+
     for booking in bookings:
         if booking.paidTo is not None:
             local_datePaid = booking.datePaid.astimezone(booking.event.get_tzinfo())
@@ -655,6 +663,13 @@ def event_download_participants_list(request, event_id):
                booking.person.email, employment,
                cancelled, cancelled_by, confirmed_on,
                payment, paid_to]
+
+        if event.sessions.exists():
+            if booking.session:
+                row.append(booking.session.title)
+            else:
+                row.append(u'')
+
         for option in booking.options.all():
             row.append(option.option.title)
         writer.writerow(row)

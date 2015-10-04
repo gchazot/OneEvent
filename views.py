@@ -32,10 +32,10 @@ from timezones import get_tzinfo
 from datetime import timedelta
 
 
-from models import Event, Booking, Message, Choice, BookingOption
+from models import Event, Session, Booking, Message, Choice, BookingOption
 from forms import (EventForm, ChoiceForm, OptionFormSet, OptionFormSetHelper,
                    CreateBookingOnBehalfForm, BookingChoicesForm, BookingSessionForm,
-                   MessageForm, ReplyMessageForm)
+                   MessageForm, ReplyMessageForm, SessionFormSet, SessionFormSetHelper)
 from django.contrib.auth.models import User
 
 
@@ -386,8 +386,18 @@ def _event_edit_form(request, event):
         # Not saving a form. Activate the timezone from the event
         timezone.activate(event.get_tzinfo())
 
+    # Build formset for Sessions
+    session_formset = None
+    session_helper = None
+    if not is_new_event:
+        session_formset = SessionFormSet(instance=event)
+        session_helper = SessionFormSetHelper(event)
+
     return render_to_response('event_update.html',
-                              {'event': event, 'event_form': event_form},
+                              {'event': event,
+                               'event_form': event_form,
+                               'session_formset': session_formset,
+                               'session_helper': session_helper},
                               context_instance=RequestContext(request))
 
 
@@ -400,6 +410,34 @@ def event_update(request, event_id):
         return redirect('index')
 
     return _event_edit_form(request, event)
+
+
+@login_required
+def event_update_sessions(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    if not event.user_can_update(request.user):
+        messages.error(request, 'You are not authorised to edit this event !')
+        return redirect('index')
+
+    session_formset = SessionFormSet(request.POST or None, instance=event)
+    session_helper = SessionFormSetHelper(event)
+
+    if session_formset.is_valid():
+        session_formset.save()
+        messages.success(request, 'Sessions updated')
+        return redirect('event_update', event_id=event.id)
+    elif session_formset.is_bound:
+        messages.error(request, 'Unable to update sessions, see below for errors!')
+
+    timezone.activate(event.get_tzinfo())
+
+    return render_to_response('event_update.html',
+                              {'event': event,
+                               'event_form': EventForm(instance=event),
+                               'session_formset': session_formset,
+                               'session_helper': session_helper},
+                              context_instance=RequestContext(request))
 
 
 @login_required

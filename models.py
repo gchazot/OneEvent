@@ -463,7 +463,7 @@ class Booking(models.Model):
     '''
     event = models.ForeignKey('Event', related_name='bookings')
     person = models.ForeignKey('auth.User', related_name='bookings')
-    session = models.ForeignKey('Session', related_name='bookings', null=True, blank=True)
+    session = models.ForeignKey('Session', related_name='bookings', null=True, blank=True, on_delete=models.SET_NULL)
 
     confirmedOn = models.DateTimeField(blank=True, null=True)
     cancelledBy = models.ForeignKey('auth.User', blank=True, null=True, related_name='cancelled_bookings')

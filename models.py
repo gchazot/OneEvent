@@ -404,6 +404,9 @@ class Session(models.Model):
             label += ' - {0}'.format(self.end.strftime(dt_format))
         label += ')'
 
+        if self.is_fully_booked():
+            label += ' - Session FULL'
+
         return label
 
     def get_active_bookings(self):
@@ -411,6 +414,13 @@ class Session(models.Model):
         Return the active bookings
         '''
         return self.event.get_active_bookings().filter(session=self)
+
+    def is_fully_booked(self):
+        '''
+        Checks if it is still possible to add a booking regarding the maximum of participants
+        '''
+        return (self.max_participant > 0 and
+                self.get_active_bookings().count() >= self.max_participant)
 
 
 class Choice(models.Model):

@@ -200,6 +200,11 @@ def _booking_update_session(request, booking, form_target_url):
         if booking.is_cancelled() and booking.event.is_fully_booked():
             messages.error(request, 'Sorry the event is fully booked already')
             return redirect('index')
+        # Check for a fully booked session
+        session = session_form.cleaned_data['session']
+        if session.is_fully_booked() and (booking.is_cancelled or booking.session.id != session.id):
+            messages.error(request, 'Sorry, session "{0}" is fully booked'.format(session.title))
+            return redirect(form_target_url, booking_id=booking.id)
 
         session_form.save()
 

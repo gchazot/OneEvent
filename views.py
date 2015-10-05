@@ -186,7 +186,7 @@ def _booking_update_finished_redirect(request, booking, updated_field):
         messages.success(request, message_text)
         return redirect('events_list_mine')
     else:
-        message_text += ' for {1}'.format(booking.person.get_full_name())
+        message_text += ' for {0}'.format(booking.person.get_full_name())
         messages.success(request, message_text)
         return redirect('event_manage', event_id=booking.event.id)
 
@@ -292,7 +292,7 @@ def booking_update(request, booking_id):
 @login_required
 def booking_session_update(request, booking_id):
     '''
-    View to change the session on a boking
+    View to change the session on a booking
     '''
     booking = get_object_or_404(Booking, id=booking_id)
 

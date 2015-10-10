@@ -47,6 +47,12 @@ INSTALLED_APPS += ('oneevent',
 )
 TEMPLATES[0]['OPTIONS']['context_processors'].append('oneevent.context_processors.customise_navbar')
 
+# Override the "error" message level to match the bootstrap "danger" class
+from django.contrib import messages
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger',
+}
+
 EOF
 
 cat << EOF >> mysite/urls.py

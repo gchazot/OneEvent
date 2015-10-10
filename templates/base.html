@@ -8,7 +8,7 @@
 
     <title>OneEvent - All your events !</title>
 
-    <link href="{% static "bootstrap/css/bootstrap.min.css" %}" rel="stylesheet" />
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="{% static "OneEvent/OneEvent.css" %}" />
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -22,7 +22,8 @@
     <!--[if lt IE 7]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
-    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation"
+        {% if navbar_color %}style="background-color:{{ navbar_color }}"{% endif %}>
         <div class="container">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle collapsed"
@@ -32,7 +33,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <span class="navbar-brand">OneEvent</span>
+                <span class="navbar-brand">{{ site_brand|default:"OneEvent" }}</span>
                 <span class="navbar-text" style="float:left">{% block navbar_header_text %}{% endblock %}</span>
             </div>
             <div class="collapse navbar-collapse" id="navbar-menu-entries">
@@ -97,6 +98,7 @@
     <div class="container">
 
         <div id="messages-row" class="row">
+            <!-- This is the template message that is cloned to create new messages from JS. -->
             <div class="alert alert-dismissible hidden" id="alert-template">
                 <button type="button" class="close" data-dismiss="alert">
                     <span aria-hidden="true">&times;</span>
@@ -133,7 +135,7 @@
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
     <!-- Include custom JS -->
     <script src="{% static 'OneEvent/OneEvent.js' %}"></script>

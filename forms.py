@@ -19,16 +19,23 @@ You should have received a copy of the GNU General Public License
 along with OneEvent.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from django.forms import Form
-from django.forms.fields import ChoiceField
+from django.forms.fields import ChoiceField, SplitDateTimeField
 from models import Event, Choice, Option, Booking, BookingOption, Message
 from django.forms.models import ModelForm, inlineformset_factory, ModelMultipleChoiceField,\
     ModelChoiceField
 from django.core.urlresolvers import reverse
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, Reset, Layout, Field, Div, HTML, Button
+from crispy_forms.layout import Submit, Reset, Layout, Field, Div, HTML
 from crispy_forms.bootstrap import TabHolder, Tab, FormActions
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User, Group
+
+
+class MySplitDateTimeField(SplitDateTimeField):
+    def __init__(self, *args, **kwargs):
+        super(MySplitDateTimeField, self).__init__(*args, **kwargs)
+        self.widget.widgets[0].input_type = 'date'
+        self.widget.widgets[1].input_type = 'time'
 
 
 class SessionChoiceField(ModelChoiceField):
@@ -120,10 +127,18 @@ class BookingChoicesForm(Form):
 
 
 class EventForm(ModelForm):
+    start = MySplitDateTimeField(required=True, help_text='Local start date and time')
+    end = MySplitDateTimeField(required=False, help_text='Local end date and time')
+    booking_close = MySplitDateTimeField(required=False,
+                                         help_text='Limit date and time for registering')
+    choices_close = MySplitDateTimeField(required=False,
+                                         help_text='Limit date and time for changing choices')
     employees_groups = ModelMultipleChoiceField(required=False,
-                                                queryset=Group.objects.all().order_by('name'))
+                                                queryset=Group.objects.all().order_by('name'),
+                                                help_text='Groups considered as Employees')
     contractors_groups = ModelMultipleChoiceField(required=False,
-                                                  queryset=Group.objects.all().order_by('name'))
+                                                  queryset=Group.objects.all().order_by('name'),
+                                                  help_text='Groups considered as Contractors')
 
     class Meta:
         model = Event
@@ -131,6 +146,7 @@ class EventForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(EventForm, self).__init__(*args, **kwargs)
+
         self.helper = FormHelper()
         self.helper.form_method = 'post'
         if self.instance.pk:

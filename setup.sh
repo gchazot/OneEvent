@@ -53,6 +53,9 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
 
+# django-crispy-forms template pack
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
+
 EOF
 
 cat << EOF >> mysite/urls.py

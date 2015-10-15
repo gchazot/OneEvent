@@ -144,7 +144,7 @@ class EventAdmin(admin.ModelAdmin):
         ('booking_close', 'choices_close'),
         ('max_participant'),
         ('price_for_employees', 'price_for_contractors', 'price_currency'),
-        ('employees_groups', 'contractors_groups'),
+        ('employees_groups', 'employees_exception_groups', 'contractors_groups'),
     )
     inlines = (SessionInline, ChoiceInline,)
     list_display = ('title', 'city', 'start_local', 'end_local')

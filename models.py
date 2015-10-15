@@ -109,6 +109,9 @@ class Event(models.Model):
     employees_groups = models.ManyToManyField('auth.Group', blank=True,
                                               related_name='employees_for_event+',
                                               verbose_name='Groups considered as Employees')
+    employees_exception_groups = models.ManyToManyField('auth.Group', blank=True,
+                                                        related_name='employees_exceptions_for_event+',
+                                                        verbose_name='Groups NOT considered as Employees (exceptions)')
     contractors_groups = models.ManyToManyField('auth.Group', blank=True,
                                                 related_name='contractors_for_event+',
                                                 verbose_name='Groups considered as Contractors')
@@ -157,8 +160,10 @@ class Event(models.Model):
             add_cache(orga.id, 'orga')
 
         employees_groups_ids = self.employees_groups.values_list('id', flat=True)
-        employees = User.objects.filter(groups__id__in=employees_groups_ids).distinct()
-        for employee in employees.values_list('id', flat=True):
+        exception_groups_ids = self.employees_exception_groups.values_list('id', flat=True)
+        employees = User.objects.filter(groups__id__in=employees_groups_ids)
+        employees = employees.exclude(groups__id__in=exception_groups_ids)
+        for employee in employees.distinct().values_list('id', flat=True):
             add_cache(employee, 'empl')
 
         contractors_groups_ids = self.contractors_groups.values_list('id', flat=True)

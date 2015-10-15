@@ -235,13 +235,13 @@ class OptionFormSet(OptionFormSetBase):
         Validate that the overall set of options is valid
         '''
         super(OptionFormSet, self).clean()
-        # If any error in underlying forms, don't bother
-        if any(self.errors):
-            return
 
         # Check that a single "Default" Option will remain and store it
         self.new_default = None
         for form in self.forms:
+            if form.errors and not form.cleaned_data['DELETE']:
+                # If any error in underlying (non deleted) forms, don't bother
+                return
             if form.instance.default and not form.cleaned_data['DELETE']:
                 if self.new_default is not None:
                     raise ValidationError("You can not have more than one Default Option.")

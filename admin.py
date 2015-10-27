@@ -20,7 +20,7 @@ along with OneEvent.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from django.contrib import admin
 from models import (Event, Session, Choice, Option,
-                    Booking, BookingOption, Message)
+                    Booking, BookingOption, Message, Category)
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.utils import timezone
@@ -134,6 +134,12 @@ class SessionInline(admin.TabularInline):
     extra = 1
 
 
+class CategoryInline(admin.TabularInline):
+    model = Category
+    fields = ('order', 'name', 'price', 'groups1', 'groups2')
+    extra = 1
+
+
 class EventAdmin(admin.ModelAdmin):
     fields = (
         ('title', 'pub_status'),
@@ -146,7 +152,7 @@ class EventAdmin(admin.ModelAdmin):
         ('price_for_employees', 'price_for_contractors', 'price_currency'),
         ('employees_groups', 'employees_exception_groups', 'contractors_groups'),
     )
-    inlines = (SessionInline, ChoiceInline,)
+    inlines = (SessionInline, CategoryInline, ChoiceInline,)
     list_display = ('title', 'city', 'start_local', 'end_local')
 
     dt_format = '%a, %d %b %Y %H:%M:%S %Z'

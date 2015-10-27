@@ -19,12 +19,12 @@ You should have received a copy of the GNU General Public License
 along with OneEvent.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from django.test import TestCase
-from models import Event, Choice, Option, Booking, BookingOption
+from models import Event, Category, Choice, Option, Booking, BookingOption
 from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 
 
 def default_user():
@@ -81,6 +81,111 @@ class EventTest(TestCase):
         user2 = User.objects.create(username='myUser2')
         Booking.objects.create(event=ev, person=user2)
         self.assertTrue(ev.is_fully_booked())
+
+
+class CategoryTest(TestCase):
+    def setUp(self):
+        self.ev = Event.objects.create(title='myEvent',
+                                       start=timezone.now(),
+                                       owner=default_user())
+        self.g1a = Group.objects.create(name="group1A")
+        self.g1b = Group.objects.create(name="group1B")
+        self.g1c = Group.objects.create(name="group1C")
+        self.g2a = Group.objects.create(name="group2A")
+        self.g2b = Group.objects.create(name="group2B")
+        self.g2c = Group.objects.create(name="group2C")
+
+    def test_match_1GroupInGroup1(self):
+        cat = Category.objects.create(event=self.ev,
+                                      order=1,
+                                      name="category1")
+        cat.groups1.add(self.g1a)
+
+        groups = Group.objects.filter(name__startswith="group1A")
+        self.assertTrue(cat.match(groups))
+
+        groups = Group.objects.filter(name__startswith="group1B")
+        self.assertFalse(cat.match(groups))
+
+        groups = Group.objects.filter(name__startswith="group1")
+        self.assertTrue(cat.match(groups))
+
+        groups = Group.objects.filter(name__startswith="group2")
+        self.assertFalse(cat.match(groups))
+
+    def test_match_2GroupsInGroup1(self):
+        cat = Category.objects.create(event=self.ev,
+                                      order=1,
+                                      name="category1")
+        cat.groups1.add(self.g1a)
+        cat.groups1.add(self.g1b)
+
+        groups = Group.objects.filter(name__startswith="group1A")
+        self.assertTrue(cat.match(groups))
+
+        groups = Group.objects.filter(name__startswith="group1B")
+        self.assertTrue(cat.match(groups))
+
+        groups = Group.objects.filter(name__startswith="group1C")
+        self.assertFalse(cat.match(groups))
+
+        groups = Group.objects.filter(name__startswith="group1")
+        self.assertTrue(cat.match(groups))
+
+        groups = Group.objects.filter(name__startswith="group2")
+        self.assertFalse(cat.match(groups))
+
+    def test_match_1GroupInGroup2(self):
+        cat = Category.objects.create(event=self.ev,
+                                      order=1,
+                                      name="category1")
+        cat.groups1.add(self.g1a)
+        cat.groups2.add(self.g2a)
+
+        groups = Group.objects.filter(name__startswith="group1A")
+        self.assertFalse(cat.match(groups))
+
+        groups = Group.objects.filter(name__startswith="group2A")
+        self.assertFalse(cat.match(groups))
+
+        groups = Group.objects.filter(name__startswith="group1")
+        self.assertFalse(cat.match(groups))
+
+        groups = Group.objects.filter(name__startswith="group")
+        self.assertTrue(cat.match(groups))
+
+        groups = Group.objects.filter(name__endswith='A')
+        self.assertTrue(cat.match(groups))
+
+    def test_match_2GroupsInGroup2(self):
+        cat = Category.objects.create(event=self.ev,
+                                      order=1,
+                                      name="category1")
+        cat.groups1.add(self.g1a)
+        cat.groups2.add(self.g2a)
+        cat.groups2.add(self.g2b)
+
+        groups = Group.objects.filter(name__startswith="group1A")
+        self.assertFalse(cat.match(groups))
+
+        groups = Group.objects.filter(name__startswith="group2A")
+        self.assertFalse(cat.match(groups))
+
+        groups = Group.objects.filter(name__startswith="group1")
+        self.assertFalse(cat.match(groups))
+
+        groups = Group.objects.filter(name__startswith="group")
+        self.assertTrue(cat.match(groups))
+
+        groups = Group.objects.filter(name__endswith='A')
+        self.assertTrue(cat.match(groups))
+
+        groups = Group.objects.filter(name__endswith='B')
+        self.assertFalse(cat.match(groups))
+
+        groups = Group.objects.filter(name__startswith='group1A')
+        groups |= Group.objects.filter(name__startswith='group2')
+        self.assertTrue(cat.match(groups))
 
 
 class ChoiceTest(TestCase):

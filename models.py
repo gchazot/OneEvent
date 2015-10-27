@@ -412,6 +412,48 @@ class Session(models.Model):
         return label
 
 
+class Category(models.Model):
+    '''
+    Entry recording one category of people invited to an event.
+    The entry allows to describe who is invited to an event through their belonging to groups.
+    It associates each booking with a category name and a price.
+    Entries are ordered: the first category that matches a participant is the one he/she
+    belongs to.
+    The rule matches if the participant belongs to any of "groups1" AND to any of "groups2".
+    '''
+    event = models.ForeignKey('Event', related_name='categories')
+    order = models.IntegerField()
+    name = models.CharField(max_length=64)
+    price = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    groups1 = models.ManyToManyField('auth.Group', blank=True, related_name='groups1_for_category+',
+                                     verbose_name='First groups matched by the rule')
+    groups2 = models.ManyToManyField('auth.Group', blank=True, related_name='groups2_for_category+',
+                                     verbose_name='Second groups matched by the rule')
+
+    class Meta:
+        unique_together = (('event', 'order'), ('event', 'name'))
+        ordering = ['order']
+
+    def __unicode__(self):
+        return u'{0}: {1}) {2}'.format(self.event.title, self.order, self.name)
+
+    def match(self, groups):
+        """
+        Check whether the given groups match this category
+        @param groups: a queryset of groups, typically a user.groups.all()
+        @returns True iff the category is matched
+        """
+        if not self.groups1.exists():
+            return True
+        if not (groups.all() & self.groups1.all()).exists():
+            return False
+        if not self.groups2.exists():
+            return True
+        if not (groups.all() & self.groups2.all()).exists():
+            return False
+        return True
+
+
 class Choice(models.Model):
     '''
     A choice that participants have to make for an event

@@ -217,16 +217,16 @@ class Event(models.Model):
             # All other statuses are invisible to anonymous
             return False
         elif self.pub_status == 'REST':
-            return (user.is_superuser
-                    or self.user_is_organiser(user)
-                    or self.user_is_employee(user)
-                    or self.user_is_contractor(user)
+            return (user.is_superuser or
+                    self.user_is_organiser(user) or
+                    self.user_is_employee(user) or
+                    self.user_is_contractor(user)
                     )
         elif self.pub_status == 'PRIV' or self.pub_status == 'UNPUB':
             user_has_booking = self.bookings.filter(person=user, cancelledBy=None).count() > 0
-            return (user.is_superuser
-                    or user_has_booking
-                    or self.user_is_organiser(user)
+            return (user.is_superuser or
+                    user_has_booking or
+                    self.user_is_organiser(user)
                     )
         elif self.pub_status == 'ARCH':
             if list_archived:
@@ -247,9 +247,9 @@ class Event(models.Model):
         if self.pub_status == 'PUB':
             return True
         elif self.pub_status == 'REST':
-            return (self.user_is_organiser(user)
-                    or self.user_is_employee(user)
-                    or self.user_is_contractor(user))
+            return (self.user_is_organiser(user) or
+                    self.user_is_employee(user) or
+                    self.user_is_contractor(user))
         elif self.pub_status == 'PRIV':
             return True
         elif self.pub_status == 'UNPUB':
@@ -284,8 +284,8 @@ class Event(models.Model):
         '''
         Check if the event is still open for bookings
         '''
-        closed = (self.booking_close is not None
-                  and timezone.now() > self.booking_close)
+        closed = (self.booking_close is not None and
+                  timezone.now() > self.booking_close)
         published = self.pub_status in ('PUB', 'REST', 'PRIV')
         return self.is_choices_open() and not self.is_ended() and not closed and published
 
@@ -293,8 +293,8 @@ class Event(models.Model):
         '''
         Check if the event is still open for choices
         '''
-        closed = (self.choices_close is not None
-                  and timezone.now() > self.choices_close)
+        closed = (self.choices_close is not None and
+                  timezone.now() > self.choices_close)
         published = self.pub_status in ('PUB', 'REST', 'PRIV')
         return not self.is_ended() and not closed and published
 
@@ -302,8 +302,8 @@ class Event(models.Model):
         '''
         Checks if it is still possible to add a booking regarding the maximum of participants
         '''
-        return (self.max_participant > 0
-                and self.get_active_bookings().count() >= self.max_participant)
+        return (self.max_participant > 0 and
+                self.get_active_bookings().count() >= self.max_participant)
 
     def get_active_bookings(self):
         '''
@@ -516,9 +516,9 @@ class Booking(models.Model):
         Validate the contents of this Model
         '''
         super(Booking, self).clean()
-        if (self.paidTo is not None
-                and self.must_pay() == 0
-                and not self.exempt_of_payment):
+        if (self.paidTo is not None and
+                self.must_pay() == 0 and
+                not self.exempt_of_payment):
             raise ValidationError("{0} does not have to pay for {1}".format(self.person,
                                                                             self.event))
         # Reset the date paid against paid To
@@ -556,8 +556,8 @@ class Booking(models.Model):
         '''
         Check that the user can cancel the booking
         '''
-        return ((self.event.is_booking_open() and user == self.person)
-                or self.event.user_is_organiser(user))
+        return ((self.event.is_booking_open() and user == self.person) or
+                self.event.user_is_organiser(user))
 
     def user_can_update_payment(self, user):
         '''
@@ -602,8 +602,8 @@ class Booking(models.Model):
                 return self.event.price_for_contractors
             else:
                 return Decimal(0)
-        elif (self.event.price_for_employees is not None
-              or self.event.price_for_contractors is not None):
+        elif (self.event.price_for_employees is not None or
+              self.event.price_for_contractors is not None):
             logging.error("User {0} is neither employee not contractor for {1}".format(self.person,
                                                                                        self.event))
             return Decimal(999999) / 100  # To make sure there is no floating point rounding

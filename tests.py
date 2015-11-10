@@ -25,6 +25,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth.models import User, Group
+from decimal import Decimal
 
 
 def default_user():
@@ -226,11 +227,29 @@ class BookingTest(TestCase):
                                        owner=default_user())
         self.user = User.objects.create(username='myUser')
 
+        self.g1a = Group.objects.create(name="group1A")
+        self.g1b = Group.objects.create(name="group1B")
+        self.g2a = Group.objects.create(name="group2A")
+        self.g2b = Group.objects.create(name="group2B")
+
+    def _add_categories(self):
+        self.cat1 = self.ev.categories.create(order=1,
+                                              name="category1",
+                                              price=33)
+        self.cat1.groups1.add(self.g1a)
+
+        self.cat2 = self.ev.categories.create(order=2,
+                                              name="category2",
+                                              price=42)
+        self.cat2.groups1.add(self.g1b)
+        self.cat2.groups2.add(self.g2b)
+
     def test_uniqueEventPerson(self):
         Booking.objects.create(event=self.ev,
                                person=self.user)
 
     def test_clean(self):
+        self._add_categories()
         reg = Booking(event=self.ev,
                       person=self.user,
                       paidTo=self.user,
@@ -248,6 +267,112 @@ class BookingTest(TestCase):
         reg.clean()
         self.assertEquals(reg.paidTo, None)
         self.assertEquals(reg.datePaid, None)
+
+    def test_get_category_with_no_category_returns_None(self):
+        reg = Booking(event=self.ev,
+                      person=self.user,
+                      paidTo=None,
+                      datePaid=None)
+        self.assertIsNone(reg.get_category())
+
+    def test_get_category_with_no_matching_category_returns_None(self):
+        self._add_categories()
+        reg = Booking(event=self.ev,
+                      person=self.user,
+                      paidTo=None,
+                      datePaid=None)
+        # User has no group
+        self.assertIsNone(reg.get_category())
+
+        # User has no matching group
+        self.user.groups.add(self.g1b)
+        self.assertIsNone(reg.get_category())
+
+    def test_get_category_with_matching_first_category_returns_first_Category(self):
+        self._add_categories()
+        reg = Booking(event=self.ev,
+                      person=self.user,
+                      paidTo=None,
+                      datePaid=None)
+        self.user.groups.add(self.g1a)
+
+        self.assertEquals(reg.get_category(), self.cat1)
+
+    def test_get_category_with_matching_second_category_returns_second_Category(self):
+        self._add_categories()
+        reg = Booking(event=self.ev,
+                      person=self.user,
+                      paidTo=None,
+                      datePaid=None)
+        self.user.groups.add(self.g1b)
+        self.user.groups.add(self.g2b)
+
+        self.assertEquals(reg.get_category(), self.cat2)
+
+    def test_get_category_with_1_matching_category_returns_first_Category(self):
+        self._add_categories()
+        reg = Booking(event=self.ev,
+                      person=self.user,
+                      paidTo=None,
+                      datePaid=None)
+        self.user.groups.add(self.g1a)
+        self.user.groups.add(self.g1b)
+        self.user.groups.add(self.g2b)
+
+        self.assertEquals(reg.get_category(), self.cat1)
+
+    def test_get_category_name_with_no_category_returns_Unknown(self):
+        reg = Booking(event=self.ev,
+                      person=self.user,
+                      paidTo=None,
+                      datePaid=None)
+        self.assertEqual(u'Unknown', reg.get_category_name())
+
+    def test_get_category_name_with_category_returns_name(self):
+        self._add_categories()
+        reg = Booking(event=self.ev,
+                      person=self.user,
+                      paidTo=None,
+                      datePaid=None)
+        self.user.groups.add(self.g1a)
+
+        self.assertEqual(u'category1', reg.get_category_name())
+
+    def test_payment_for_exempt_is_zero(self):
+        reg = Booking(event=self.ev,
+                      person=self.user,
+                      paidTo=None,
+                      datePaid=None,
+                      exempt_of_payment=True)
+
+        self.assertEqual(Decimal(0), reg.must_pay())
+
+    def test_payment_no_category_is_zero(self):
+        reg = Booking(event=self.ev,
+                      person=self.user,
+                      paidTo=None,
+                      datePaid=None)
+
+        self.assertEqual(Decimal(0), reg.must_pay())
+
+    def test_payment_no_matching_category_is_default(self):
+        self._add_categories()
+        reg = Booking(event=self.ev,
+                      person=self.user,
+                      paidTo=None,
+                      datePaid=None)
+
+        self.assertEqual(Decimal('9999.99'), reg.must_pay())
+
+    def test_payment_matching_category_is_category_price(self):
+        self._add_categories()
+        reg = Booking(event=self.ev,
+                      person=self.user,
+                      paidTo=None,
+                      datePaid=None)
+        self.user.groups.add(self.g1a)
+
+        self.assertEquals(33, reg.must_pay())
 
 
 class ParticipantChoiceTest(TestCase):

@@ -157,19 +157,12 @@ class Event(models.Model):
             self.users_values_cache[user] = user_cache
 
         for orga in self.organisers.all():
-            add_cache(orga.id, 'orga')
+            add_cache(orga.id, '__orga_group_')
 
-        employees_groups_ids = self.employees_groups.values_list('id', flat=True)
-        exception_groups_ids = self.employees_exception_groups.values_list('id', flat=True)
-        employees = User.objects.filter(groups__id__in=employees_groups_ids)
-        employees = employees.exclude(groups__id__in=exception_groups_ids)
-        for employee in employees.distinct().values_list('id', flat=True):
-            add_cache(employee, 'empl')
-
-        contractors_groups_ids = self.contractors_groups.values_list('id', flat=True)
-        contractors = User.objects.filter(groups__id__in=contractors_groups_ids).distinct()
-        for contractor in contractors.values_list('id', flat=True):
-            add_cache(contractor, 'contr')
+        users = User.objects.all().prefetch_related('groups')
+        for cat in self.categories.all():
+            for user_id in [u.id for u in users if cat.match(u.groups.all())]:
+                add_cache(user_id, cat.name)
 
     def _get_from_users_cache(self, user_id, key, default=None):
         '''
@@ -183,21 +176,19 @@ class Event(models.Model):
         '''
         Check if the given user is part of the organisers of the event
         '''
-        is_orga = self._get_from_users_cache(user.id, 'orga', False)
+        is_orga = self._get_from_users_cache(user.id, '__orga_group_', False)
         is_owner = (user == self.owner)
         return is_orga or is_owner
 
-    def user_is_employee(self, user):
+    def get_user_category(self, user):
         '''
-        Check if the user is part of the employees groups of the event
+        Finds the Event's category for the given user.
+        @returns the Category object or None if none matches
         '''
-        return self._get_from_users_cache(user.id, 'empl', False)
-
-    def user_is_contractor(self, user):
-        '''
-        Check if the user is part of the contractors groups of the event
-        '''
-        return self._get_from_users_cache(user.id, 'contr', False)
+        for category in self.categories.all():
+            if self._get_from_users_cache(user.id, category.name, False):
+                return category
+        return None
 
     def user_can_update(self, user):
         '''
@@ -219,9 +210,7 @@ class Event(models.Model):
         elif self.pub_status == 'REST':
             return (user.is_superuser or
                     self.user_is_organiser(user) or
-                    self.user_is_employee(user) or
-                    self.user_is_contractor(user)
-                    )
+                    self.get_user_category(user) is not None)
         elif self.pub_status == 'PRIV' or self.pub_status == 'UNPUB':
             user_has_booking = self.bookings.filter(person=user, cancelledBy=None).count() > 0
             return (user.is_superuser or
@@ -248,8 +237,7 @@ class Event(models.Model):
             return True
         elif self.pub_status == 'REST':
             return (self.user_is_organiser(user) or
-                    self.user_is_employee(user) or
-                    self.user_is_contractor(user))
+                    self.get_user_category(user) is not None)
         elif self.pub_status == 'PRIV':
             return True
         elif self.pub_status == 'UNPUB':
@@ -354,15 +342,8 @@ class Event(models.Model):
         ).filter(paidTo__isnull=False, exempt_of_payment=False)
 
         for booking in bookings:
-            if booking.is_employee():
-                entry_name = "Employees"
-                entry_price = self.price_for_employees
-            elif booking.is_contractor():
-                entry_name = "Contractors"
-                entry_price = self.price_for_contractors
-            else:
-                entry_name = "Other"
-                entry_price = 1
+            entry_name = booking.get_category_name()
+            entry_price = booking.must_pay()
 
             orga_entries = organisers_sums.get(booking.paidTo) or {}
             total = orga_entries.get(entry_name) or Decimal(0)
@@ -565,23 +546,27 @@ class Booking(models.Model):
         '''
         return self.event.user_is_organiser(user)
 
-    def is_employee(self):
-        '''
-        Check if the user is part of the employees groups of the event
-        '''
-        return self.event.user_is_employee(self.person)
-
-    def is_contractor(self):
-        '''
-        Check if the user is part of the contractors groups of the event
-        '''
-        return self.event.user_is_contractor(self.person)
-
     def is_cancelled(self):
         '''
         Indicate if the booking is currently cancelled
         '''
         return self.cancelledBy is not None
+
+    def get_category(self):
+        '''
+        Finds the Event's category for this booking.
+        @returns the Category object or None if none matches
+        '''
+        return self.event.get_user_category(self.person)
+
+    def get_category_name(self):
+        '''
+        @returns the name of the category or "Unknown"
+        '''
+        cat = self.get_category()
+        if cat is None:
+            return u'Unknown'
+        return cat.name
 
     def must_pay(self):
         '''
@@ -589,26 +574,17 @@ class Booking(models.Model):
         @return the amount to be paid as a Decimal value, 0 if no paiment is needed. If the
         amount can not be determined, returns 9999.99
         '''
-        if self.exempt_of_payment:
-            return Decimal(0)
+        NOTHING = Decimal(0)
+        DEFAULT = Decimal(999999) / 100  # To make sure there is no floating point rounding
 
-        if self.is_employee():
-            if self.event.price_for_employees is not None:
-                return self.event.price_for_employees
-            else:
-                return Decimal(0)
-        elif self.is_contractor():
-            if self.event.price_for_contractors is not None:
-                return self.event.price_for_contractors
-            else:
-                return Decimal(0)
-        elif (self.event.price_for_employees is not None or
-              self.event.price_for_contractors is not None):
-            logging.error("User {0} is neither employee not contractor for {1}".format(self.person,
-                                                                                       self.event))
-            return Decimal(999999) / 100  # To make sure there is no floating point rounding
-        else:
-            return Decimal(0)
+        if self.exempt_of_payment or not self.event.categories.exists():
+            return NOTHING
+
+        cat = self.get_category()
+        if cat is None:
+            return DEFAULT
+
+        return cat.price
 
     def get_payment_status_class(self):
         '''

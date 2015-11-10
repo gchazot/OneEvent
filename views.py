@@ -610,7 +610,7 @@ def event_download_participants_list(request, event_id):
 
     bookings = event.bookings.order_by('person__last_name', 'person__first_name')
 
-    writer.writerow([u'Last name', u'First name', u'email', u'Employment',
+    writer.writerow([u'Last name', u'First name', u'email', u'Category',
                      u'Cancelled', u'Cancelled By', u'Confirmed On',
                      u'Payment status', u'Paid to',
                      u'Choices'])
@@ -644,15 +644,10 @@ def event_download_participants_list(request, event_id):
         else:
             confirmed_on = 'N/A'
 
-        if booking.is_employee():
-            employment = u'Employee'
-        elif booking.is_contractor():
-            employment = u'Contractor'
-        else:
-            employment = u'Unknown'
+        category = booking.get_category_name()
 
         row = [booking.person.last_name, booking.person.first_name,
-               booking.person.email, employment,
+               booking.person.email, category,
                cancelled, cancelled_by, confirmed_on,
                payment, paid_to]
         for option in booking.options.all():

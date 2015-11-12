@@ -33,55 +33,50 @@ def default_user():
 
 
 class EventTest(TestCase):
+    def setUp(self):
+        self.ev = Event.objects.create(title='My Awesome Event',
+                                       start=timezone.now(),
+                                       owner=default_user())
+
     def test_uniqueTitle(self):
-        Event.objects.create(title='title 1',
-                             start=timezone.now(),
-                             owner=default_user())
         self.assertRaises(IntegrityError,
                           Event.objects.create,
-                          title='title 1',
+                          title='My Awesome Event',
                           start=timezone.now(),
                           owner=default_user())
 
     def test_isFullyBooked_NoMaxParticipants(self):
-        ev = Event.objects.create(title='event no max participants',
-                                  start=timezone.now(),
-                                  owner=default_user())
-        self.assertFalse(ev.is_fully_booked())
+        self.assertFalse(self.ev.is_fully_booked())
 
         user1 = User.objects.create(username='myUser')
-        Booking.objects.create(event=ev, person=user1)
-        self.assertFalse(ev.is_fully_booked())
+        Booking.objects.create(event=self.ev, person=user1)
+        self.assertFalse(self.ev.is_fully_booked())
 
     def test_isFullyBooked_Max1Participant(self):
-        ev = Event.objects.create(title='event no max participants',
-                                  start=timezone.now(),
-                                  owner=default_user(),
-                                  max_participant=1)
-        self.assertFalse(ev.is_fully_booked())
+        self.ev.max_participant = 1
+
+        self.assertFalse(self.ev.is_fully_booked())
 
         user1 = User.objects.create(username='myUser1')
-        Booking.objects.create(event=ev, person=user1)
-        self.assertTrue(ev.is_fully_booked())
+        Booking.objects.create(event=self.ev, person=user1)
+        self.assertTrue(self.ev.is_fully_booked())
 
         user2 = User.objects.create(username='myUser2')
-        Booking.objects.create(event=ev, person=user2)
-        self.assertTrue(ev.is_fully_booked())
+        Booking.objects.create(event=self.ev, person=user2)
+        self.assertTrue(self.ev.is_fully_booked())
 
     def test_isFullyBooked_Max2Participants(self):
-        ev = Event.objects.create(title='event no max participants',
-                                  start=timezone.now(),
-                                  owner=default_user(),
-                                  max_participant=2)
-        self.assertFalse(ev.is_fully_booked())
+        self.ev.max_participant = 2
+
+        self.assertFalse(self.ev.is_fully_booked())
 
         user1 = User.objects.create(username='myUser1')
-        Booking.objects.create(event=ev, person=user1)
-        self.assertFalse(ev.is_fully_booked())
+        Booking.objects.create(event=self.ev, person=user1)
+        self.assertFalse(self.ev.is_fully_booked())
 
         user2 = User.objects.create(username='myUser2')
-        Booking.objects.create(event=ev, person=user2)
-        self.assertTrue(ev.is_fully_booked())
+        Booking.objects.create(event=self.ev, person=user2)
+        self.assertTrue(self.ev.is_fully_booked())
 
 
 class CategoryTest(TestCase):

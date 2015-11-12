@@ -33,7 +33,8 @@ from datetime import timedelta
 
 
 from models import Event, Booking, Message, Choice, BookingOption
-from forms import (EventForm, ChoiceForm, OptionFormSet, OptionFormSetHelper,
+from forms import (EventForm, CategoryFormSet, CategoryFormSetHelper,
+                   ChoiceForm, OptionFormSet, OptionFormSetHelper,
                    CreateBookingOnBehalfForm, BookingChoicesForm, BookingSessionForm,
                    MessageForm, ReplyMessageForm)
 from django.contrib.auth.models import User
@@ -386,8 +387,18 @@ def _event_edit_form(request, event):
         # Not saving a form. Activate the timezone from the event
         timezone.activate(event.get_tzinfo())
 
+    # Build FormSet for Categories
+    category_formset = None
+    category_helper = None
+    if not is_new_event:
+        category_formset = CategoryFormSet(instance=event)
+        category_helper = CategoryFormSetHelper(event)
+
     return render_to_response('event_update.html',
-                              {'event': event, 'event_form': event_form},
+                              {'event': event,
+                               'event_form': event_form,
+                               'category_formset': category_formset,
+                               'category_helper': category_helper},
                               context_instance=RequestContext(request))
 
 
@@ -400,6 +411,34 @@ def event_update(request, event_id):
         return redirect('index')
 
     return _event_edit_form(request, event)
+
+
+@login_required
+def event_update_categories(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    if not event.user_can_update(request.user):
+        messages.error(request, 'You are not authorised to edit this event !')
+        return redirect('index')
+
+    category_formset = CategoryFormSet(request.POST or None, instance=event)
+    category_helper = CategoryFormSetHelper(event)
+
+    if category_formset.is_valid():
+        category_formset.save()
+        messages.success(request, 'Categories updated')
+        return redirect('event_update', event_id=event.id)
+    elif category_formset.is_bound:
+        messages.error(request, 'Unable to update categories, see below for errors!')
+
+    timezone.activate(event.get_tzinfo())
+
+    return render_to_response('event_update.html',
+                              {'event': event,
+                               'event_form': EventForm(instance=event),
+                               'category_formset': category_formset,
+                               'category_helper': category_helper},
+                              context_instance=RequestContext(request))
 
 
 @login_required

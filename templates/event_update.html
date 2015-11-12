@@ -42,6 +42,18 @@
 
 {% if event.pk %}
 <div class="panel panel-info collapsible-caret">
+    <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseCategories">
+        <strong>Categories</strong>
+    </div>
+
+    <div id="collapseCategories" class="panel-collapse collapse">
+    <div class="panel-body">
+        {% crispy category_formset category_helper %}
+    </div>
+    </div>
+</div>
+
+<div class="panel panel-info collapsible-caret">
     <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseTwo">
         <strong>Choices</strong>
     </div>

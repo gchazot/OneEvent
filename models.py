@@ -335,30 +335,81 @@ class Event(models.Model):
         includes a special participant class "Total" and a special organiser "Total" for the
         sums of values per organiser and per participant class
         '''
-        organisers_sums = {}
+        class Collected_sums(dict):
+            '''
+            Class to present the results of the calculation in a form easily usable in a template
+            '''
+            def __init__(self, categories, organisers):
+                self.categories = categories
+                self.organisers = organisers
+                self._organiser_totals = {}
+                self._overall_totals = {}
+
+            def add_payment(self, organiser, category, value):
+                '''
+                Add a collected amount to the results
+                @param organiser: the organiser who collected the money
+                @param categoty: the category of the booking for which money was collected
+                @param value: the amount of money collected
+                '''
+                def add_decimal_in_dict(dic, key, val):
+                    '''Helper to do a decimal addition to a member of a dict'''
+                    new_value = dic.get(key, Decimal(0))
+                    new_value += val
+                    dic[key] = new_value
+                # Add the amount to the oraganiser's values
+                org_totals = self._organiser_totals.get(organiser, {})
+                add_decimal_in_dict(org_totals, category, value)
+                self._organiser_totals[organiser] = org_totals
+
+                add_decimal_in_dict(self._overall_totals, category, value)
+
+            def _make_row(self, organiser_totals):
+                '''
+                Construct the row of sums for a given organiser
+                '''
+                table_row = []
+                total_orga = Decimal(0)
+                for cat in self.categories:
+                    value = organiser_totals.get(cat, Decimal(0))
+                    table_row.append(value)
+                    total_orga += value
+                table_row.append(total_orga)
+                return table_row
+
+            def table_rows(self):
+                '''
+                Yields rows with the contents of a table with collected sums
+                Each returned row corresponds to an organiser, plus a row for total sums
+                Columns of the rows are, in order:
+                * the full name of the organiser ("Total" for the last row)
+                * sum per category for the organiser, in the same order as self.categories
+                * total sum for the organiser
+                '''
+                for orga in self.organisers:
+                    table_row = [orga.get_full_name()]
+                    table_row += self._make_row(self._organiser_totals.get(orga, {}))
+                    yield table_row
+
+                total_row = ['Total']
+                total_row += self._make_row(self._overall_totals)
+                yield total_row
+
         bookings = self.bookings.select_related(
             'person',
             'paidTo'
         ).filter(paidTo__isnull=False, exempt_of_payment=False)
 
+        result = Collected_sums(self.categories.values_list('name', flat=True),
+                                self.organisers.all())
+
         for booking in bookings:
-            entry_name = booking.get_category_name()
-            entry_price = booking.must_pay()
+            organiser = booking.paidTo
+            category = booking.get_category_name()
+            price = booking.must_pay()
+            result.add_payment(organiser, category, price)
 
-            orga_entries = organisers_sums.get(booking.paidTo) or {}
-            total = orga_entries.get(entry_name) or Decimal(0)
-            orga_entries[entry_name] = total + entry_price
-            organisers_sums[booking.paidTo] = orga_entries
-
-        overall_totals = {}
-        for orga, orga_entries in organisers_sums.iteritems():
-            orga_entries["Total"] = sum(organisers_sums[orga].values())
-            yield (orga, orga_entries,)
-
-            for entry_name, entry_value in orga_entries.iteritems():
-                entry_total = overall_totals.get(entry_name) or Decimal(0)
-                overall_totals[entry_name] = entry_total + entry_value
-        yield ("Total", overall_totals,)
+        return result
 
 
 class Session(models.Model):

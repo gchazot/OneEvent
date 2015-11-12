@@ -78,6 +78,48 @@ class EventTest(TestCase):
         Booking.objects.create(event=self.ev, person=user2)
         self.assertTrue(self.ev.is_fully_booked())
 
+    def test_collected_money_sums_no_data_returns_empty(self):
+        sums = self.ev.get_collected_money_sums()
+
+        self.assertItemsEqual(sums.categories, [])
+        self.assertItemsEqual(sums.organisers, [])
+
+    def test_collected_money_sums_returns_1_category(self):
+        self.ev.categories.create(order=1, name='category1')
+
+        sums = self.ev.get_collected_money_sums()
+
+        self.assertItemsEqual(sums.categories, ['category1'])
+
+    def test_collected_money_sums_returns_2_categories(self):
+        self.ev.categories.create(order=1, name='category1')
+        self.ev.categories.create(order=2, name='category2')
+
+        sums = self.ev.get_collected_money_sums()
+
+        self.assertItemsEqual(sums.categories, ['category1', 'category2'])
+
+    def test_collected_money_sums_1_booking_1_category_returns_value(self):
+        price = Decimal('42.33')
+
+        user = default_user()
+        g1 = Group.objects.create(name='group1')
+        user.groups.add(g1)
+
+        self.ev.organisers.add(user)
+        cat1 = self.ev.categories.create(order=1, name='category1', price=price)
+        cat1.groups1.add(g1)
+
+        self.ev.bookings.create(person=user, paidTo=user, datePaid=timezone.now())
+
+        sums = self.ev.get_collected_money_sums()
+
+        self.assertItemsEqual(sums.categories, ['category1'])
+        self.assertItemsEqual(sums.organisers, [user])
+        result_table = list(sums.table_rows())
+        self.assertEqual(result_table[0], [user.get_full_name(), price, price])
+        self.assertEqual(result_table[1], ['Total', price, price])
+
 
 class CategoryTest(TestCase):
     def setUp(self):

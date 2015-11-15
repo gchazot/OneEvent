@@ -95,7 +95,7 @@
             <thead>
                 <tr>
                     <th rowspan=2>Name</th>
-                    <th rowspan=2>Employment</th>
+                    <th rowspan=2>Category</th>
                     <th rowspan=2>Actions</th>
                     <th rowspan=2>Booking Status</th>
                     {% if event.choices.count > 0 %}
@@ -128,9 +128,8 @@
                          {% endif %}
                     </td>
 
-                    <td><!-- Employment -->
-                        {% if booking.is_employee %}<p>Employee</p>{% endif %}
-                        {% if booking.is_contractor %}<p>Contractor</p>{% endif %}
+                    <td><!-- Category -->
+                        {{ booking.get_category_name }}
                     </td>
 
                     <td><!--  Actions -->
@@ -231,49 +230,44 @@
     </div>
 </div>
 
-{% if event.price_for_employees > 0 or event.price_for_contractors > 0 %}
+{% if event.categories.exists %}
 <div class="panel panel-info collapsible-caret">
     <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseFour">
         <strong>Collected money</strong>
     </div>
     <div id="collapseFour" class="panel-collapse collapse in table-responsive">
         <table class="panel-body table table-striped table-hover">
+        {% with collected_sums=event.get_collected_money_sums %}
             <thead>
                 <tr>
                     <th>Organiser</th>
-                    <th>Employees</th>
-                    <th>Contractors</th>
-                    <th>Other (debug)</th>
+                    {% for category in collected_sums.categories %}
+                    <th>{{ category }}</th>
+                    {% endfor %}
                     <th>Total</th>
                 </tr>
             </thead>
             <tbody>
-                {% for organiser, totals in event.get_collected_money_sums %}
-                {% if organiser == 'Total' %}
+            {% for row in collected_sums.table_rows %}
+                {% if forloop.last %}
                 <tr class="info">
-                    <th>Total</th>
                 {% else %}
                 <tr>
-                    <th>{{ organiser.get_full_name }}</th>
                 {% endif %}
+                {% for cell in row %}
+                    {% if forloop.first %}
+                    <th>{{ cell }}</th>
+                    {% else %}
                     <td>
-                        {{ totals.Employees|default:0 }}
+                        {{ cell|default_if_none:-1|floatformat:2 }}
                         {% if event.price_currency %}({{event.price_currency}}){% endif %}
                     </td>
-                    <td>
-                        {{ totals.Contractors|default:0 }}
-                        {% if event.price_currency %}({{event.price_currency}}){% endif %}
-                    </td>
-                    <td>
-                        {{ totals.Other|default:0 }}
-                        {% if event.price_currency %}({{event.price_currency}}){% endif %}
-                    </td>
-                    <td>
-                        {{ totals.Total|default:0 }}
-                    </td>
-                </tr>
+                    {% endif %}
                 {% endfor %}
+                </tr>
+            {% endfor %}
             </tbody>
+        {% endwith %}
         </table>
     </div>
 </div>

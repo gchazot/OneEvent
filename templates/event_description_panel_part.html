@@ -30,15 +30,21 @@
                 {{ event.choices_close|date:"D, d N Y H:i" }}</p>
             {% endif %}
 
-            <p><label>Price for Employees: </label>
-                {{ event.price_for_employees }}
-                {% if event.price_currency %}({{event.price_currency}}){% endif %}
-            </p>
+            <p><label>Price categories</label>
+            <ul>
+            {% for category in event.categories.all %}
+                <li>{{ category.name }} : {{ category.price|default:"Free" }}
+                {% if category.price and event.price_currency %}({{event.price_currency}}){% endif %}
+                </li>
+            {% endfor %}
+            </ul>
 
-            <p><label>Price for Contractors: </label>
-                {{ event.price_for_contractors }}
-                {% if event.price_currency %}({{event.price_currency}}){% endif %}
+            {% if price != None %}
+            <p><label>Price for you: </label>
+                {{ price|default:"Free" }}
+                {% if event.price_currency and price %}({{event.price_currency}}){% endif %}
             </p>
+            {% endif %}
         </div>
         <hr class="hidden-md hidden-lg"/>
         <div class="col-md-4">

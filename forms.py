@@ -20,7 +20,7 @@ along with OneEvent.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from django.forms import Form
 from django.forms.fields import ChoiceField, SplitDateTimeField
-from models import Event, Choice, Option, Booking, BookingOption, Message
+from models import Event, Choice, Option, Booking, BookingOption, Message, Category
 from django.forms.models import ModelForm, inlineformset_factory, ModelMultipleChoiceField,\
     ModelChoiceField
 from django.core.urlresolvers import reverse
@@ -32,6 +32,7 @@ from django.contrib.auth.models import User, Group
 
 
 class MySplitDateTimeField(SplitDateTimeField):
+    '''A field with separate date and time elements and using HTML5 input types'''
     def __init__(self, *args, **kwargs):
         super(MySplitDateTimeField, self).__init__(*args, **kwargs)
         self.widget.widgets[0].input_type = 'date'
@@ -133,15 +134,6 @@ class EventForm(ModelForm):
                                          help_text='Limit date and time for registering')
     choices_close = MySplitDateTimeField(required=False,
                                          help_text='Limit date and time for changing choices')
-    employees_groups = ModelMultipleChoiceField(required=False,
-                                                queryset=Group.objects.all().order_by('name'),
-                                                help_text='Groups considered as Employees')
-    employees_exception_groups = ModelMultipleChoiceField(required=False,
-                                                          queryset=Group.objects.all().order_by('name'),
-                                                          help_text='Groups NOT considered as Employees')
-    contractors_groups = ModelMultipleChoiceField(required=False,
-                                                  queryset=Group.objects.all().order_by('name'),
-                                                  help_text='Groups considered as Contractors')
 
     class Meta:
         model = Event
@@ -167,36 +159,51 @@ class EventForm(ModelForm):
             Tab('Venue', 'location_name', 'location_address'),
             Tab('Organisers', 'owner', 'organisers'),
             Tab('Booking limits', 'max_participant', 'booking_close', 'choices_close'),
-            Tab('Prices', 'price_for_employees', 'price_for_contractors', 'price_currency'),
-            Tab('Employee/Contractor Groups', 'employees_groups', 'employees_exception_groups',
-                'contractors_groups')
+            Tab('Settings', 'price_currency'),
         )
         self.helper.add_input(Submit('submit', 'Save'))
         self.helper.add_input(Reset('reset', 'Reset'))
 
+
+CategoryFormSetBase = inlineformset_factory(Event, Category,
+                                            extra=2, can_delete=True,
+                                            fields=['order', 'name', 'price', 'groups1', 'groups2'])
+
+
+class CategoryFormSet(CategoryFormSetBase):
     def clean(self):
-        price_for_employees = self.cleaned_data.get('price_for_employees')
-        price_for_contractors = self.cleaned_data.get('price_for_contractors')
-        employees_groups = self.cleaned_data.get('employees_groups')
-        employees_exception_groups = self.cleaned_data.get('employees_exception_groups')
-        contractors_groups = self.cleaned_data.get('contractors_groups')
+        super(CategoryFormSet, self).clean()
 
-        if ((price_for_employees and price_for_employees > 0) or
-                (price_for_contractors and price_for_contractors > 0)):
-            if len(employees_groups) == 0:
-                raise ValidationError({'employees_groups': "At least one Employees group is needed when there is a price"})
-            if len(contractors_groups) == 0:
-                raise ValidationError({'contractors_groups': "At least one Contractors group is needed when there is a price"})
+        if self.total_error_count() > 0:
+            # don't bother checking if there are errors in underlying forms
+            return
 
-        for group in employees_groups:
-            if group in contractors_groups:
-                raise ValidationError("Group '%(name)s' can not be both employees and contractors",
-                                      params={'name': group.name})
+        # Validate that there is no duplicated order
+        found_orders = set()
+        duplicated_orders = set()
+        for form in self.forms:
+            if not form.cleaned_data or form.cleaned_data['DELETE']:
+                # Ignore deleted and empty forms
+                continue
 
-        if len(employees_exception_groups) > 0:
-            for excpt_group in employees_exception_groups:
-                if excpt_group not in contractors_groups:
-                    raise ValidationError({'employees_exception_groups': "All employees exceptions groups must be contractors groups"})
+            new_order = form.cleaned_data['order']
+            if new_order in found_orders:
+                duplicated_orders.add(new_order)
+            else:
+                found_orders.add(new_order)
+        if len(duplicated_orders) > 0:
+            text = "Duplicated order(s) found: " + ", ".join(map(str, duplicated_orders))
+            raise ValidationError(text)
+
+
+class CategoryFormSetHelper(FormHelper):
+    def __init__(self, event, *args, **kwargs):
+        super(CategoryFormSetHelper, self).__init__(*args, **kwargs)
+        self.form_action = reverse('event_update_categories',
+                                   kwargs={'event_id': event.id})
+        self.template = 'bootstrap/table_inline_formset.html'
+        self.add_input(Submit('submit', 'Save'))
+        self.add_input(Reset('reset', 'Reset'))
 
 
 class ChoiceForm(ModelForm):

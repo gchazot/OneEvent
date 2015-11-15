@@ -18,7 +18,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with OneEvent.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import logging
 from decimal import Decimal
 
 from django.db import models
@@ -101,20 +100,8 @@ class Event(models.Model):
         default=0,
         help_text='Maximum number of participants to this event (0 = no limit)')
 
-    price_for_employees = models.DecimalField(max_digits=6, decimal_places=2, default=0)
-    price_for_contractors = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     price_currency = models.CharField(max_length=3, null=True, blank=True,
                                       verbose_name='Currency for prices')
-
-    employees_groups = models.ManyToManyField('auth.Group', blank=True,
-                                              related_name='employees_for_event+',
-                                              verbose_name='Groups considered as Employees')
-    employees_exception_groups = models.ManyToManyField('auth.Group', blank=True,
-                                                        related_name='employees_exceptions_for_event+',
-                                                        verbose_name='Groups NOT considered as Employees (exceptions)')
-    contractors_groups = models.ManyToManyField('auth.Group', blank=True,
-                                                related_name='contractors_for_event+',
-                                                verbose_name='Groups considered as Contractors')
 
     def __unicode__(self):
         result = u'{0} - {1:%x %H:%M}'.format(self.title, self.start)
@@ -157,19 +144,12 @@ class Event(models.Model):
             self.users_values_cache[user] = user_cache
 
         for orga in self.organisers.all():
-            add_cache(orga.id, 'orga')
+            add_cache(orga.id, '__orga_group_')
 
-        employees_groups_ids = self.employees_groups.values_list('id', flat=True)
-        exception_groups_ids = self.employees_exception_groups.values_list('id', flat=True)
-        employees = User.objects.filter(groups__id__in=employees_groups_ids)
-        employees = employees.exclude(groups__id__in=exception_groups_ids)
-        for employee in employees.distinct().values_list('id', flat=True):
-            add_cache(employee, 'empl')
-
-        contractors_groups_ids = self.contractors_groups.values_list('id', flat=True)
-        contractors = User.objects.filter(groups__id__in=contractors_groups_ids).distinct()
-        for contractor in contractors.values_list('id', flat=True):
-            add_cache(contractor, 'contr')
+        users = User.objects.all().prefetch_related('groups')
+        for cat in self.categories.all():
+            for user_id in [u.id for u in users if cat.match(u.groups.all())]:
+                add_cache(user_id, cat.name)
 
     def _get_from_users_cache(self, user_id, key, default=None):
         '''
@@ -183,21 +163,29 @@ class Event(models.Model):
         '''
         Check if the given user is part of the organisers of the event
         '''
-        is_orga = self._get_from_users_cache(user.id, 'orga', False)
+        is_orga = self._get_from_users_cache(user.id, '__orga_group_', False)
         is_owner = (user == self.owner)
         return is_orga or is_owner
 
-    def user_is_employee(self, user):
+    def get_user_category(self, user):
         '''
-        Check if the user is part of the employees groups of the event
+        Finds the Event's category for the given user.
+        @returns the Category object or None if none matches
         '''
-        return self._get_from_users_cache(user.id, 'empl', False)
+        for category in self.categories.all():
+            if self._get_from_users_cache(user.id, category.name, False):
+                return category
+        return None
 
-    def user_is_contractor(self, user):
+    def user_price(self, user):
         '''
-        Check if the user is part of the contractors groups of the event
+        Gets the price for a given user based on his category
         '''
-        return self._get_from_users_cache(user.id, 'contr', False)
+        cat = self.get_user_category(user)
+        if cat is not None:
+            return cat.price
+        else:
+            return None
 
     def user_can_update(self, user):
         '''
@@ -217,16 +205,14 @@ class Event(models.Model):
             # All other statuses are invisible to anonymous
             return False
         elif self.pub_status == 'REST':
-            return (user.is_superuser
-                    or self.user_is_organiser(user)
-                    or self.user_is_employee(user)
-                    or self.user_is_contractor(user)
-                    )
+            return (user.is_superuser or
+                    self.user_is_organiser(user) or
+                    self.get_user_category(user) is not None)
         elif self.pub_status == 'PRIV' or self.pub_status == 'UNPUB':
             user_has_booking = self.bookings.filter(person=user, cancelledBy=None).count() > 0
-            return (user.is_superuser
-                    or user_has_booking
-                    or self.user_is_organiser(user)
+            return (user.is_superuser or
+                    user_has_booking or
+                    self.user_is_organiser(user)
                     )
         elif self.pub_status == 'ARCH':
             if list_archived:
@@ -247,9 +233,8 @@ class Event(models.Model):
         if self.pub_status == 'PUB':
             return True
         elif self.pub_status == 'REST':
-            return (self.user_is_organiser(user)
-                    or self.user_is_employee(user)
-                    or self.user_is_contractor(user))
+            return (self.user_is_organiser(user) or
+                    self.get_user_category(user) is not None)
         elif self.pub_status == 'PRIV':
             return True
         elif self.pub_status == 'UNPUB':
@@ -284,8 +269,8 @@ class Event(models.Model):
         '''
         Check if the event is still open for bookings
         '''
-        closed = (self.booking_close is not None
-                  and timezone.now() > self.booking_close)
+        closed = (self.booking_close is not None and
+                  timezone.now() > self.booking_close)
         published = self.pub_status in ('PUB', 'REST', 'PRIV')
         return self.is_choices_open() and not self.is_ended() and not closed and published
 
@@ -293,8 +278,8 @@ class Event(models.Model):
         '''
         Check if the event is still open for choices
         '''
-        closed = (self.choices_close is not None
-                  and timezone.now() > self.choices_close)
+        closed = (self.choices_close is not None and
+                  timezone.now() > self.choices_close)
         published = self.pub_status in ('PUB', 'REST', 'PRIV')
         return not self.is_ended() and not closed and published
 
@@ -302,8 +287,8 @@ class Event(models.Model):
         '''
         Checks if it is still possible to add a booking regarding the maximum of participants
         '''
-        return (self.max_participant > 0
-                and self.get_active_bookings().count() >= self.max_participant)
+        return (self.max_participant > 0 and
+                self.get_active_bookings().count() >= self.max_participant)
 
     def get_active_bookings(self):
         '''
@@ -347,37 +332,81 @@ class Event(models.Model):
         includes a special participant class "Total" and a special organiser "Total" for the
         sums of values per organiser and per participant class
         '''
-        organisers_sums = {}
+        class Collected_sums(dict):
+            '''
+            Class to present the results of the calculation in a form easily usable in a template
+            '''
+            def __init__(self, categories, organisers):
+                self.categories = categories
+                self.organisers = organisers
+                self._organiser_totals = {}
+                self._overall_totals = {}
+
+            def add_payment(self, organiser, category, value):
+                '''
+                Add a collected amount to the results
+                @param organiser: the organiser who collected the money
+                @param categoty: the category of the booking for which money was collected
+                @param value: the amount of money collected
+                '''
+                def add_decimal_in_dict(dic, key, val):
+                    '''Helper to do a decimal addition to a member of a dict'''
+                    new_value = dic.get(key, Decimal(0))
+                    new_value += val
+                    dic[key] = new_value
+                # Add the amount to the oraganiser's values
+                org_totals = self._organiser_totals.get(organiser, {})
+                add_decimal_in_dict(org_totals, category, value)
+                self._organiser_totals[organiser] = org_totals
+
+                add_decimal_in_dict(self._overall_totals, category, value)
+
+            def _make_row(self, organiser_totals):
+                '''
+                Construct the row of sums for a given organiser
+                '''
+                table_row = []
+                total_orga = Decimal(0)
+                for cat in self.categories:
+                    value = organiser_totals.get(cat, Decimal(0))
+                    table_row.append(value)
+                    total_orga += value
+                table_row.append(total_orga)
+                return table_row
+
+            def table_rows(self):
+                '''
+                Yields rows with the contents of a table with collected sums
+                Each returned row corresponds to an organiser, plus a row for total sums
+                Columns of the rows are, in order:
+                * the full name of the organiser ("Total" for the last row)
+                * sum per category for the organiser, in the same order as self.categories
+                * total sum for the organiser
+                '''
+                for orga in self.organisers:
+                    table_row = [orga.get_full_name()]
+                    table_row += self._make_row(self._organiser_totals.get(orga, {}))
+                    yield table_row
+
+                total_row = ['Total']
+                total_row += self._make_row(self._overall_totals)
+                yield total_row
+
         bookings = self.bookings.select_related(
             'person',
             'paidTo'
         ).filter(paidTo__isnull=False, exempt_of_payment=False)
 
+        result = Collected_sums(self.categories.values_list('name', flat=True),
+                                self.organisers.all())
+
         for booking in bookings:
-            if booking.is_employee():
-                entry_name = "Employees"
-                entry_price = self.price_for_employees
-            elif booking.is_contractor():
-                entry_name = "Contractors"
-                entry_price = self.price_for_contractors
-            else:
-                entry_name = "Other"
-                entry_price = 1
+            organiser = booking.paidTo
+            category = booking.get_category_name()
+            price = booking.must_pay()
+            result.add_payment(organiser, category, price)
 
-            orga_entries = organisers_sums.get(booking.paidTo) or {}
-            total = orga_entries.get(entry_name) or Decimal(0)
-            orga_entries[entry_name] = total + entry_price
-            organisers_sums[booking.paidTo] = orga_entries
-
-        overall_totals = {}
-        for orga, orga_entries in organisers_sums.iteritems():
-            orga_entries["Total"] = sum(organisers_sums[orga].values())
-            yield (orga, orga_entries,)
-
-            for entry_name, entry_value in orga_entries.iteritems():
-                entry_total = overall_totals.get(entry_name) or Decimal(0)
-                overall_totals[entry_name] = entry_total + entry_value
-        yield ("Total", overall_totals,)
+        return result
 
 
 class Session(models.Model):
@@ -410,6 +439,48 @@ class Session(models.Model):
         label += ')'
 
         return label
+
+
+class Category(models.Model):
+    '''
+    Entry recording one category of people invited to an event.
+    The entry allows to describe who is invited to an event through their belonging to groups.
+    It associates each booking with a category name and a price.
+    Entries are ordered: the first category that matches a participant is the one he/she
+    belongs to.
+    The rule matches if the participant belongs to any of "groups1" AND to any of "groups2".
+    '''
+    event = models.ForeignKey('Event', related_name='categories')
+    order = models.IntegerField()
+    name = models.CharField(max_length=64)
+    price = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    groups1 = models.ManyToManyField('auth.Group', blank=True, related_name='groups1_for_category+',
+                                     verbose_name='First groups matched by the rule')
+    groups2 = models.ManyToManyField('auth.Group', blank=True, related_name='groups2_for_category+',
+                                     verbose_name='Second groups matched by the rule')
+
+    class Meta:
+        unique_together = (('event', 'name'),)
+        ordering = ['order']
+
+    def __unicode__(self):
+        return u'{0}: {1}) {2}'.format(self.event.title, self.order, self.name)
+
+    def match(self, groups):
+        """
+        Check whether the given groups match this category
+        @param groups: a queryset of groups, typically a user.groups.all()
+        @returns True iff the category is matched
+        """
+        if not self.groups1.exists():
+            return True
+        if not (groups.all() & self.groups1.all()).exists():
+            return False
+        if not self.groups2.exists():
+            return True
+        if not (groups.all() & self.groups2.all()).exists():
+            return False
+        return True
 
 
 class Choice(models.Model):
@@ -474,9 +545,9 @@ class Booking(models.Model):
         Validate the contents of this Model
         '''
         super(Booking, self).clean()
-        if (self.paidTo is not None
-                and self.must_pay() == 0
-                and not self.exempt_of_payment):
+        if (self.paidTo is not None and
+                self.must_pay() == 0 and
+                not self.exempt_of_payment):
             raise ValidationError("{0} does not have to pay for {1}".format(self.person,
                                                                             self.event))
         # Reset the date paid against paid To
@@ -514,8 +585,8 @@ class Booking(models.Model):
         '''
         Check that the user can cancel the booking
         '''
-        return ((self.event.is_booking_open() and user == self.person)
-                or self.event.user_is_organiser(user))
+        return ((self.event.is_booking_open() and user == self.person) or
+                self.event.user_is_organiser(user))
 
     def user_can_update_payment(self, user):
         '''
@@ -523,23 +594,27 @@ class Booking(models.Model):
         '''
         return self.event.user_is_organiser(user)
 
-    def is_employee(self):
-        '''
-        Check if the user is part of the employees groups of the event
-        '''
-        return self.event.user_is_employee(self.person)
-
-    def is_contractor(self):
-        '''
-        Check if the user is part of the contractors groups of the event
-        '''
-        return self.event.user_is_contractor(self.person)
-
     def is_cancelled(self):
         '''
         Indicate if the booking is currently cancelled
         '''
         return self.cancelledBy is not None
+
+    def get_category(self):
+        '''
+        Finds the Event's category for this booking.
+        @returns the Category object or None if none matches
+        '''
+        return self.event.get_user_category(self.person)
+
+    def get_category_name(self):
+        '''
+        @returns the name of the category or "Unknown"
+        '''
+        cat = self.get_category()
+        if cat is None:
+            return u'Unknown'
+        return cat.name
 
     def must_pay(self):
         '''
@@ -547,26 +622,16 @@ class Booking(models.Model):
         @return the amount to be paid as a Decimal value, 0 if no paiment is needed. If the
         amount can not be determined, returns 9999.99
         '''
-        if self.exempt_of_payment:
-            return Decimal(0)
+        NOTHING = Decimal(0)
+        DEFAULT = Decimal(999999) / 100  # To make sure there is no floating point rounding
 
-        if self.is_employee():
-            if self.event.price_for_employees is not None:
-                return self.event.price_for_employees
-            else:
-                return Decimal(0)
-        elif self.is_contractor():
-            if self.event.price_for_contractors is not None:
-                return self.event.price_for_contractors
-            else:
-                return Decimal(0)
-        elif (self.event.price_for_employees is not None
-              or self.event.price_for_contractors is not None):
-            logging.error("User {0} is neither employee not contractor for {1}".format(self.person,
-                                                                                       self.event))
-            return Decimal(999999) / 100  # To make sure there is no floating point rounding
-        else:
-            return Decimal(0)
+        if self.exempt_of_payment or not self.event.categories.exists():
+            return NOTHING
+
+        price = self.event.user_price(self.person)
+        if price is None:
+            return DEFAULT
+        return price
 
     def get_payment_status_class(self):
         '''

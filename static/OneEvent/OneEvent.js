@@ -26,3 +26,8 @@ send_invite = function(url, username){
             add_message('danger', 'Failed sending invite to ' + username)
        });
 };
+
+//Thanks to http://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
+copyToClipboard = function(text) {
+    window.prompt("Copy to clipboard: Ctrl+C, Enter", text);
+}

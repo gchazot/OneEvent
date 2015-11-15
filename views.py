@@ -37,6 +37,7 @@ from forms import (EventForm, ChoiceForm, OptionFormSet, OptionFormSetHelper,
                    CreateBookingOnBehalfForm, BookingChoicesForm, BookingSessionForm,
                    MessageForm, ReplyMessageForm)
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 
 
 # A default datetime format (too lazy to use the one in settings)
@@ -345,11 +346,14 @@ def event_manage(request, event_id):
         messages.error(request, 'You are not authorised to manage this event !')
         return redirect('index')
 
+    registration_url_rel = reverse(booking_create, kwargs={'event_id': event_id})
+    registration_url_abs = request.build_absolute_uri(registration_url_rel)
+
     # Activate the timezone from the event
     timezone.activate(event.get_tzinfo())
 
     return render_to_response('event_manage.html',
-                              {'event': event},
+                              {'event': event, 'registration_url': registration_url_abs},
                               context_instance=RequestContext(request))
 
 

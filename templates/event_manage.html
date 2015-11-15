@@ -9,17 +9,23 @@
 
 {% block content %}
 
-<div class="row">
-<div class='col-sm-3'>
+<div class="row form-inline">
+<div class='col-sm-4'>
     <a href="{% url 'event_update' event_id=event.id %}"
        class="btn btn-warning">Edit the event</a>
 </div>
-<div class='col-sm-9l'>
-    <h4 class="text-right">
-        <a href="{% url 'booking_create' event_id=event.id %}">
-            <span class="glyphicon glyphicon-share"></span>
-            URL to register to this event (right-click -> Copy link address)</a>
-    </h4>
+<div class='col-sm-8 pull-right' align="right">
+    <div class="form-group">
+        <label for="regristrationAddress">URL to register to this event:</label>
+        <div class="input-group">
+            <input type="text" class="form-control" id="regristrationAddress" size="40"
+                   value="{{ registration_url }}"></input>
+            <div class="input-group-addon" onClick="copyToClipboard(document.getElementById('regristrationAddress').value)">
+                <span class="glyphicon glyphicon-copy" aria-hidden="true"></span>
+            </div>
+        </div>
+    </div>
+
 </div>
 </div>
 

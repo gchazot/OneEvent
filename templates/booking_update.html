@@ -24,10 +24,11 @@
     {% include "event_description_panel_part.html" with event=booking.event only %}
 
     <div class="panel panel-{{booking.get_payment_status_class|default:'info'}} collapsible-caret">
-        <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseTwo">
+        <div class="panel-heading collapsible-toggle" data-toggle="collapse"
+             data-target="#collapseRegistration">
             <strong>Registration status</strong>
         </div>
-        <div id="collapseTwo" class="panel-collapse collapse in" >
+        <div id="collapseRegistration" class="panel-collapse collapse in" >
         <div class="panel-body">
             <p><label>Registration:</label>
             {% if booking.is_cancelled %}
@@ -67,14 +68,15 @@
         </div>
     </div>
     <div class="panel panel-info collapsible-caret">
-        <div class="panel-heading collapsible-toggle" data-toggle="collapse"data-target="#collapseThree">
+        <div class="panel-heading collapsible-toggle" data-toggle="collapse"
+             data-target="#collapseChoices">
             {% if booking.event.choices.count > 0 %}
             <strong>Your choices</strong>
             {% else %}
             <strong>Update registration</strong>
             {% endif %}
         </div>
-        <div id="collapseThree" class="panel-collapse collapse in">
+        <div id="collapseChoices" class="panel-collapse collapse in">
             <div class="panel-body">
                 {% crispy choices_form %}
             </div>

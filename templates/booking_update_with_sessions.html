@@ -24,10 +24,11 @@
     {% include "event_description_panel_part.html" with event=booking.event only %}
 
     <div class="panel panel-{{booking.get_payment_status_class|default:'info'}} collapsible-caret">
-        <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseTwo">
+        <div class="panel-heading collapsible-toggle" data-toggle="collapse"
+             data-target="#collapseRegistration">
             <strong>Registration</strong>
         </div>
-        <div id="collapseTwo" class="panel-collapse collapse in" >
+        <div id="collapseRegistration" class="panel-collapse collapse in" >
         <div class="panel-body">
         {% if session_form %}
             <div class="col-md-6">
@@ -89,10 +90,11 @@
 
     {% if choices_form %}
     <div class="panel panel-info collapsible-caret">
-        <div class="panel-heading collapsible-toggle" data-toggle="collapse"data-target="#collapseThree">
+        <div class="panel-heading collapsible-toggle" data-toggle="collapse"
+             data-target="#collapseChoices">
             <strong>Your choices</strong>
         </div>
-        <div id="collapseThree" class="panel-collapse collapse in">
+        <div id="collapseChoices" class="panel-collapse collapse in">
             <div class="panel-body">
                 {% crispy choices_form %}
             </div>

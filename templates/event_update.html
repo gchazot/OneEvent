@@ -48,6 +48,13 @@
 
     <div id="collapseCategories" class="panel-collapse collapse">
     <div class="panel-body">
+        {% if category_formset.non_form_errors %}
+        <ul><strong>
+            {{ category_formset.non_form_errors|unordered_list }}
+        </strong></ul>
+        </div>
+        {% endif %}
+
         {% crispy category_formset category_helper %}
     </div>
     </div>

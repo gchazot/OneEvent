@@ -27,7 +27,7 @@ from django.core.urlresolvers import reverse
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Reset, Layout, Field, Div, HTML
 from crispy_forms.bootstrap import TabHolder, Tab, FormActions
-from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User, Group
 
 
@@ -200,9 +200,35 @@ class EventForm(ModelForm):
                     raise ValidationError({'employees_exception_groups': "All employees exceptions groups must be contractors groups"})
 
 
-CategoryFormSet = inlineformset_factory(Event, Category,
-                                        extra=2, can_delete=True,
-                                        fields=['order', 'name', 'price', 'groups1', 'groups2'])
+CategoryFormSetBase = inlineformset_factory(Event, Category,
+                                            extra=2, can_delete=True,
+                                            fields=['order', 'name', 'price', 'groups1', 'groups2'])
+
+
+class CategoryFormSet(CategoryFormSetBase):
+    def clean(self):
+        super(CategoryFormSet, self).clean()
+
+        if self.total_error_count() > 0:
+            # don't bother checking if there are errors in underlying forms
+            return
+
+        # Validate that there is no duplicated order
+        found_orders = set()
+        duplicated_orders = set()
+        for form in self.forms:
+            if not form.cleaned_data or form.cleaned_data['DELETE']:
+                # Ignore deleted and empty forms
+                continue
+
+            new_order = form.cleaned_data['order']
+            if new_order in found_orders:
+                duplicated_orders.add(new_order)
+            else:
+                found_orders.add(new_order)
+        if len(duplicated_orders) > 0:
+            text = "Duplicated order(s) found: " + ", ".join(map(str, duplicated_orders))
+            raise ValidationError(text)
 
 
 class CategoryFormSetHelper(FormHelper):

@@ -462,7 +462,7 @@ class Category(models.Model):
                                      verbose_name='Second groups matched by the rule')
 
     class Meta:
-        unique_together = (('event', 'order'), ('event', 'name'))
+        unique_together = (('event', 'name'),)
         ordering = ['order']
 
     def __unicode__(self):

@@ -21,14 +21,13 @@ along with OneEvent.  If not, see <http://www.gnu.org/licenses/>.
 from django.forms import Form
 from django.forms.fields import ChoiceField, SplitDateTimeField
 from models import Event, Session, Category, Choice, Option, Booking, BookingOption, Message
-from django.forms.models import ModelForm, inlineformset_factory, ModelMultipleChoiceField,\
-    ModelChoiceField
+from django.forms.models import ModelForm, inlineformset_factory, ModelChoiceField
 from django.core.urlresolvers import reverse
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Reset, Layout, Field, Div, HTML
 from crispy_forms.bootstrap import TabHolder, Tab, FormActions
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 
 
 class MySplitDateTimeField(SplitDateTimeField):
@@ -137,7 +136,9 @@ class EventForm(ModelForm):
 
     class Meta:
         model = Event
-        fields = '__all__'
+        fields = ['title', 'start', 'end', 'city', 'description', 'pub_status',
+                  'location_name', 'location_address', 'owner', 'organisers',
+                  'booking_close', 'choices_close', 'max_participant', 'price_currency']
 
     def __init__(self, *args, **kwargs):
         super(EventForm, self).__init__(*args, **kwargs)
@@ -206,7 +207,18 @@ class CategoryFormSetHelper(FormHelper):
         self.add_input(Reset('reset', 'Reset'))
 
 
-SessionFormSet = inlineformset_factory(Event, Session, extra=2, can_delete=True, fields='__all__')
+class SessionForm(ModelForm):
+    start = MySplitDateTimeField(required=False,
+                                 help_text='Start date and time')
+    end = MySplitDateTimeField(required=False,
+                               help_text='End date and time')
+
+    class Meta:
+        model = Session
+        fields = ['title', 'start', 'end', 'max_participant']
+
+
+SessionFormSet = inlineformset_factory(Event, Session, extra=2, can_delete=True, form=SessionForm)
 
 
 class SessionFormSetHelper(FormHelper):
@@ -245,8 +257,8 @@ class ChoiceForm(ModelForm):
         self.helper.field_class = 'col-xs-7'
 
 
-OptionFormSetBase = inlineformset_factory(Choice, Option,
-                                          extra=3, can_delete=True, fields='__all__')
+OptionFormSetBase = inlineformset_factory(Choice, Option, extra=3, can_delete=True,
+                                          fields=['title', 'default'])
 
 
 class OptionFormSet(OptionFormSetBase):

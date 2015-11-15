@@ -422,7 +422,7 @@ class Session(models.Model):
                                help_text='Local end date and time')
     max_participant = models.PositiveSmallIntegerField(
         default=0,
-        help_text='Maximum number of participants to this session (0 = no limit)')
+        help_text='Maximum number of participants (0 = no limit)')
 
     class Meta:
         unique_together = ('event', 'title')

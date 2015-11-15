@@ -20,7 +20,7 @@ along with OneEvent.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from django.forms import Form
 from django.forms.fields import ChoiceField, SplitDateTimeField
-from models import Event, Choice, Option, Booking, BookingOption, Message, Category
+from models import Event, Session, Category, Choice, Option, Booking, BookingOption, Message
 from django.forms.models import ModelForm, inlineformset_factory, ModelMultipleChoiceField,\
     ModelChoiceField
 from django.core.urlresolvers import reverse
@@ -200,6 +200,19 @@ class CategoryFormSetHelper(FormHelper):
     def __init__(self, event, *args, **kwargs):
         super(CategoryFormSetHelper, self).__init__(*args, **kwargs)
         self.form_action = reverse('event_update_categories',
+                                   kwargs={'event_id': event.id})
+        self.template = 'bootstrap/table_inline_formset.html'
+        self.add_input(Submit('submit', 'Save'))
+        self.add_input(Reset('reset', 'Reset'))
+
+
+SessionFormSet = inlineformset_factory(Event, Session, extra=2, can_delete=True, fields='__all__')
+
+
+class SessionFormSetHelper(FormHelper):
+    def __init__(self, event, *args, **kwargs):
+        super(SessionFormSetHelper, self).__init__(*args, **kwargs)
+        self.form_action = reverse('event_update_sessions',
                                    kwargs={'event_id': event.id})
         self.template = 'bootstrap/table_inline_formset.html'
         self.add_input(Submit('submit', 'Save'))

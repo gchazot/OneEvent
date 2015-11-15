@@ -37,6 +37,7 @@ from icalendar.prop import vCalAddress, vText
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import Encoders
+import logging
 
 
 # A default datetime format (too lazy to use the one in settings)
@@ -175,6 +176,7 @@ class Event(models.Model):
         for category in self.categories.all():
             if self._get_from_users_cache(user.id, category.name, False):
                 return category
+        logging.warning("User {0} is neither employee not contractor for {1}".format(user, self))
         return None
 
     def user_price(self, user):
@@ -438,7 +440,23 @@ class Session(models.Model):
             label += ' - {0}'.format(self.end.strftime(dt_format))
         label += ')'
 
+        if self.is_fully_booked():
+            label += ' - Session FULL'
+
         return label
+
+    def get_active_bookings(self):
+        '''
+        Return the active bookings
+        '''
+        return self.event.get_active_bookings().filter(session=self)
+
+    def is_fully_booked(self):
+        '''
+        Checks if it is still possible to add a booking regarding the maximum of participants
+        '''
+        return (self.max_participant > 0 and
+                self.get_active_bookings().count() >= self.max_participant)
 
 
 class Category(models.Model):
@@ -523,7 +541,7 @@ class Booking(models.Model):
     '''
     event = models.ForeignKey('Event', related_name='bookings')
     person = models.ForeignKey('auth.User', related_name='bookings')
-    session = models.ForeignKey('Session', related_name='bookings', null=True, blank=True)
+    session = models.ForeignKey('Session', related_name='bookings', null=True, blank=True, on_delete=models.SET_NULL)
 
     confirmedOn = models.DateTimeField(blank=True, null=True)
     cancelledBy = models.ForeignKey('auth.User', blank=True, null=True, related_name='cancelled_bookings')
@@ -619,7 +637,7 @@ class Booking(models.Model):
     def must_pay(self):
         '''
         Returns the amount that the person has to pay for the booking
-        @return the amount to be paid as a Decimal value, 0 if no paiment is needed. If the
+        @return the amount to be paid as a Decimal value, 0 if no payment is needed. If the
         amount can not be determined, returns 9999.99
         '''
         NOTHING = Decimal(0)

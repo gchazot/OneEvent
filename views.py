@@ -31,9 +31,9 @@ import unicode_csv
 from timezones import get_tzinfo
 from datetime import timedelta
 
-
 from models import Event, Booking, Message, Choice, BookingOption
 from forms import (EventForm, CategoryFormSet, CategoryFormSetHelper,
+                   SessionFormSet, SessionFormSetHelper,
                    ChoiceForm, OptionFormSet, OptionFormSetHelper,
                    CreateBookingOnBehalfForm, BookingChoicesForm, BookingSessionForm,
                    MessageForm, ReplyMessageForm)
@@ -203,6 +203,11 @@ def _booking_update_session(request, booking, form_target_url):
         if booking.is_cancelled() and booking.event.is_fully_booked():
             messages.error(request, 'Sorry the event is fully booked already')
             return redirect('index')
+        # Check for a fully booked session
+        session = session_form.cleaned_data['session']
+        if session.is_fully_booked() and (booking.is_cancelled or booking.session.id != session.id):
+            messages.error(request, 'Sorry, session "{0}" is fully booked'.format(session.title))
+            return redirect(form_target_url, booking_id=booking.id)
 
         session_form.save()
 
@@ -227,7 +232,7 @@ def _booking_update_with_sessions(request, booking):
     '''
     View to handle the modification of bookings on events with sessions
     '''
-    if booking.is_cancelled() or request.GET.get('session_change'):
+    if booking.is_cancelled() or request.GET.get('session_change') or booking.session is None:
         # Step 1: Handling Session selection
             return _booking_update_session(request, booking, 'booking_update')
     elif booking.event.choices.count() > 0:
@@ -399,11 +404,20 @@ def _event_edit_form(request, event):
         category_formset = CategoryFormSet(instance=event)
         category_helper = CategoryFormSetHelper(event)
 
+    # Build formset for Sessions
+    session_formset = None
+    session_helper = None
+    if not is_new_event:
+        session_formset = SessionFormSet(instance=event)
+        session_helper = SessionFormSetHelper(event)
+
     return render_to_response('event_update.html',
                               {'event': event,
                                'event_form': event_form,
                                'category_formset': category_formset,
-                               'category_helper': category_helper},
+                               'category_helper': category_helper,
+                               'session_formset': session_formset,
+                               'session_helper': session_helper},
                               context_instance=RequestContext(request))
 
 
@@ -436,13 +450,53 @@ def event_update_categories(request, event_id):
     elif category_formset.is_bound:
         messages.error(request, 'Unable to update categories, see below for errors!')
 
+    # Build formset for sessions
+    session_formset = SessionFormSet(instance=event)
+    session_helper = SessionFormSetHelper(event)
+
     timezone.activate(event.get_tzinfo())
 
     return render_to_response('event_update.html',
                               {'event': event,
                                'event_form': EventForm(instance=event),
                                'category_formset': category_formset,
-                               'category_helper': category_helper},
+                               'category_helper': category_helper,
+                               'session_formset': session_formset,
+                               'session_helper': session_helper},
+                              context_instance=RequestContext(request))
+
+
+@login_required
+def event_update_sessions(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    if not event.user_can_update(request.user):
+        messages.error(request, 'You are not authorised to edit this event !')
+        return redirect('index')
+
+    session_formset = SessionFormSet(request.POST or None, instance=event)
+    session_helper = SessionFormSetHelper(event)
+
+    if session_formset.is_valid():
+        session_formset.save()
+        messages.success(request, 'Sessions updated')
+        return redirect('event_update', event_id=event.id)
+    elif session_formset.is_bound:
+        messages.error(request, 'Unable to update sessions, see below for errors!')
+
+    # Build formset for categories
+    category_formset = CategoryFormSet(instance=event)
+    category_helper = CategoryFormSetHelper(event)
+
+    timezone.activate(event.get_tzinfo())
+
+    return render_to_response('event_update.html',
+                              {'event': event,
+                               'event_form': EventForm(instance=event),
+                               'category_formset': category_formset,
+                               'category_helper': category_helper,
+                               'session_formset': session_formset,
+                               'session_helper': session_helper},
                               context_instance=RequestContext(request))
 
 
@@ -654,10 +708,18 @@ def event_download_participants_list(request, event_id):
 
     bookings = event.bookings.order_by('person__last_name', 'person__first_name')
 
-    writer.writerow([u'Last name', u'First name', u'email', u'Category',
-                     u'Cancelled', u'Cancelled By', u'Confirmed On',
-                     u'Payment status', u'Paid to',
-                     u'Choices'])
+    header_row = [u'Last name', u'First name', u'email', u'Category',
+                  u'Cancelled', u'Cancelled By', u'Confirmed On',
+                  u'Payment status', u'Paid to']
+
+    if event.sessions.exists():
+        header_row.append(u'Session')
+
+    if event.choices.exists():
+        header_row.append(u'Choices')
+
+    writer.writerow(header_row)
+
     for booking in bookings:
         if booking.paidTo is not None:
             local_datePaid = booking.datePaid.astimezone(booking.event.get_tzinfo())
@@ -694,6 +756,13 @@ def event_download_participants_list(request, event_id):
                booking.person.email, category,
                cancelled, cancelled_by, confirmed_on,
                payment, paid_to]
+
+        if event.sessions.exists():
+            if booking.session:
+                row.append(booking.session.title)
+            else:
+                row.append(u'')
+
         for option in booking.options.all():
             row.append(option.option.title)
         writer.writerow(row)

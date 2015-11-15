@@ -29,11 +29,11 @@
 
 <div class="row">
 <div class="panel panel-info collapsible-caret">
-    <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseOne">
+    <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseEvent">
         <strong>Details</strong>
     </div>
 
-    <div id="collapseOne" class="panel-collapse collapse in">
+    <div id="collapseEvent" class="panel-collapse collapse in">
     <div class="panel-body">
         {% crispy event_form %}
     </div>
@@ -61,11 +61,23 @@
 </div>
 
 <div class="panel panel-info collapsible-caret">
-    <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseTwo">
+    <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseSessions">
+        <strong>Sessions</strong>
+    </div>
+
+    <div id="collapseSessions" class="panel-collapse collapse">
+    <div class="panel-body">
+        {% crispy session_formset session_helper %}
+    </div>
+    </div>
+</div>
+
+<div class="panel panel-info collapsible-caret">
+    <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseChoices">
         <strong>Choices</strong>
     </div>
 
-    <div id="collapseTwo" class="panel-collapse collapse">
+    <div id="collapseChoices" class="panel-collapse collapse">
     <div class="panel-body">
         <table class="table">
         {% for choice in event.choices.all %}
@@ -73,11 +85,10 @@
             <thead>
                 <tr><th>Choice</th><th>Options</th><th><!--Actions--></th></tr>
             </thead>
-            {% else %}
             <tbody>
             {% endif %}
             <tr>
-                <th rowspan="{{ choice.opions.count }}">{{ choice.title }}</th>
+                <th>{{ choice.title }}</th>
                 <td>
                 {% for option in choice.options.all %}
                     <p>

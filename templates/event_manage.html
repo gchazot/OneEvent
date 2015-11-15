@@ -31,9 +31,9 @@
 
 <div class="row">
 
-{% if event.choices.count > 0 %}
+{% if event.choices.exists %}
 <div class="panel panel-info collapsible-caret">
-    <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseTwo">
+    <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseChoices">
         <strong>Choices summary</strong>
         <a href="{% url 'event_download_options_summary' event_id=event.id %}"
             onclick="avoid_collapse_toggle(event)"
@@ -41,7 +41,7 @@
             <span class="glyphicon glyphicon-download-alt"></span> Download list
         </a>
     </div>
-    <div id="collapseTwo" class="panel-collapse collapse in table-responsive" >
+    <div id="collapseChoices" class="panel-collapse collapse in table-responsive" >
         <table class="panel-body table table-bordered table-striped">
             <thead>
                 <tr>
@@ -67,8 +67,34 @@
 </div>
 {% endif %}
 
+{% if event.sessions.exists %}
 <div class="panel panel-info collapsible-caret">
-    <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseThree">
+    <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseSessions">
+        <strong>Sessions summary</strong>
+    </div>
+    <div id="collapseSessions" class="panel-collapse collapse in table-responsive" >
+        <table class="panel-body table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Session</th>
+                    <th>Participants</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in event.sessions.all %}
+                <tr>
+                    <td>{{ session.title }}</td>
+                    <td><span class="badge">{{ session.get_active_bookings.count }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="panel panel-info collapsible-caret">
+    <div class="panel-heading collapsible-toggle collapsed" data-toggle="collapse" data-target="#collapseParticipants">
         <strong>Participants</strong>
         <a href="{% url 'event_download_participants_list' event_id=event.id %}"
             onclick="avoid_collapse_toggle(event)"
@@ -90,7 +116,7 @@
             <input type="checkbox" onclick="hide_cancelled_toggle(event)">Show Cancelled
         </div>
     </div>
-    <div id="collapseThree" class="panel-collapse collapse table-responsive">
+    <div id="collapseParticipants" class="panel-collapse collapse table-responsive">
         <table class="panel-body table table-bordered">
             <thead>
                 <tr>
@@ -98,9 +124,8 @@
                     <th rowspan=2>Category</th>
                     <th rowspan=2>Actions</th>
                     <th rowspan=2>Booking Status</th>
-                    {% if event.choices.count > 0 %}
-                    <th colspan=0>Choices</th>
-                    {% endif %}
+                    {% if event.sessions.exists %}<th rowspan=2>Session</th>{% endif %}
+                    {% if event.choices.exists %}<th colspan=0>Choices</th>{% endif %}
                 </tr>
                 <tr>
                     {% for choice in event.choices.all %}
@@ -192,12 +217,18 @@
                         {% else %}
                             No payment needed
                         {% endif %}
-                        </span>
+                        </span></div>
+                        <div>
                         {% if booking.exempt_of_payment or booking.paidTo %}
                             by {{ booking.paidTo.get_full_name }} on {{ booking.datePaid|date:"d N Y H:i" }}
                         {% endif %}
                         </div>
                     </td>
+
+                    <!-- Session -->
+                    {% if event.sessions.exists %}
+                    <td>{{ booking.session.title }}</td>
+                    {% endif %}
 
                     <!-- Options -->
                     {% for option in booking.options.all %}
@@ -232,10 +263,10 @@
 
 {% if event.categories.exists %}
 <div class="panel panel-info collapsible-caret">
-    <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseFour">
+    <div class="panel-heading collapsible-toggle" data-toggle="collapse" data-target="#collapseMoney">
         <strong>Collected money</strong>
     </div>
-    <div id="collapseFour" class="panel-collapse collapse in table-responsive">
+    <div id="collapseMoney" class="panel-collapse collapse in table-responsive">
         <table class="panel-body table table-striped table-hover">
         {% with collected_sums=event.get_collected_money_sums %}
             <thead>

@@ -134,15 +134,6 @@ class EventForm(ModelForm):
                                          help_text='Limit date and time for registering')
     choices_close = MySplitDateTimeField(required=False,
                                          help_text='Limit date and time for changing choices')
-    employees_groups = ModelMultipleChoiceField(required=False,
-                                                queryset=Group.objects.all().order_by('name'),
-                                                help_text='Groups considered as Employees')
-    employees_exception_groups = ModelMultipleChoiceField(required=False,
-                                                          queryset=Group.objects.all().order_by('name'),
-                                                          help_text='Groups NOT considered as Employees')
-    contractors_groups = ModelMultipleChoiceField(required=False,
-                                                  queryset=Group.objects.all().order_by('name'),
-                                                  help_text='Groups considered as Contractors')
 
     class Meta:
         model = Event
@@ -168,36 +159,10 @@ class EventForm(ModelForm):
             Tab('Venue', 'location_name', 'location_address'),
             Tab('Organisers', 'owner', 'organisers'),
             Tab('Booking limits', 'max_participant', 'booking_close', 'choices_close'),
-            Tab('Prices', 'price_for_employees', 'price_for_contractors', 'price_currency'),
-            Tab('Employee/Contractor Groups', 'employees_groups', 'employees_exception_groups',
-                'contractors_groups')
+            Tab('Settings', 'price_currency'),
         )
         self.helper.add_input(Submit('submit', 'Save'))
         self.helper.add_input(Reset('reset', 'Reset'))
-
-    def clean(self):
-        price_for_employees = self.cleaned_data.get('price_for_employees')
-        price_for_contractors = self.cleaned_data.get('price_for_contractors')
-        employees_groups = self.cleaned_data.get('employees_groups')
-        employees_exception_groups = self.cleaned_data.get('employees_exception_groups')
-        contractors_groups = self.cleaned_data.get('contractors_groups')
-
-        if ((price_for_employees and price_for_employees > 0) or
-                (price_for_contractors and price_for_contractors > 0)):
-            if len(employees_groups) == 0:
-                raise ValidationError({'employees_groups': "At least one Employees group is needed when there is a price"})
-            if len(contractors_groups) == 0:
-                raise ValidationError({'contractors_groups': "At least one Contractors group is needed when there is a price"})
-
-        for group in employees_groups:
-            if group in contractors_groups:
-                raise ValidationError("Group '%(name)s' can not be both employees and contractors",
-                                      params={'name': group.name})
-
-        if len(employees_exception_groups) > 0:
-            for excpt_group in employees_exception_groups:
-                if excpt_group not in contractors_groups:
-                    raise ValidationError({'employees_exception_groups': "All employees exceptions groups must be contractors groups"})
 
 
 CategoryFormSetBase = inlineformset_factory(Event, Category,

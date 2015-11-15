@@ -100,20 +100,8 @@ class Event(models.Model):
         default=0,
         help_text='Maximum number of participants to this event (0 = no limit)')
 
-    price_for_employees = models.DecimalField(max_digits=6, decimal_places=2, default=0)
-    price_for_contractors = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     price_currency = models.CharField(max_length=3, null=True, blank=True,
                                       verbose_name='Currency for prices')
-
-    employees_groups = models.ManyToManyField('auth.Group', blank=True,
-                                              related_name='employees_for_event+',
-                                              verbose_name='Groups considered as Employees')
-    employees_exception_groups = models.ManyToManyField('auth.Group', blank=True,
-                                                        related_name='employees_exceptions_for_event+',
-                                                        verbose_name='Groups NOT considered as Employees (exceptions)')
-    contractors_groups = models.ManyToManyField('auth.Group', blank=True,
-                                                related_name='contractors_for_event+',
-                                                verbose_name='Groups considered as Contractors')
 
     def __unicode__(self):
         result = u'{0} - {1:%x %H:%M}'.format(self.title, self.start)

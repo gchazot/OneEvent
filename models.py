@@ -189,6 +189,16 @@ class Event(models.Model):
                 return category
         return None
 
+    def user_price(self, user):
+        '''
+        Gets the price for a given user based on his category
+        '''
+        cat = self.get_user_category(user)
+        if cat is not None:
+            return cat.price
+        else:
+            return None
+
     def user_can_update(self, user):
         '''
         Check that the given user can update the event
@@ -630,11 +640,10 @@ class Booking(models.Model):
         if self.exempt_of_payment or not self.event.categories.exists():
             return NOTHING
 
-        cat = self.get_category()
-        if cat is None:
+        price = self.event.user_price(self.person)
+        if price is None:
             return DEFAULT
-
-        return cat.price
+        return price
 
     def get_payment_status_class(self):
         '''

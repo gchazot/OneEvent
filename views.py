@@ -69,6 +69,7 @@ def events_list(request, events, context, show_archived=False):
                 pass
             event_info['user_can_book'] = evt.user_can_book(request.user)
             event_info['user_can_update'] = evt.user_can_update(request.user)
+            event_info['price_for_user'] = evt.user_price(request.user)
 
         context['events'].append(event_info)
 

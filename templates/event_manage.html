@@ -227,7 +227,12 @@
 
                     <!-- Session -->
                     {% if event.sessions.exists %}
-                    <td>{{ booking.session.title }}</td>
+                    <td>{% if booking.session %}
+                        {{ booking.session.title }}
+                    {% else %}
+                        <span class="glyphicon glyphicon-warning-sign text-danger" aria-hidden="true"></span>
+                    {% endif %}
+                    </td>
                     {% endif %}
 
                     <!-- Options -->

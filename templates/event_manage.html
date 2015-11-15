@@ -253,7 +253,7 @@
                     <th>{{ cell }}</th>
                     {% else %}
                     <td>
-                        {{ cell|default:-1 }}
+                        {{ cell|default_if_none:-1|floatformat:2 }}
                         {% if event.price_currency %}({{event.price_currency}}){% endif %}
                     </td>
                     {% endif %}

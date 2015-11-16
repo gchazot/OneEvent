@@ -342,6 +342,16 @@ def booking_cancel(request, booking_id):
                                   context_instance=RequestContext(request))
 
 
+def get_registration_url(request, event_id):
+    '''
+    Compute the absolute URL to create a booking on a given event
+    @param request: An HttpRequest used to discover the FQDN and path
+    @param event_id: the ID of the event to register to
+    '''
+    registration_url_rel = reverse(booking_create, kwargs={'event_id': event_id})
+    return request.build_absolute_uri(registration_url_rel)
+
+
 @login_required
 def event_manage(request, event_id):
     try:
@@ -356,14 +366,12 @@ def event_manage(request, event_id):
         messages.error(request, 'You are not authorised to manage this event !')
         return redirect('index')
 
-    registration_url_rel = reverse(booking_create, kwargs={'event_id': event_id})
-    registration_url_abs = request.build_absolute_uri(registration_url_rel)
-
     # Activate the timezone from the event
     timezone.activate(event.get_tzinfo())
 
     return render_to_response('event_manage.html',
-                              {'event': event, 'registration_url': registration_url_abs},
+                              {'event': event,
+                               'registration_url': get_registration_url(request, event_id)},
                               context_instance=RequestContext(request))
 
 
@@ -414,13 +422,18 @@ def _event_edit_form(request, event):
         session_formset = SessionFormSet(instance=event)
         session_helper = SessionFormSetHelper(event)
 
+    template_context = {'event': event,
+                        'event_form': event_form,
+                        'category_formset': category_formset,
+                        'category_helper': category_helper,
+                        'session_formset': session_formset,
+                        'session_helper': session_helper}
+
+    if not is_new_event:
+        template_context['registration_url'] = get_registration_url(request, event.id)
+
     return render_to_response('event_update.html',
-                              {'event': event,
-                               'event_form': event_form,
-                               'category_formset': category_formset,
-                               'category_helper': category_helper,
-                               'session_formset': session_formset,
-                               'session_helper': session_helper},
+                              template_context,
                               context_instance=RequestContext(request))
 
 
@@ -457,15 +470,18 @@ def event_update_categories(request, event_id):
     session_formset = SessionFormSet(instance=event)
     session_helper = SessionFormSetHelper(event)
 
+    template_context = {'event': event,
+                        'event_form': EventForm(instance=event),
+                        'category_formset': category_formset,
+                        'category_helper': category_helper,
+                        'session_formset': session_formset,
+                        'session_helper': session_helper,
+                        'registration_url': get_registration_url(request, event_id)}
+
     timezone.activate(event.get_tzinfo())
 
     return render_to_response('event_update.html',
-                              {'event': event,
-                               'event_form': EventForm(instance=event),
-                               'category_formset': category_formset,
-                               'category_helper': category_helper,
-                               'session_formset': session_formset,
-                               'session_helper': session_helper},
+                              template_context,
                               context_instance=RequestContext(request))
 
 
@@ -491,15 +507,18 @@ def event_update_sessions(request, event_id):
     category_formset = CategoryFormSet(instance=event)
     category_helper = CategoryFormSetHelper(event)
 
+    template_context = {'event': event,
+                        'event_form': EventForm(instance=event),
+                        'category_formset': category_formset,
+                        'category_helper': category_helper,
+                        'session_formset': session_formset,
+                        'session_helper': session_helper,
+                        'registration_url': get_registration_url(request, event_id)},
+
     timezone.activate(event.get_tzinfo())
 
     return render_to_response('event_update.html',
-                              {'event': event,
-                               'event_form': EventForm(instance=event),
-                               'category_formset': category_formset,
-                               'category_helper': category_helper,
-                               'session_formset': session_formset,
-                               'session_helper': session_helper},
+                              template_context,
                               context_instance=RequestContext(request))
 
 

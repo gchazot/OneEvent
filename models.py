@@ -541,13 +541,16 @@ class Booking(models.Model):
     '''
     event = models.ForeignKey('Event', related_name='bookings')
     person = models.ForeignKey('auth.User', related_name='bookings')
-    session = models.ForeignKey('Session', related_name='bookings', null=True, blank=True, on_delete=models.SET_NULL)
+    session = models.ForeignKey('Session', related_name='bookings',
+                                null=True, blank=True, on_delete=models.SET_NULL)
 
     confirmedOn = models.DateTimeField(blank=True, null=True)
-    cancelledBy = models.ForeignKey('auth.User', blank=True, null=True, related_name='cancelled_bookings')
+    cancelledBy = models.ForeignKey('auth.User', blank=True, null=True,
+                                    related_name='cancelled_bookings')
     cancelledOn = models.DateTimeField(blank=True, null=True)
 
-    paidTo = models.ForeignKey('auth.User', blank=True, null=True, related_name='received_payments')
+    paidTo = models.ForeignKey('auth.User', blank=True, null=True,
+                               related_name='received_payments')
     datePaid = models.DateTimeField(blank=True, null=True)
     exempt_of_payment = models.BooleanField(default=False)
 

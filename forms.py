@@ -325,10 +325,15 @@ class OptionFormSetHelper(FormHelper):
         self.field_class = 'col-xs-9'
 
 
+def all_username_choices():
+    '''Generates all pairs (username, full_name) for users sorted alphabetically'''
+    all_users = User.objects.order_by('last_name', 'first_name')
+    for u in all_users:
+        yield (u.username, u.get_full_name())
+
+
 class CreateBookingOnBehalfForm(Form):
-    username = ChoiceField(label='Create a booking for',
-                           choices=((u.username, u.get_full_name())
-                                    for u in User.objects.order_by('last_name', 'first_name')))
+    username = ChoiceField(label='Create a booking for', choices=all_username_choices)
 
     def __init__(self, event_id, *args, **kwargs):
         super(CreateBookingOnBehalfForm, self).__init__(*args, **kwargs)

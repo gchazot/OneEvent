@@ -30,6 +30,16 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 
 
+def datetime_help_string():
+    from datetime import datetime
+    from django.conf import settings
+    now = datetime(1969, 07, 20, 20, 17, 40)
+    return "manual formats: {0} and {1}".format(
+        now.strftime(settings.DATE_INPUT_FORMATS[0]),
+        now.strftime(settings.TIME_INPUT_FORMATS[0])
+    )
+
+
 class MySplitDateTimeField(SplitDateTimeField):
     '''A field with separate date and time elements and using HTML5 input types'''
     def __init__(self, *args, **kwargs):
@@ -127,12 +137,18 @@ class BookingChoicesForm(Form):
 
 
 class EventForm(ModelForm):
-    start = MySplitDateTimeField(required=True, help_text='Local start date and time')
-    end = MySplitDateTimeField(required=False, help_text='Local end date and time')
-    booking_close = MySplitDateTimeField(required=False,
-                                         help_text='Limit date and time for registering')
-    choices_close = MySplitDateTimeField(required=False,
-                                         help_text='Limit date and time for changing choices')
+    start = MySplitDateTimeField(
+        required=True,
+        help_text='Local start date and time ({0})'.format(datetime_help_string()))
+    end = MySplitDateTimeField(
+        required=False,
+        help_text='Local end date and time ({0})'.format(datetime_help_string()))
+    booking_close = MySplitDateTimeField(
+        required=False,
+        help_text='Limit date and time for registering ({0})'.format(datetime_help_string()))
+    choices_close = MySplitDateTimeField(
+        required=False,
+        help_text='Limit date and time for changing choices ({0})'.format(datetime_help_string()))
 
     class Meta:
         model = Event

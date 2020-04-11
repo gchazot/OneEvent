@@ -27,7 +27,7 @@ fi
 mkdir -p $TARGET_DIR
 cd $TARGET_DIR
 
-virtualenv venv
+virtualenv -p $(which python2) venv
 source venv/bin/activate
 pip install -r $ORIGIN_REPO/requirements.txt
 

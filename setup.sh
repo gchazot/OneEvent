@@ -44,11 +44,22 @@ fi
 
 cat << EOF >> mysite/settings.py
 
-INSTALLED_APPS += ('oneevent',
+INSTALLED_APPS += [
+    'oneevent',
     'crispy_forms',
     'django_extensions',
     'debug_toolbar',
-)
+]
+
+if DEBUG:
+    MIDDLEWARE += [
+        'debug_toolbar.middleware.DebugToolbarMiddleware',
+    ]
+
+    INTERNAL_IPS = [
+        '127.0.0.1',
+    ]
+
 TEMPLATES[0]['OPTIONS']['context_processors'].append('oneevent.context_processors.customise_navbar')
 
 # Override the "error" message level to match the bootstrap "danger" class
@@ -64,11 +75,21 @@ EOF
 
 cat << EOF >> mysite/urls.py
 
-urlpatterns.extend([
-    url(r'^accounts/login/$', 'django.contrib.auth.views.login', name='login'),
-    url(r'^accounts/logout/$', 'django.contrib.auth.views.logout', name='logout'),
+from django.conf import settings
+from django.conf.urls import include, url
+from django.contrib.auth import views as auth_views
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns += [
+         url(r'^__debug__/', include(debug_toolbar.urls)),
+    ]
+
+urlpatterns += [
+    url(r'^accounts/login/$', auth_views.LoginView.as_view(), name='login'),
+    url(r'^accounts/logout/$', auth_views.LogoutView.as_view(), name='logout'),
     url(r'^', include('oneevent.urls')),
-])
+]
 
 EOF
 

@@ -16,7 +16,7 @@ import icalendar
 from icalendar.prop import vCalAddress, vText
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
-from email import Encoders
+from email import encoders
 import logging
 
 
@@ -879,7 +879,7 @@ class Booking(models.Model):
         filename = "invite.ics"
         part = MIMEBase('text', "calendar", method="REQUEST", name=filename)
         part.set_payload(cal_text)
-        Encoders.encode_base64(part)
+        encoders.encode_base64(part)
         part.add_header('Content-Description', filename)
         part.add_header("Content-class", "urn:content-classes:calendarmessage")
         part.add_header("Filename", filename)

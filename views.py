@@ -1,7 +1,6 @@
-from django.shortcuts import render, redirect, get_object_or_404, render_to_response
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models.query_utils import Q
-from django.template.context import RequestContext
 from django.http.response import HttpResponse, Http404
 from django.template.defaultfilters import slugify
 from django.contrib import messages
@@ -54,7 +53,7 @@ def events_list(request, events, context, show_archived=False):
 
         context['events'].append(event_info)
 
-    return render(request, 'events_list.html', context, context_instance=RequestContext(request))
+    return render(request, 'events_list.html', context)
 
 
 def events_list_future(request):
@@ -154,9 +153,8 @@ def booking_create_on_behalf(request, event_id):
         return redirect('booking_update', booking_id=booking.id)
     else:
         timezone.activate(event.get_tzinfo())
-        return render_to_response('booking_create_on_behalf.html',
-                                  {'form': form, 'event': event},
-                                  context_instance=RequestContext(request))
+        context = {'form': form, 'event': event}
+        return render(request, 'booking_create_on_behalf.html', context)
 
 
 # TODO: I deeply apologise to my future self about all the mess below that handles booking updates
@@ -202,10 +200,8 @@ def _booking_update_session(request, booking, form_target_url):
         else:
             return _booking_update_finished_redirect(request, booking, 'Session')
     else:
-        return render_to_response('booking_update_with_sessions.html',
-                                  {'booking': booking,
-                                   'session_form': session_form},
-                                  context_instance=RequestContext(request))
+        context = {'booking': booking, 'session_form': session_form}
+        return render(request, 'booking_update_with_sessions.html', context)
 
 
 def _booking_update_with_sessions(request, booking):
@@ -226,10 +222,8 @@ def _booking_update_with_sessions(request, booking):
 
             return _booking_update_finished_redirect(request, booking, 'Choices')
         else:
-            return render_to_response('booking_update_with_sessions.html',
-                                      {'booking': booking,
-                                       'choices_form': choices_form},
-                                      context_instance=RequestContext(request))
+            context = {'booking': booking, 'choices_form': choices_form}
+            return render(request, 'booking_update_with_sessions.html', context)
     else:
         # No Choice to handle
         return _booking_update_finished_redirect(request, booking, 'Session')
@@ -255,10 +249,8 @@ def _booking_update_no_session(request, booking):
 
         return _booking_update_finished_redirect(request, booking, 'Registration')
 
-    return render_to_response('booking_update.html',
-                              {'booking': booking,
-                               'choices_form': choices_form},
-                              context_instance=RequestContext(request))
+    context = {'booking': booking, 'choices_form': choices_form}
+    return render(request, 'booking_update.html', context)
 
 
 @login_required
@@ -317,9 +309,7 @@ def booking_cancel(request, booking_id):
         else:
             return redirect('event_manage', event_id=booking.event.id)
     else:
-        return render_to_response('booking_cancel.html',
-                                  {'booking': booking},
-                                  context_instance=RequestContext(request))
+        return render(request, 'booking_cancel.html', {'booking': booking})
 
 
 def get_registration_url(request, event_id):
@@ -349,10 +339,8 @@ def event_manage(request, event_id):
     # Activate the timezone from the event
     timezone.activate(event.get_tzinfo())
 
-    return render_to_response('event_manage.html',
-                              {'event': event,
-                               'registration_url': get_registration_url(request, event_id)},
-                              context_instance=RequestContext(request))
+    context = {'event': event, 'registration_url': get_registration_url(request, event_id)}
+    return render(request, 'event_manage.html', context)
 
 
 def _event_edit_form(request, event):
@@ -412,9 +400,7 @@ def _event_edit_form(request, event):
     if not is_new_event:
         template_context['registration_url'] = get_registration_url(request, event.id)
 
-    return render_to_response('event_update.html',
-                              template_context,
-                              context_instance=RequestContext(request))
+    return render(request, 'event_update.html', template_context)
 
 
 @login_required
@@ -460,9 +446,7 @@ def event_update_categories(request, event_id):
 
     timezone.activate(event.get_tzinfo())
 
-    return render_to_response('event_update.html',
-                              template_context,
-                              context_instance=RequestContext(request))
+    return render(request, 'event_update.html', template_context)
 
 
 @login_required
@@ -497,9 +481,7 @@ def event_update_sessions(request, event_id):
 
     timezone.activate(event.get_tzinfo())
 
-    return render_to_response('event_update.html',
-                              template_context,
-                              context_instance=RequestContext(request))
+    return render(request, 'event_update.html', template_context)
 
 
 @login_required
@@ -553,12 +535,13 @@ def _choice_edit_form(request, choice):
                 messages.error(request, 'Unable to update choice, see errors below!')
 
     timezone.activate(choice.event.get_tzinfo())
-    return render_to_response('choice_edit.html',
-                              {'choice': choice,
-                               'choice_form': choice_form,
-                               'options_formset': options_formset,
-                               'options_helper': options_helper},
-                              context_instance=RequestContext(request))
+    context = {
+        'choice': choice,
+        'choice_form': choice_form,
+        'options_formset': options_formset,
+        'options_helper': options_helper,
+    }
+    return render(request, 'choice_edit.html', context)
 
 
 def choice_create(request, event_id):
@@ -587,9 +570,7 @@ def choice_delete(request, choice_id):
         return redirect('event_update', event_id=choice.event.id)
     else:
         timezone.activate(choice.event.get_tzinfo())
-        return render_to_response('choice_delete.html',
-                                  {'choice': choice},
-                                  context_instance=RequestContext(request))
+        return render(request, 'choice_delete.html', {'choice': choice})
 
 
 @login_required
@@ -619,9 +600,8 @@ def booking_payment_confirm(request, booking_id, cancel=False):
         return redirect('event_manage', event_id=booking.event.id)
     else:
         timezone.activate(booking.event.get_tzinfo())
-        return render_to_response('booking_payment_confirm.html',
-                                  {'booking': booking, 'cancel': cancel},
-                                  context_instance=RequestContext(request))
+        context = {'booking': booking, 'cancel': cancel}
+        return render(request, 'booking_payment_confirm.html', context)
 
 
 @login_required
@@ -659,9 +639,8 @@ def booking_payment_exempt(request, booking_id, cancel=False):
         return redirect('event_manage', event_id=booking.event.id)
     else:
         timezone.activate(booking.event.get_tzinfo())
-        return render_to_response('booking_payment_exempt.html',
-                                  {'booking': booking, 'cancel': cancel},
-                                  context_instance=RequestContext(request))
+        context = {'booking': booking, 'cancel': cancel}
+        return render(request, 'booking_payment_exempt.html', context)
 
 
 @login_required
@@ -783,9 +762,7 @@ def messages_list(request):
         messages = thread_head.full_thread()
         user_threads.append((thread_head, messages,))
 
-    return render_to_response('messages_list.html',
-                              {'threads': user_threads},
-                              context_instance=RequestContext(request))
+    return render(request, 'messages_list.html', {'threads': user_threads})
 
 
 @login_required
@@ -815,9 +792,8 @@ def message_create(request, thread_id=None):
         messages.success(request, 'Your message has been sent')
         return redirect('messages_list')
 
-    return render_to_response('message_create.html',
-                              {'form': form, 'thread_id': thread_id},
-                              context_instance=RequestContext(request))
+    context = {'form': form, 'thread_id': thread_id}
+    return render(request, 'message_create.html', context)
 
 
 @login_required

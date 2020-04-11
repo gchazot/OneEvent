@@ -8,7 +8,7 @@ fi
 TARGET_DIR=$1
 SOURCE_BRANCH=$2
 if [ -z "$SOURCE_BRANCH" ]; then
-    SOURCE_BRANCH="master"
+    SOURCE_BRANCH="@local"
 fi
 
 ORIGIN_REPO=$(dirname $(readlink -f $0))
@@ -33,8 +33,12 @@ pip install -r $ORIGIN_REPO/requirements.txt
 
 django-admin startproject mysite
 cd mysite
-git clone -b $SOURCE_BRANCH -- $ORIGIN_REPO oneevent
 
+if [ $SOURCE_BRANCH == "@local" ]; then
+    ln -s $ORIGIN_REPO oneevent
+else
+    git clone -b $SOURCE_BRANCH -- $ORIGIN_REPO oneevent
+fi
 # Create an initial DB (django_debug_toolbar requires it)
 ./manage.py migrate
 

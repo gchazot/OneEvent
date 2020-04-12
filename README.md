@@ -67,7 +67,7 @@ urlpatterns += [
 ]
 ```
 
-## Release
+## Releasing
 #### Preparation
 * Merge all desired changes to `master`
 * Update `setup.cfg` with the new version number and commit

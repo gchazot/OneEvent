@@ -53,14 +53,14 @@ TARGET_DIR=${BASE_REPO}/dev_site
 
 if [ -d "$TARGET_DIR" ]; then
   if [ ${DELETE_EXISTING} == "ask" ]; then
-      echo "Target already exists: $TARGET_DIR"
-      echo -n "Do you want to delete it ? [y/N]: "
-      read answer
-      if [ "y" == "$answer" ] ||  [ "Y" == "$answer" ]; then
-          DELETE_EXISTING="yes"
-      else
-          exit 1;
-      fi
+    echo "Target already exists: $TARGET_DIR"
+    echo -n "Do you want to delete it ? [y/N]: "
+    read answer
+    if [ "y" == "$answer" ] ||  [ "Y" == "$answer" ]; then
+        DELETE_EXISTING="yes"
+    else
+        exit 1;
+    fi
   fi
 
   if [ ${DELETE_EXISTING} == "yes" ]; then

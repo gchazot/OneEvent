@@ -1,15 +1,71 @@
 #!/bin/bash
 
+function usage() {
+  echo ""
+  echo "Usage: $0 [options] action"
+  echo "Available options:"
+  echo "  -h|--help: Display this help message and exit"
+  echo "  -d|--delete-existing: Delete existing folder without asking"
+  echo "  -k|--keep-existing: Keep existing folder without asking"
+  echo ""
+  echo "Available actions:"
+  echo "  start: Launch a local development server"
+  echo "  test: Run tests and exit"
+  echo ""
+}
+
+DELETE_EXISTING="ask"
+ACTION=""
+
+while (( "$#" )); do
+  case "$1" in
+    -d|--delete-existing)
+      DELETE_EXISTING="yes"
+      shift
+      ;;
+    -k|--keep-existing)
+      DELETE_EXISTING="no"
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    run|test)
+      ACTION="$1"
+      shift
+      ;;
+    -*|--*=) # unsupported flags
+      echo "Error: Unsupported flag $1" >&2
+      usage
+      exit 1
+      ;;
+    *) # unsupported action
+      echo "Error: Unsupported action $1" >&2
+      usage
+      exit 1
+      ;;
+  esac
+done
+
 BASE_REPO=$(dirname "$(readlink -f "$0")")
 TARGET_DIR=${BASE_REPO}/dev_site
 
 if [ -d "$TARGET_DIR" ]; then
-    echo "Target already exists: $TARGET_DIR"
-    echo -n "Do you want to delete it ? [y/N]: "
-    read answer
-    if [ "y" == "$answer" ] ||  [ "Y" == "$answer" ]; then
-        rm -rf "$TARGET_DIR"
-    fi
+  if [ ${DELETE_EXISTING} == "ask" ]; then
+      echo "Target already exists: $TARGET_DIR"
+      echo -n "Do you want to delete it ? [y/N]: "
+      read answer
+      if [ "y" == "$answer" ] ||  [ "Y" == "$answer" ]; then
+          DELETE_EXISTING="yes"
+      else
+          exit 1;
+      fi
+  fi
+
+  if [ ${DELETE_EXISTING} == "yes" ]; then
+    rm -rf "$TARGET_DIR"
+  fi
 fi
 
 PROJECT_DIR=${TARGET_DIR}/dev_project
@@ -85,8 +141,17 @@ fi
 
 MANAGE_COMMAND="${PROJECT_DIR}/manage.py"
 
-"${MANAGE_COMMAND}" check
-"${MANAGE_COMMAND}" test
-"${MANAGE_COMMAND}" migrate
+if [ "${ACTION}" == "test" ]; then
+  "${MANAGE_COMMAND}" check || exit 11
+  "${MANAGE_COMMAND}" makemigrations --dry-run --check || exit 12
+  "${MANAGE_COMMAND}" test || exit 13
+  exit 0
+elif [ "${ACTION}" == "run" ]; then
+  set -e
+  "${MANAGE_COMMAND}" check
+  "${MANAGE_COMMAND}" migrate
+  "${MANAGE_COMMAND}" runserver "0.0.0.0:8000"
+  exit 0
+fi;
 
-"${MANAGE_COMMAND}" runserver 0.0.0.0:8000
+exit 2  # How did we get here?

@@ -67,6 +67,24 @@ urlpatterns += [
 ]
 ```
 
+## Development
+The `dev_server.sh` script is here to help setting up a development site.
+
+```shell script
+./dev_server.sh run
+```
+This will start a local dev server running with its own virtualenv.
+
+```shell script
+./dev_server.sh test
+```
+This will run all the tests currently available in the codebase and provided by Django.
+
+```shell script
+./dev_server.sh --help
+```
+For more options the script has to offer.
+
 ## Releasing
 #### Preparation
 * Merge all desired changes to `master`

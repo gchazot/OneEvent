@@ -68,9 +68,19 @@ urlpatterns += [
 ```
 
 ## Release
-Manual release process
+#### Preparation
+* Merge all desired changes to `master`
+* Update `setup.cfg` with the new version number and commit
+* Tag the desired version
+* Push the tag to GitHub
+
+#### Automatic release
+[Travis the Builder](https://travis-ci.org/github/gchazot/OneEvent) takes care of everything.
+
+#### Manual release process
+A little more involved but it's Okay I guess
 ```shell script
 rm -rf build/ dist/ django_oneevent.egg-info/
 python setup.py sdist
-twine upload [--repository-url https://test.pypi.org/legacy/] dist/*
+twine upload dist/*
 ```

@@ -1,3 +1,4 @@
 *.pyc
 dist/
 django_oneevent.egg-info/
+dev_site/

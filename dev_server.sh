@@ -1,48 +1,37 @@
 #!/bin/bash
 
-if [ $# -lt 1 ]; then
-    echo "Usage: $0 <target_dir> [<branch>]"
-    exit 1
-fi
+BASE_REPO=$(dirname "$(readlink -f "$0")")
+TARGET_DIR=${BASE_REPO}/dev_site
 
-TARGET_DIR=$1
-SOURCE_BRANCH=$2
-if [ -z "$SOURCE_BRANCH" ]; then
-    SOURCE_BRANCH="@local"
-fi
-
-ORIGIN_REPO=$(dirname $(readlink -f $0))
-
-if [ -d $TARGET_DIR ]; then
+if [ -d "$TARGET_DIR" ]; then
     echo "Target already exists: $TARGET_DIR"
     echo -n "Do you want to delete it ? [y/N]: "
     read answer
-    if [ "y" == "$answer" -o "Y" == "$answer" ]; then
-        rm -rf $TARGET_DIR
-    else
-        exit 2
+    if [ "y" == "$answer" ] ||  [ "Y" == "$answer" ]; then
+        rm -rf "$TARGET_DIR"
     fi
 fi
 
-mkdir -p $TARGET_DIR
-cd $TARGET_DIR
+PROJECT_DIR=${TARGET_DIR}/dev_project
+VENV_DIR=${TARGET_DIR}/venv
 
-virtualenv -p $(which python2) venv
-source venv/bin/activate
-pip install -r $ORIGIN_REPO/requirements.txt
+mkdir -p "${PROJECT_DIR}"
 
-django-admin startproject mysite
-cd mysite
-
-if [ $SOURCE_BRANCH == "@local" ]; then
-    ln -s $ORIGIN_REPO oneevent
-else
-    git clone -b $SOURCE_BRANCH -- $ORIGIN_REPO oneevent
+if [ ! -f "${VENV_DIR}/bin/activate" ]; then
+  virtualenv -p "$(command -v python2)" "${VENV_DIR}"
 fi
-# Create an initial DB (django_debug_toolbar requires it)
-./manage.py migrate
+source "${VENV_DIR}/bin/activate"
 
-cat << EOF >> mysite/settings.py
+pip install Django==1.11.29 django-debug-toolbar==1.11 django-extensions==2.2.9
+pip install -e "${BASE_REPO}"
+
+SITE_NAME=oneevent_site
+SITE_DIR="${PROJECT_DIR}/${SITE_NAME}"
+if  [ ! -d "${SITE_DIR}" ]; then
+  django-admin startproject "${SITE_NAME}" "${PROJECT_DIR}"
+
+
+  cat << EOF >> "${SITE_DIR}/settings.py"
 
 INSTALLED_APPS += [
     'oneevent',
@@ -51,14 +40,13 @@ INSTALLED_APPS += [
     'debug_toolbar',
 ]
 
-if DEBUG:
-    MIDDLEWARE += [
-        'debug_toolbar.middleware.DebugToolbarMiddleware',
-    ]
+MIDDLEWARE += [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+]
 
-    INTERNAL_IPS = [
-        '127.0.0.1',
-    ]
+INTERNAL_IPS = [
+    '127.0.0.1',
+]
 
 TEMPLATES[0]['OPTIONS']['context_processors'].append('oneevent.context_processors.customise_navbar')
 
@@ -73,7 +61,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 EOF
 
-cat << EOF >> mysite/urls.py
+  cat << EOF >> "${SITE_DIR}/urls.py"
 
 from django.conf import settings
 from django.conf.urls import include, url
@@ -93,8 +81,12 @@ urlpatterns += [
 
 EOF
 
-./manage.py check
-./manage.py test
-./manage.py migrate
+fi
 
-./manage.py runserver 0.0.0.0:8000
+MANAGE_COMMAND="${PROJECT_DIR}/manage.py"
+
+"${MANAGE_COMMAND}" check
+"${MANAGE_COMMAND}" test
+"${MANAGE_COMMAND}" migrate
+
+"${MANAGE_COMMAND}" runserver 0.0.0.0:8000

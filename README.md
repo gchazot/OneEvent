@@ -64,3 +64,11 @@ urlpatterns += [
     ...
 ]
 ```
+
+## Release
+Manual release process
+```shell script
+rm -rf build/ dist/ django_oneevent.egg-info/
+python setup.py sdist
+twine upload [--repository-url https://test.pypi.org/legacy/] dist/*
+```

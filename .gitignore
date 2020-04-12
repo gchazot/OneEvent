@@ -1,1 +1,5 @@
 *.pyc
+build/
+dev_site/
+dist/
+django_oneevent.egg-info/

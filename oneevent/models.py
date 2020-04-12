@@ -986,7 +986,7 @@ class Message(models.Model):
         subject = '[OneEvent] [{1}] New {2}: {0}'.format(self.title,
                                                          self.get_category_display(),
                                                          prefix)
-        message_html = loader.render_to_string('message_notification.html',
+        message_html = loader.render_to_string('oneevent/message_notification.html',
                                                {'message': self})
         message_text = self.safe_text()
 

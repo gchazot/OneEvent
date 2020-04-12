@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "oneevent/base.html" %}
 {% load crispy_forms_tags %}
 
 
@@ -21,7 +21,7 @@
     </div>
     {% endif %}
 
-    {% include "event_description_panel_part.html" with event=booking.event price=booking.must_pay only %}
+    {% include "oneevent/event_description_panel_part.html" with event=booking.event price=booking.must_pay only %}
 
     <div class="panel panel-{{booking.get_payment_status_class|default:'info'}} collapsible-caret">
         <div class="panel-heading collapsible-toggle" data-toggle="collapse"

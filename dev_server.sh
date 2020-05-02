@@ -78,8 +78,7 @@ if [ ! -f "${VENV_DIR}/bin/activate" ]; then
 fi
 source "${VENV_DIR}/bin/activate"
 
-pip install Django==1.11.29 django-debug-toolbar==1.11 django-extensions==2.2.9
-pip install -e "${BASE_REPO}"
+pip install -e "${BASE_REPO}[test]"
 
 SITE_NAME=oneevent_site
 SITE_DIR="${PROJECT_DIR}/${SITE_NAME}"

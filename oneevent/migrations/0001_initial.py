@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 from django.conf import settings
@@ -51,30 +51,30 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('title', models.CharField(unique=True, max_length=64)),
-                ('start', models.DateTimeField(help_text=b'Local start date and time')),
-                ('end', models.DateTimeField(help_text=b'Local end date and time', null=True, blank=True)),
-                ('city', models.CharField(help_text=b'Timezone of your event', max_length=32, choices=[(b'Boston', b'Boston'), (b'Erding', b'Erding'), (b'London', b'London'), (b'Miami', b'Miami'), (b'Munich', b'Munich'), (b'Nice', b'Nice'), (b'Sydney', b'Sydney'), (b'Toronto', b'Toronto'), (b'UTC', b'UTC')])),
+                ('start', models.DateTimeField(help_text='Local start date and time')),
+                ('end', models.DateTimeField(help_text='Local end date and time', null=True, blank=True)),
+                ('city', models.CharField(help_text='Timezone of your event', max_length=32, choices=[('Boston', 'Boston'), ('Erding', 'Erding'), ('London', 'London'), ('Miami', 'Miami'), ('Munich', 'Munich'), ('Nice', 'Nice'), ('Sydney', 'Sydney'), ('Toronto', 'Toronto'), ('UTC', 'UTC')])),
                 ('description', models.TextField(blank=True)),
-                ('pub_status', models.CharField(default=b'UNPUB', help_text=b'Public: Visible and bookable by all; Restricted: Visible and Bookable by invited groups; Private: Visible by participant, bookable by all; Unpublished: Visible by organisers, not bookable; Archived: Not visible, not bookable', max_length=8, verbose_name=b'Publication status', choices=[(b'PUB', b'Public'), (b'REST', b'Restricted'), (b'PRIV', b'Private'), (b'UNPUB', b'Unpublished'), (b'ARCH', b'Archived')])),
-                ('location_name', models.CharField(help_text=b'Venue of your event', max_length=64, null=True, blank=True)),
+                ('pub_status', models.CharField(default='UNPUB', help_text='Public: Visible and bookable by all; Restricted: Visible and Bookable by invited groups; Private: Visible by participant, bookable by all; Unpublished: Visible by organisers, not bookable; Archived: Not visible, not bookable', max_length=8, verbose_name='Publication status', choices=[('PUB', 'Public'), ('REST', 'Restricted'), ('PRIV', 'Private'), ('UNPUB', 'Unpublished'), ('ARCH', 'Archived')])),
+                ('location_name', models.CharField(help_text='Venue of your event', max_length=64, null=True, blank=True)),
                 ('location_address', models.TextField(null=True, blank=True)),
-                ('booking_close', models.DateTimeField(help_text=b'Limit date and time for registering', null=True, blank=True)),
-                ('choices_close', models.DateTimeField(help_text=b'Limit date and time for changing choices', null=True, blank=True)),
-                ('max_participant', models.PositiveSmallIntegerField(default=0, help_text=b'Maximum number of participants to this event (0 = no limit)')),
+                ('booking_close', models.DateTimeField(help_text='Limit date and time for registering', null=True, blank=True)),
+                ('choices_close', models.DateTimeField(help_text='Limit date and time for changing choices', null=True, blank=True)),
+                ('max_participant', models.PositiveSmallIntegerField(default=0, help_text='Maximum number of participants to this event (0 = no limit)')),
                 ('price_for_employees', models.DecimalField(default=0, max_digits=6, decimal_places=2)),
                 ('price_for_contractors', models.DecimalField(default=0, max_digits=6, decimal_places=2)),
-                ('price_currency', models.CharField(max_length=3, null=True, verbose_name=b'Currency for prices', blank=True)),
-                ('contractors_groups', models.ManyToManyField(related_name='contractors_for_event+', verbose_name=b'Groups considered as Contractors', to='auth.Group', blank=True)),
-                ('employees_groups', models.ManyToManyField(related_name='employees_for_event+', verbose_name=b'Groups considered as Employees', to='auth.Group', blank=True)),
+                ('price_currency', models.CharField(max_length=3, null=True, verbose_name='Currency for prices', blank=True)),
+                ('contractors_groups', models.ManyToManyField(related_name='contractors_for_event+', verbose_name='Groups considered as Contractors', to='auth.Group', blank=True)),
+                ('employees_groups', models.ManyToManyField(related_name='employees_for_event+', verbose_name='Groups considered as Employees', to='auth.Group', blank=True)),
                 ('organisers', models.ManyToManyField(related_name='events_organised', to=settings.AUTH_USER_MODEL, blank=True)),
-                ('owner', models.ForeignKey(related_name='events_owned', to=settings.AUTH_USER_MODEL, help_text=b'Main organiser')),
+                ('owner', models.ForeignKey(related_name='events_owned', to=settings.AUTH_USER_MODEL, help_text='Main organiser')),
             ],
         ),
         migrations.CreateModel(
             name='Message',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('category', models.CharField(max_length=8, verbose_name=b'Reason', choices=[(b'QUERY', b'Question'), (b'COMMENT', b'Comment'), (b'BUG', b'Bug report'), (b'FEAT', b'Feature request'), (b'ADMIN', b'Administration Request')])),
+                ('category', models.CharField(max_length=8, verbose_name='Reason', choices=[('QUERY', 'Question'), ('COMMENT', 'Comment'), ('BUG', 'Bug report'), ('FEAT', 'Feature request'), ('ADMIN', 'Administration Request')])),
                 ('title', models.CharField(max_length=128)),
                 ('text', models.TextField(max_length=2048)),
                 ('created', models.DateTimeField(auto_now_add=True)),
@@ -103,9 +103,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('title', models.CharField(unique=True, max_length=64)),
-                ('start', models.DateTimeField(help_text=b'Local start date and time')),
-                ('end', models.DateTimeField(help_text=b'Local end date and time', null=True, blank=True)),
-                ('max_participant', models.PositiveSmallIntegerField(default=0, help_text=b'Maximum number of participants to this session (0 = no limit)')),
+                ('start', models.DateTimeField(help_text='Local start date and time')),
+                ('end', models.DateTimeField(help_text='Local end date and time', null=True, blank=True)),
+                ('max_participant', models.PositiveSmallIntegerField(default=0, help_text='Maximum number of participants to this session (0 = no limit)')),
                 ('event', models.ForeignKey(related_name='sessions', to='oneevent.Event')),
             ],
             options={

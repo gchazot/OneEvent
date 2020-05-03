@@ -1,5 +1,5 @@
 from django.test import TestCase
-from models import Event, Category, Choice, Option, Booking, BookingOption
+from .models import Event, Category, Choice, Option, Booking, BookingOption
 from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -272,7 +272,7 @@ class BookingTest(TestCase):
                       paidTo=self.user,
                       datePaid=None)
         reg.clean()
-        self.assertEquals(reg.paidTo, self.user)
+        self.assertEqual(reg.paidTo, self.user)
         diff_datePaid = timezone.now() - reg.datePaid
         self.assertLess(diff_datePaid, timedelta(seconds=1))
         self.assertGreaterEqual(diff_datePaid, timedelta(seconds=0))
@@ -282,8 +282,8 @@ class BookingTest(TestCase):
                       paidTo=None,
                       datePaid=timezone.now())
         reg.clean()
-        self.assertEquals(reg.paidTo, None)
-        self.assertEquals(reg.datePaid, None)
+        self.assertEqual(reg.paidTo, None)
+        self.assertEqual(reg.datePaid, None)
 
     def test_get_category_with_no_category_returns_None(self):
         reg = Booking(event=self.ev,
@@ -313,7 +313,7 @@ class BookingTest(TestCase):
                       datePaid=None)
         self.user.groups.add(self.g1a)
 
-        self.assertEquals(reg.get_category(), self.cat1)
+        self.assertEqual(reg.get_category(), self.cat1)
 
     def test_get_category_with_matching_second_category_returns_second_Category(self):
         self._add_categories()
@@ -324,7 +324,7 @@ class BookingTest(TestCase):
         self.user.groups.add(self.g1b)
         self.user.groups.add(self.g2b)
 
-        self.assertEquals(reg.get_category(), self.cat2)
+        self.assertEqual(reg.get_category(), self.cat2)
 
     def test_get_category_with_1_matching_category_returns_first_Category(self):
         self._add_categories()
@@ -336,14 +336,14 @@ class BookingTest(TestCase):
         self.user.groups.add(self.g1b)
         self.user.groups.add(self.g2b)
 
-        self.assertEquals(reg.get_category(), self.cat1)
+        self.assertEqual(reg.get_category(), self.cat1)
 
     def test_get_category_name_with_no_category_returns_Unknown(self):
         reg = Booking(event=self.ev,
                       person=self.user,
                       paidTo=None,
                       datePaid=None)
-        self.assertEqual(u'Unknown', reg.get_category_name())
+        self.assertEqual('Unknown', reg.get_category_name())
 
     def test_get_category_name_with_category_returns_name(self):
         self._add_categories()
@@ -353,7 +353,7 @@ class BookingTest(TestCase):
                       datePaid=None)
         self.user.groups.add(self.g1a)
 
-        self.assertEqual(u'category1', reg.get_category_name())
+        self.assertEqual('category1', reg.get_category_name())
 
     def test_payment_for_exempt_is_zero(self):
         reg = Booking(event=self.ev,
@@ -389,7 +389,7 @@ class BookingTest(TestCase):
                       datePaid=None)
         self.user.groups.add(self.g1a)
 
-        self.assertEquals(33, reg.must_pay())
+        self.assertEqual(33, reg.must_pay())
 
 
 class ParticipantChoiceTest(TestCase):

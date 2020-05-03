@@ -10,7 +10,7 @@ from django.core.mail.message import EmailMultiAlternatives
 from django.db.models.query_utils import Q
 from django.contrib.auth.models import User
 from django.db.models.aggregates import Count
-from timezones import CITY_CHOICES, get_tzinfo, add_to_zones_map
+from .timezones import CITY_CHOICES, get_tzinfo, add_to_zones_map
 
 import icalendar
 from icalendar.prop import vCalAddress, vText
@@ -85,9 +85,9 @@ class Event(models.Model):
                                       verbose_name='Currency for prices')
 
     def __unicode__(self):
-        result = u'{0} - {1:%x %H:%M}'.format(self.title, self.start)
+        result = '{0} - {1:%x %H:%M}'.format(self.title, self.start)
         if self.end is not None:
-            result += u' to {0:%x %H:%M}'.format(self.end)
+            result += ' to {0:%x %H:%M}'.format(self.end)
         return result
 
     def __init__(self, *args, **kwargs):
@@ -409,7 +409,7 @@ class Session(models.Model):
         ordering = ['event', 'title']
 
     def __unicode__(self):
-        return u'{0}: Session {1}'.format(self.event.title, self.title)
+        return '{0}: Session {1}'.format(self.event.title, self.title)
 
     def get_label(self):
         '''
@@ -435,8 +435,7 @@ class Session(models.Model):
         '''
         Checks if it is still possible to add a booking regarding the maximum of participants
         '''
-        return (self.max_participant > 0 and
-                self.get_active_bookings().count() >= self.max_participant)
+        return 0 < self.max_participant <= self.get_active_bookings().count()
 
 
 class Category(models.Model):
@@ -462,7 +461,7 @@ class Category(models.Model):
         ordering = ['order']
 
     def __unicode__(self):
-        return u'{0}: {1}) {2}'.format(self.event.title, self.order, self.name)
+        return '{0}: {1}) {2}'.format(self.event.title, self.order, self.name)
 
     def match(self, groups):
         """
@@ -493,7 +492,7 @@ class Choice(models.Model):
         ordering = ['id']
 
     def __unicode__(self):
-        return u'{0}: {1} choice'.format(self.event.title, self.title)
+        return '{0}: {1} choice'.format(self.event.title, self.title)
 
 
 class Option(models.Model):
@@ -510,9 +509,9 @@ class Option(models.Model):
 
     def __unicode__(self):
         if self.default:
-            return u'{0} : option {1} (default)'.format(self.choice, self.title)
+            return '{0} : option {1} (default)'.format(self.choice, self.title)
         else:
-            return u'{0} : option {1}'.format(self.choice, self.title)
+            return '{0} : option {1}'.format(self.choice, self.title)
 
 
 class Booking(models.Model):
@@ -539,7 +538,7 @@ class Booking(models.Model):
         ordering = ['id']
 
     def __unicode__(self):
-        return u'{0} : {1}'.format(self.event.title, self.person)
+        return '{0} : {1}'.format(self.event.title, self.person)
 
     def clean(self):
         '''
@@ -614,7 +613,7 @@ class Booking(models.Model):
         '''
         cat = self.get_category()
         if cat is None:
-            return u'Unknown'
+            return 'Unknown'
         return cat.name
 
     def must_pay(self):
@@ -663,17 +662,17 @@ class Booking(models.Model):
         title_text = 'Invitation to {0}'.format(event.title)
 
         plain_lines = [
-            u'You have registered to an event',
-            u'Add it to your calendar!',
-            u'',
-            u'Event: {0}',
-            u'Start: {1}',
-            u'End: {2}',
-            u'Location: {3}',
-            u'Address: {4}',
-            u'Description: {5}'
+            'You have registered to an event',
+            'Add it to your calendar!',
+            '',
+            'Event: {0}',
+            'Start: {1}',
+            'End: {2}',
+            'Location: {3}',
+            'Address: {4}',
+            'Description: {5}'
         ]
-        plain_text = u'\n'.join(plain_lines).format(
+        plain_text = '\n'.join(plain_lines).format(
             event.title,
             event.start.astimezone(event_tz),
             event.get_real_end().astimezone(event_tz),
@@ -683,19 +682,19 @@ class Booking(models.Model):
         )
 
         html_lines = [
-            u'<h2>You have registered to an event</h2>',
-            u'<h4>Add it to your calendar!</h4>',
-            u'<ul>',
-            u'<li><label>Event: </label>{0}</li>',
-            u'<li><label>Start: </label>{1}</li>',
-            u'<li><label>End: </label>{2}</li>',
-            u'<li><label>Location: </label>{3}</li>',
-            u'<li><label>Address: </label>{4}</li>',
-            u'</ul>',
-            u'<hr />',
-            u'<p>{5}</p>'
+            '<h2>You have registered to an event</h2>',
+            '<h4>Add it to your calendar!</h4>',
+            '<ul>',
+            '<li><label>Event: </label>{0}</li>',
+            '<li><label>Start: </label>{1}</li>',
+            '<li><label>End: </label>{2}</li>',
+            '<li><label>Location: </label>{3}</li>',
+            '<li><label>Address: </label>{4}</li>',
+            '</ul>',
+            '<hr />',
+            '<p>{5}</p>'
         ]
-        html_text = u'\n'.join(html_lines).format(
+        html_text = '\n'.join(html_lines).format(
             event.title,
             event.start.astimezone(event_tz),
             event.get_real_end().astimezone(event_tz),
@@ -706,26 +705,26 @@ class Booking(models.Model):
 
         if self.options.count() > 0:
             plain_lines = [
-                u'',
-                u'Your Choices:'
+                '',
+                'Your Choices:'
             ]
             html_lines = [
-                u'<hr />',
-                u'<h4>Your Choices</h4>',
-                u'<ul>'
+                '<hr />',
+                '<h4>Your Choices</h4>',
+                '<ul>'
             ]
             for part_opt in self.options.all():
                 plain_lines.append(
-                    u'* {0} : {1}'.format(part_opt.option.choice.title,
+                    '* {0} : {1}'.format(part_opt.option.choice.title,
                                           part_opt.option.title)
                 )
                 html_lines.append(
-                    u'<li><label>{0} : </label>{1}</li>'.format(part_opt.option.choice.title,
+                    '<li><label>{0} : </label>{1}</li>'.format(part_opt.option.choice.title,
                                                                 part_opt.option.title)
                 )
-            plain_text = plain_text + u'\n'.join(plain_lines)
-            html_lines.append(u'</ul>')
-            html_text = html_text + u'\n'.join(html_lines)
+            plain_text = plain_text + '\n'.join(plain_lines)
+            html_lines.append('</ul>')
+            html_text = html_text + '\n'.join(html_lines)
 
         return (title_text, plain_text, html_text)
 
@@ -754,12 +753,12 @@ class Booking(models.Model):
         tzmap = add_to_zones_map(tzmap, event_tz.zone, event.get_real_end())
         tzmap = add_to_zones_map(tzmap, timezone.get_default_timezone_name(), creation_time)
 
-        for (tzid, transitions) in tzmap.items():
+        for tzid, transitions in tzmap.items():
             cal_tz = icalendar.Timezone()
             cal_tz.add('tzid', tzid)
             cal_tz.add('x-lic-location', tzid)
 
-            for (transition, tzinfo) in transitions.items():
+            for transition, tzinfo in transitions.items():
 
                 if tzinfo['dst']:
                     cal_tz_sub = icalendar.TimezoneDaylight()
@@ -886,7 +885,7 @@ class Booking(models.Model):
         part.add_header("Path", filename)
         msg.attach(part)
 
-        print cal_text
+        print(cal_text)
 
         # Send the message
         return msg.send(fail_silently=False) == 1
@@ -904,7 +903,7 @@ class BookingOption(models.Model):
         ordering = ['option__choice__id', 'option__id', 'id']
 
     def __unicode__(self):
-        return u'{0} -> {1}'.format(self.booking, self.option)
+        return '{0} -> {1}'.format(self.booking, self.option)
 
     def clean(self):
         '''
@@ -942,7 +941,7 @@ class Message(models.Model):
         ordering = ['-created']
 
     def __unicode__(self):
-        return u'Message: From {0}, On {1}, Title "{2}"'.format(self.sender,
+        return 'Message: From {0}, On {1}, Title "{2}"'.format(self.sender,
                                                                 self.created,
                                                                 self.title)
 
@@ -996,6 +995,6 @@ class Message(models.Model):
                                          to=[self.thread_head.sender.email])
             msg.attach_alternative(message_html, "text/html")
             msg.send(fail_silently=True)
-            print "Sent message to {0}".format(self.thread_head.sender.email)
+            print("Sent message to {0}".format(self.thread_head.sender.email))
         else:
             mail_admins(subject, message_text, html_message=message_html, fail_silently=True)

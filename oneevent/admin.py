@@ -1,10 +1,10 @@
 from django.contrib import admin
-from models import (Event, Session, Choice, Option,
+from .models import (Event, Session, Choice, Option,
                     Booking, BookingOption, Message, Category)
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from django.utils import timezone
-from timezones import get_tzinfo
+from .timezones import get_tzinfo
 from django.contrib.admin.utils import unquote
 
 
@@ -19,7 +19,7 @@ class EditLinkToInlineObjectMixin(object):
             args=[instance.pk]
         )
         if instance.pk:
-            return mark_safe(u'<a href="{u}">edit</a>'.format(u=url))
+            return mark_safe('<a href="{u}">edit</a>'.format(u=url))
         else:
             return ''
 

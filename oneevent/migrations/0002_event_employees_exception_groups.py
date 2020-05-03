@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='event',
             name='employees_exception_groups',
-            field=models.ManyToManyField(related_name='employees_exceptions_for_event+', verbose_name=b'Groups NOT considered as Employees (exceptions)', to='auth.Group', blank=True),
+            field=models.ManyToManyField(related_name='employees_exceptions_for_event+', verbose_name='Groups NOT considered as Employees (exceptions)', to='auth.Group', blank=True),
         ),
     ]

@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import django.db.models.deletion
@@ -19,6 +19,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='session',
             name='max_participant',
-            field=models.PositiveSmallIntegerField(default=0, help_text=b'Maximum number of participants (0 = no limit)'),
+            field=models.PositiveSmallIntegerField(default=0, help_text='Maximum number of participants (0 = no limit)'),
         ),
     ]

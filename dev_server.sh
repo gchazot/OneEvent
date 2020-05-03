@@ -9,7 +9,7 @@ function usage() {
   echo "  -k|--keep-existing: Keep existing folder without asking"
   echo ""
   echo "Available actions:"
-  echo "  start: Launch a local development server"
+  echo "  run: Launch a local development server"
   echo "  test: Run tests and exit"
   echo ""
 }
@@ -47,6 +47,12 @@ while (( "$#" )); do
       ;;
   esac
 done
+
+if [ -z "${ACTION}" ]; then
+  echo "Error: No action provided"
+  usage
+  exit 1
+fi
 
 BASE_REPO=$(dirname "$(readlink -f "$0")")
 TARGET_DIR=${BASE_REPO}/dev_site

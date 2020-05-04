@@ -9,7 +9,7 @@ function usage() {
   echo "  -k|--keep-existing: Keep existing folder without asking"
   echo ""
   echo "Available actions:"
-  echo "  start: Launch a local development server"
+  echo "  run: Launch a local development server"
   echo "  test: Run tests and exit"
   echo ""
 }
@@ -48,6 +48,12 @@ while (( "$#" )); do
   esac
 done
 
+if [ -z "${ACTION}" ]; then
+  echo "Error: No action provided"
+  usage
+  exit 1
+fi
+
 BASE_REPO=$(dirname "$(readlink -f "$0")")
 TARGET_DIR=${BASE_REPO}/dev_site
 
@@ -74,12 +80,14 @@ VENV_DIR=${TARGET_DIR}/venv
 mkdir -p "${PROJECT_DIR}"
 
 if [ ! -f "${VENV_DIR}/bin/activate" ]; then
-  virtualenv -p "$(command -v python2)" "${VENV_DIR}"
+  virtualenv -p "$(command -v python3)" "${VENV_DIR}"
 fi
 source "${VENV_DIR}/bin/activate"
 
-pip install Django==1.11.29 django-debug-toolbar==1.11 django-extensions==2.2.9
-pip install -e "${BASE_REPO}"
+if [ -n "${DJANGO_VERSION}" ]; then
+  pip install "django${DJANGO_VERSION}"
+fi
+pip install -e "${BASE_REPO}[test]"
 
 SITE_NAME=oneevent_site
 SITE_DIR="${PROJECT_DIR}/${SITE_NAME}"

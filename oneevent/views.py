@@ -6,18 +6,18 @@ from django.template.defaultfilters import slugify
 from django.contrib import messages
 from django.utils import timezone
 
-import unicode_csv
-from timezones import get_tzinfo
+from . import unicode_csv
+from .timezones import get_tzinfo
 from datetime import timedelta
 
-from models import Event, Booking, Message, Choice, BookingOption
-from forms import (EventForm, CategoryFormSet, CategoryFormSetHelper,
+from .models import Event, Booking, Message, Choice, BookingOption
+from .forms import (EventForm, CategoryFormSet, CategoryFormSetHelper,
                    SessionFormSet, SessionFormSetHelper,
                    ChoiceForm, OptionFormSet, OptionFormSetHelper,
                    CreateBookingOnBehalfForm, BookingChoicesForm, BookingSessionForm,
                    MessageForm, ReplyMessageForm)
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 
 # A default datetime format (too lazy to use the one in settings)
@@ -25,7 +25,7 @@ dt_format = '%a, %d %b %Y %H:%M'
 
 
 def index(request):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return redirect('events_list_mine')
     else:
         return redirect('events_list_all')
@@ -39,7 +39,7 @@ def events_list(request, events, context, show_archived=False):
         if not evt.user_can_list(request.user, show_archived):
             continue
 
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             # Look for a possible booking by the user
             try:
                 user_booking = evt.get_active_bookings().get(person=request.user)
@@ -116,7 +116,7 @@ def booking_create(request, event_id):
         messages.warning(request, 'Please confirm your registration here!')
         return redirect('booking_update', booking_id=booking.id)
     else:
-        messages.error(request, u'Bookings are closed for "{0}"!'.format(event.title))
+        messages.error(request, 'Bookings are closed for "{0}"!'.format(event.title))
         return redirect('index')
 
 
@@ -143,11 +143,11 @@ def booking_create_on_behalf(request, event_id):
 
         if created:
             messages.success(request,
-                             u'Booking created for {0}. Please confirm it.'.format(
+                             'Booking created for {0}. Please confirm it.'.format(
                                  target_user.get_full_name()))
         else:
             messages.warning(request,
-                             u'Booking exists for {0}. You may edit it.'.format(
+                             'Booking exists for {0}. You may edit it.'.format(
                                  target_user.get_full_name()))
 
         return redirect('booking_update', booking_id=booking.id)
@@ -368,7 +368,7 @@ def _event_edit_form(request, event):
             return redirect('event_update', event_id=event.id)
         else:
             messages.warning(request,
-                             u'You removed yourself from the organisers of {0}'.format(event.title))
+                             'You removed yourself from the organisers of {0}'.format(event.title))
             return redirect('index')
     else:
         if event_form.is_bound:
@@ -522,7 +522,7 @@ def _choice_edit_form(request, choice):
             bookings = Booking.objects.filter(event=choice.event,
                                               cancelledBy__exact=None)
             for bkg in bookings:
-                print u"Adding option to booking {0} : {1}".format(bkg, options_formset.new_default)
+                print("Adding option to booking {0} : {1}".format(bkg, options_formset.new_default))
                 bkg.options.create(option=options_formset.new_default)
 
         messages.success(request, 'Choice updated')
@@ -565,7 +565,7 @@ def choice_delete(request, choice_id):
 
     if request.method == 'POST':
         choice.delete()
-        messages.success(request, u'Choice deleted: {0}'.format(choice.title))
+        messages.success(request, 'Choice deleted: {0}'.format(choice.title))
 
         return redirect('event_update', event_id=choice.event.id)
     else:
@@ -592,10 +592,10 @@ def booking_payment_confirm(request, booking_id, cancel=False):
 
         if not cancel:
             messages.success(request,
-                             u'Payment confirmed for {0}'.format(booking.person.get_full_name()))
+                             'Payment confirmed for {0}'.format(booking.person.get_full_name()))
         else:
             messages.success(request,
-                             u'Refund confirmed for {0}'.format(booking.person.get_full_name()))
+                             'Refund confirmed for {0}'.format(booking.person.get_full_name()))
 
         return redirect('event_manage', event_id=booking.event.id)
     else:
@@ -632,10 +632,10 @@ def booking_payment_exempt(request, booking_id, cancel=False):
 
         if not cancel:
             messages.success(request,
-                             u'Exemption confirmed for {0}'.format(booking.person.get_full_name()))
+                             'Exemption confirmed for {0}'.format(booking.person.get_full_name()))
         else:
             messages.success(request,
-                             u'Exemption cancelled for {0}'.format(booking.person.get_full_name()))
+                             'Exemption cancelled for {0}'.format(booking.person.get_full_name()))
         return redirect('event_manage', event_id=booking.event.id)
     else:
         timezone.activate(booking.event.get_tzinfo())
@@ -660,10 +660,10 @@ def event_download_options_summary(request, event_id):
     writer = unicode_csv.UnicodeWriter(response)
 
     summary_values = event.get_options_counts()
-    writer.writerow([u"Choice", u"Options"])
-    for choice, options in summary_values.iteritems():
+    writer.writerow(["Choice", "Options"])
+    for choice, options in summary_values.items():
         row = [choice.title]
-        for option, total in options.iteritems():
+        for option, total in options.items():
             row.append(option.title)
             row.append(str(total))
         writer.writerow(row)
@@ -689,41 +689,41 @@ def event_download_participants_list(request, event_id):
 
     bookings = event.bookings.order_by('person__last_name', 'person__first_name')
 
-    header_row = [u'Last name', u'First name', u'email', u'Category',
-                  u'Cancelled', u'Cancelled By', u'Confirmed On',
-                  u'Payment status', u'Paid to']
+    header_row = ['Last name', 'First name', 'email', 'Category',
+                  'Cancelled', 'Cancelled By', 'Confirmed On',
+                  'Payment status', 'Paid to']
 
     if event.sessions.exists():
-        header_row.append(u'Session')
+        header_row.append('Session')
 
     if event.choices.exists():
-        header_row.append(u'Choices')
+        header_row.append('Choices')
 
     writer.writerow(header_row)
 
     for booking in bookings:
         if booking.paidTo is not None:
             local_datePaid = booking.datePaid.astimezone(booking.event.get_tzinfo())
-            payment = u'Paid'
-            paid_to = u'{0} on {1}'.format(booking.paidTo.get_full_name(),
+            payment = 'Paid'
+            paid_to = '{0} on {1}'.format(booking.paidTo.get_full_name(),
                                            local_datePaid.strftime(dt_format))
         else:
-            paid_to = u''
+            paid_to = ''
             if booking.must_pay() > 0:
-                payment = u'Must pay {0} ({1})'.format(booking.must_pay(), event.price_currency)
+                payment = 'Must pay {0} ({1})'.format(booking.must_pay(), event.price_currency)
             else:
-                payment = u'Not needed'
+                payment = 'Not needed'
 
         if booking.cancelledBy is not None:
-            cancelled = u'Yes'
+            cancelled = 'Yes'
             local_dateCancelled = booking.cancelledOn.astimezone(booking.event.get_tzinfo())
-            cancelled_by = u"{0} on {1}".format(booking.cancelledBy.get_full_name(),
+            cancelled_by = "{0} on {1}".format(booking.cancelledBy.get_full_name(),
                                                 local_dateCancelled.strftime(dt_format))
             if booking.paidTo is None:
-                payment = u"N/A"
+                payment = "N/A"
         else:
-            cancelled = u"No"
-            cancelled_by = u''
+            cancelled = "No"
+            cancelled_by = ''
 
         if booking.confirmedOn is not None:
             local_date_confirmed = booking.confirmedOn.astimezone(booking.event.get_tzinfo())
@@ -742,7 +742,7 @@ def event_download_participants_list(request, event_id):
             if booking.session:
                 row.append(booking.session.title)
             else:
-                row.append(u'')
+                row.append('')
 
         for option in booking.options.all():
             row.append(option.option.title)

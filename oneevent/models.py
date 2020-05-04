@@ -10,7 +10,7 @@ from django.core.mail.message import EmailMultiAlternatives
 from django.db.models.query_utils import Q
 from django.contrib.auth.models import User
 from django.db.models.aggregates import Count
-from timezones import CITY_CHOICES, get_tzinfo, add_to_zones_map
+from .timezones import CITY_CHOICES, get_tzinfo, add_to_zones_map
 
 import icalendar
 from icalendar.prop import vCalAddress, vText
@@ -68,7 +68,7 @@ class Event(models.Model):
                                      help_text='Venue of your event')
     location_address = models.TextField(null=True, blank=True)
 
-    owner = models.ForeignKey('auth.User', related_name='events_owned',
+    owner = models.ForeignKey('auth.User', related_name='events_owned', on_delete=models.PROTECT,
                               help_text='Main organiser')
     organisers = models.ManyToManyField('auth.User', blank=True, related_name='events_organised')
 
@@ -85,9 +85,9 @@ class Event(models.Model):
                                       verbose_name='Currency for prices')
 
     def __unicode__(self):
-        result = u'{0} - {1:%x %H:%M}'.format(self.title, self.start)
+        result = '{0} - {1:%x %H:%M}'.format(self.title, self.start)
         if self.end is not None:
-            result += u' to {0:%x %H:%M}'.format(self.end)
+            result += ' to {0:%x %H:%M}'.format(self.end)
         return result
 
     def __init__(self, *args, **kwargs):
@@ -183,7 +183,7 @@ class Event(models.Model):
         '''
         if self.pub_status == 'PUB':
             return True
-        elif user.is_anonymous():
+        elif user.is_anonymous:
             # All other statuses are invisible to anonymous
             return False
         elif self.pub_status == 'REST':
@@ -208,7 +208,7 @@ class Event(models.Model):
         '''
         Check if the given user can book the event
         '''
-        if user.is_anonymous():
+        if user.is_anonymous:
             # All statuses are non-bookable by anonymous
             return False
 
@@ -395,7 +395,7 @@ class Session(models.Model):
     '''
     A session from an event being organised
     '''
-    event = models.ForeignKey('Event', related_name='sessions')
+    event = models.ForeignKey('Event', related_name='sessions', on_delete=models.CASCADE)
     title = models.CharField(max_length=64, unique=True)
     start = models.DateTimeField(help_text='Local start date and time')
     end = models.DateTimeField(blank=True, null=True,
@@ -409,7 +409,7 @@ class Session(models.Model):
         ordering = ['event', 'title']
 
     def __unicode__(self):
-        return u'{0}: Session {1}'.format(self.event.title, self.title)
+        return '{0}: Session {1}'.format(self.event.title, self.title)
 
     def get_label(self):
         '''
@@ -435,8 +435,7 @@ class Session(models.Model):
         '''
         Checks if it is still possible to add a booking regarding the maximum of participants
         '''
-        return (self.max_participant > 0 and
-                self.get_active_bookings().count() >= self.max_participant)
+        return 0 < self.max_participant <= self.get_active_bookings().count()
 
 
 class Category(models.Model):
@@ -448,7 +447,7 @@ class Category(models.Model):
     belongs to.
     The rule matches if the participant belongs to any of "groups1" AND to any of "groups2".
     '''
-    event = models.ForeignKey('Event', related_name='categories')
+    event = models.ForeignKey('Event', related_name='categories', on_delete=models.CASCADE)
     order = models.IntegerField()
     name = models.CharField(max_length=64)
     price = models.DecimalField(max_digits=6, decimal_places=2, default=0)
@@ -462,7 +461,7 @@ class Category(models.Model):
         ordering = ['order']
 
     def __unicode__(self):
-        return u'{0}: {1}) {2}'.format(self.event.title, self.order, self.name)
+        return '{0}: {1}) {2}'.format(self.event.title, self.order, self.name)
 
     def match(self, groups):
         """
@@ -485,7 +484,7 @@ class Choice(models.Model):
     '''
     A choice that participants have to make for an event
     '''
-    event = models.ForeignKey('Event', related_name='choices')
+    event = models.ForeignKey('Event', related_name='choices', on_delete=models.CASCADE)
     title = models.CharField(max_length=64)
 
     class Meta:
@@ -493,14 +492,14 @@ class Choice(models.Model):
         ordering = ['id']
 
     def __unicode__(self):
-        return u'{0}: {1} choice'.format(self.event.title, self.title)
+        return '{0}: {1} choice'.format(self.event.title, self.title)
 
 
 class Option(models.Model):
     '''
     An option available for a choice of an event
     '''
-    choice = models.ForeignKey('Choice', related_name='options')
+    choice = models.ForeignKey('Choice', related_name='options', on_delete=models.CASCADE)
     title = models.CharField(max_length=256)
     default = models.BooleanField(default=False)
 
@@ -510,27 +509,27 @@ class Option(models.Model):
 
     def __unicode__(self):
         if self.default:
-            return u'{0} : option {1} (default)'.format(self.choice, self.title)
+            return '{0} : option {1} (default)'.format(self.choice, self.title)
         else:
-            return u'{0} : option {1}'.format(self.choice, self.title)
+            return '{0} : option {1}'.format(self.choice, self.title)
 
 
 class Booking(models.Model):
     '''
     Entry recording a user registration to an event
     '''
-    event = models.ForeignKey('Event', related_name='bookings')
-    person = models.ForeignKey('auth.User', related_name='bookings')
+    event = models.ForeignKey('Event', related_name='bookings', on_delete=models.CASCADE)
+    person = models.ForeignKey('auth.User', related_name='bookings', on_delete=models.CASCADE)
     session = models.ForeignKey('Session', related_name='bookings',
                                 null=True, blank=True, on_delete=models.SET_NULL)
 
     confirmedOn = models.DateTimeField(blank=True, null=True)
     cancelledBy = models.ForeignKey('auth.User', blank=True, null=True,
-                                    related_name='cancelled_bookings')
+                                    related_name='cancelled_bookings', on_delete=models.SET_NULL)
     cancelledOn = models.DateTimeField(blank=True, null=True)
 
     paidTo = models.ForeignKey('auth.User', blank=True, null=True,
-                               related_name='received_payments')
+                               related_name='received_payments', on_delete=models.SET_NULL)
     datePaid = models.DateTimeField(blank=True, null=True)
     exempt_of_payment = models.BooleanField(default=False)
 
@@ -539,7 +538,7 @@ class Booking(models.Model):
         ordering = ['id']
 
     def __unicode__(self):
-        return u'{0} : {1}'.format(self.event.title, self.person)
+        return '{0} : {1}'.format(self.event.title, self.person)
 
     def clean(self):
         '''
@@ -614,7 +613,7 @@ class Booking(models.Model):
         '''
         cat = self.get_category()
         if cat is None:
-            return u'Unknown'
+            return 'Unknown'
         return cat.name
 
     def must_pay(self):
@@ -663,17 +662,17 @@ class Booking(models.Model):
         title_text = 'Invitation to {0}'.format(event.title)
 
         plain_lines = [
-            u'You have registered to an event',
-            u'Add it to your calendar!',
-            u'',
-            u'Event: {0}',
-            u'Start: {1}',
-            u'End: {2}',
-            u'Location: {3}',
-            u'Address: {4}',
-            u'Description: {5}'
+            'You have registered to an event',
+            'Add it to your calendar!',
+            '',
+            'Event: {0}',
+            'Start: {1}',
+            'End: {2}',
+            'Location: {3}',
+            'Address: {4}',
+            'Description: {5}'
         ]
-        plain_text = u'\n'.join(plain_lines).format(
+        plain_text = '\n'.join(plain_lines).format(
             event.title,
             event.start.astimezone(event_tz),
             event.get_real_end().astimezone(event_tz),
@@ -683,19 +682,19 @@ class Booking(models.Model):
         )
 
         html_lines = [
-            u'<h2>You have registered to an event</h2>',
-            u'<h4>Add it to your calendar!</h4>',
-            u'<ul>',
-            u'<li><label>Event: </label>{0}</li>',
-            u'<li><label>Start: </label>{1}</li>',
-            u'<li><label>End: </label>{2}</li>',
-            u'<li><label>Location: </label>{3}</li>',
-            u'<li><label>Address: </label>{4}</li>',
-            u'</ul>',
-            u'<hr />',
-            u'<p>{5}</p>'
+            '<h2>You have registered to an event</h2>',
+            '<h4>Add it to your calendar!</h4>',
+            '<ul>',
+            '<li><label>Event: </label>{0}</li>',
+            '<li><label>Start: </label>{1}</li>',
+            '<li><label>End: </label>{2}</li>',
+            '<li><label>Location: </label>{3}</li>',
+            '<li><label>Address: </label>{4}</li>',
+            '</ul>',
+            '<hr />',
+            '<p>{5}</p>'
         ]
-        html_text = u'\n'.join(html_lines).format(
+        html_text = '\n'.join(html_lines).format(
             event.title,
             event.start.astimezone(event_tz),
             event.get_real_end().astimezone(event_tz),
@@ -706,26 +705,26 @@ class Booking(models.Model):
 
         if self.options.count() > 0:
             plain_lines = [
-                u'',
-                u'Your Choices:'
+                '',
+                'Your Choices:'
             ]
             html_lines = [
-                u'<hr />',
-                u'<h4>Your Choices</h4>',
-                u'<ul>'
+                '<hr />',
+                '<h4>Your Choices</h4>',
+                '<ul>'
             ]
             for part_opt in self.options.all():
                 plain_lines.append(
-                    u'* {0} : {1}'.format(part_opt.option.choice.title,
+                    '* {0} : {1}'.format(part_opt.option.choice.title,
                                           part_opt.option.title)
                 )
                 html_lines.append(
-                    u'<li><label>{0} : </label>{1}</li>'.format(part_opt.option.choice.title,
+                    '<li><label>{0} : </label>{1}</li>'.format(part_opt.option.choice.title,
                                                                 part_opt.option.title)
                 )
-            plain_text = plain_text + u'\n'.join(plain_lines)
-            html_lines.append(u'</ul>')
-            html_text = html_text + u'\n'.join(html_lines)
+            plain_text = plain_text + '\n'.join(plain_lines)
+            html_lines.append('</ul>')
+            html_text = html_text + '\n'.join(html_lines)
 
         return (title_text, plain_text, html_text)
 
@@ -754,12 +753,12 @@ class Booking(models.Model):
         tzmap = add_to_zones_map(tzmap, event_tz.zone, event.get_real_end())
         tzmap = add_to_zones_map(tzmap, timezone.get_default_timezone_name(), creation_time)
 
-        for (tzid, transitions) in tzmap.items():
+        for tzid, transitions in tzmap.items():
             cal_tz = icalendar.Timezone()
             cal_tz.add('tzid', tzid)
             cal_tz.add('x-lic-location', tzid)
 
-            for (transition, tzinfo) in transitions.items():
+            for transition, tzinfo in transitions.items():
 
                 if tzinfo['dst']:
                     cal_tz_sub = icalendar.TimezoneDaylight()
@@ -886,7 +885,7 @@ class Booking(models.Model):
         part.add_header("Path", filename)
         msg.attach(part)
 
-        print cal_text
+        print(cal_text)
 
         # Send the message
         return msg.send(fail_silently=False) == 1
@@ -896,15 +895,15 @@ class BookingOption(models.Model):
     '''
     A choice made by a booking for an event
     '''
-    booking = models.ForeignKey('Booking', related_name='options')
-    option = models.ForeignKey('Option', null=True, blank=True)
+    booking = models.ForeignKey('Booking', related_name='options', on_delete=models.CASCADE)
+    option = models.ForeignKey('Option', null=True, blank=True, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('booking', 'option')
         ordering = ['option__choice__id', 'option__id', 'id']
 
     def __unicode__(self):
-        return u'{0} -> {1}'.format(self.booking, self.option)
+        return '{0} -> {1}'.format(self.booking, self.option)
 
     def clean(self):
         '''
@@ -928,13 +927,13 @@ class Message(models.Model):
         ('FEAT', 'Feature request'),
         ('ADMIN', 'Administration Request'),
     )
-    sender = models.ForeignKey('auth.User')
+    sender = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     category = models.CharField(max_length=8, choices=MSG_CAT_CHOICES,
                                 verbose_name='Reason')
     title = models.CharField(max_length=128)
     text = models.TextField(max_length=2048)
     thread_head = models.ForeignKey('Message', related_name='thread',
-                                    null=True, blank=True)
+                                    null=True, blank=True, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     safe_content = models.BooleanField(default=False)
 
@@ -942,7 +941,7 @@ class Message(models.Model):
         ordering = ['-created']
 
     def __unicode__(self):
-        return u'Message: From {0}, On {1}, Title "{2}"'.format(self.sender,
+        return 'Message: From {0}, On {1}, Title "{2}"'.format(self.sender,
                                                                 self.created,
                                                                 self.title)
 
@@ -996,6 +995,6 @@ class Message(models.Model):
                                          to=[self.thread_head.sender.email])
             msg.attach_alternative(message_html, "text/html")
             msg.send(fail_silently=True)
-            print "Sent message to {0}".format(self.thread_head.sender.email)
+            print("Sent message to {0}".format(self.thread_head.sender.email))
         else:
             mail_admins(subject, message_text, html_message=message_html, fail_silently=True)

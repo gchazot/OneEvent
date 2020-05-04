@@ -1,8 +1,8 @@
 from django.forms import Form
 from django.forms.fields import ChoiceField, SplitDateTimeField
-from models import Event, Session, Category, Choice, Option, Booking, BookingOption, Message
+from .models import Event, Session, Category, Choice, Option, Booking, BookingOption, Message
 from django.forms.models import ModelForm, inlineformset_factory, ModelChoiceField
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Reset, Layout, Field, Div, HTML
 from crispy_forms.bootstrap import TabHolder, Tab, FormActions
@@ -13,7 +13,7 @@ from django.contrib.auth.models import User
 def datetime_help_string():
     from datetime import datetime
     from django.conf import settings
-    now = datetime(1969, 07, 20, 20, 17, 40)
+    now = datetime(1969, 0o7, 20, 20, 17, 40)
     return "manual formats: {0} and {1}".format(
         now.strftime(settings.DATE_INPUT_FORMATS[0]),
         now.strftime(settings.TIME_INPUT_FORMATS[0])

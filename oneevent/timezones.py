@@ -1,6 +1,6 @@
 import pytz
 import datetime
-from tz_utils import is_datetime, tzdel, utc
+from .tz_utils import is_datetime, tzdel, utc
 
 # A map of available cities to the corresponding timezone code
 TIMEZONE_CODES = {

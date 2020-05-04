@@ -61,15 +61,15 @@ class EventTest(TestCase):
     def test_collected_money_sums_no_data_returns_empty(self):
         sums = self.ev.get_collected_money_sums()
 
-        self.assertItemsEqual(sums.categories, [])
-        self.assertItemsEqual(sums.organisers, [])
+        self.assertSequenceEqual(sums.categories, [])
+        self.assertSequenceEqual(sums.organisers, [])
 
     def test_collected_money_sums_returns_1_category(self):
         self.ev.categories.create(order=1, name='category1')
 
         sums = self.ev.get_collected_money_sums()
 
-        self.assertItemsEqual(sums.categories, ['category1'])
+        self.assertSequenceEqual(sums.categories, ['category1'])
 
     def test_collected_money_sums_returns_2_categories(self):
         self.ev.categories.create(order=1, name='category1')
@@ -77,7 +77,7 @@ class EventTest(TestCase):
 
         sums = self.ev.get_collected_money_sums()
 
-        self.assertItemsEqual(sums.categories, ['category1', 'category2'])
+        self.assertSequenceEqual(sums.categories, ['category1', 'category2'])
 
     def test_collected_money_sums_1_booking_1_category_returns_value(self):
         price = Decimal('42.33')
@@ -94,8 +94,8 @@ class EventTest(TestCase):
 
         sums = self.ev.get_collected_money_sums()
 
-        self.assertItemsEqual(sums.categories, ['category1'])
-        self.assertItemsEqual(sums.organisers, [user])
+        self.assertSequenceEqual(sums.categories, ['category1'])
+        self.assertSequenceEqual(sums.organisers, [user])
         result_table = list(sums.table_rows())
         self.assertEqual(result_table[0], [user.get_full_name(), price, price])
         self.assertEqual(result_table[1], ['Total', price, price])

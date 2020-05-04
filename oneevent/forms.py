@@ -1,6 +1,6 @@
 from django.forms import Form
 from django.forms.fields import ChoiceField, SplitDateTimeField
-from .models import Event, Session, Category, Choice, Option, Booking, BookingOption, Message
+from .models import Event, Session, Category, Choice, Option, Booking, BookingOption
 from django.forms.models import ModelForm, inlineformset_factory, ModelChoiceField
 from django.urls import reverse
 from crispy_forms.helper import FormHelper
@@ -341,14 +341,3 @@ class CreateBookingOnBehalfForm(Form):
         self.helper.label_class = 'col-lg-3'
         self.helper.field_class = 'col-lg-6'
         self.helper.add_input(Submit('submit', 'Create Booking'))
-
-
-class MessageForm(ModelForm):
-    class Meta:
-        model = Message
-        fields = ['category', 'title', 'text']
-
-
-class ReplyMessageForm(MessageForm):
-    class Meta(MessageForm.Meta):
-        fields = ['text']

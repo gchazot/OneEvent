@@ -42,8 +42,4 @@ urlpatterns = [
         name='booking_payment_unexempt', kwargs={'cancel': True}),
     url(r'^booking/(?P<booking_id>\d+)/send_invite$', views.booking_send_invite,
         name='booking_send_invite'),
-
-    url(r'^messages/$', views.messages_list, name='messages_list'),
-    url(r'^message/create/$', views.message_create, name='message_create'),
-    url(r'^message/create/(?P<thread_id>\d+)/$', views.message_create, name='message_reply'),
 ]

@@ -10,12 +10,11 @@ from . import unicode_csv
 from .timezones import get_tzinfo
 from datetime import timedelta
 
-from .models import Event, Booking, Message, Choice, BookingOption
+from .models import Event, Booking, Choice, BookingOption
 from .forms import (EventForm, CategoryFormSet, CategoryFormSetHelper,
                    SessionFormSet, SessionFormSetHelper,
                    ChoiceForm, OptionFormSet, OptionFormSetHelper,
-                   CreateBookingOnBehalfForm, BookingChoicesForm, BookingSessionForm,
-                   MessageForm, ReplyMessageForm)
+                   CreateBookingOnBehalfForm, BookingChoicesForm, BookingSessionForm)
 from django.contrib.auth.models import User
 from django.urls import reverse
 
@@ -749,51 +748,6 @@ def event_download_participants_list(request, event_id):
         writer.writerow(row)
 
     return response
-
-
-@login_required
-def messages_list(request):
-    threads = Message.objects.filter(thread_head=None)
-    if not request.user.is_superuser:
-        threads = threads.filter(sender=request.user)
-
-    user_threads = []
-    for thread_head in threads:
-        messages = thread_head.full_thread()
-        user_threads.append((thread_head, messages,))
-
-    return render(request, 'oneevent/messages_list.html', {'threads': user_threads})
-
-
-@login_required
-def message_create(request, thread_id=None):
-    # Pre-populate some fields of the message
-    new_msg = Message(sender=request.user)
-    if thread_id is None:
-        thread_head = None
-        form = MessageForm(request.POST or None, instance=new_msg)
-    else:
-        thread_head = get_object_or_404(Message, id=thread_id)
-        new_msg.thread_head = thread_head
-        new_msg.title = thread_head.title
-        new_msg.category = thread_head.category
-        form = ReplyMessageForm(request.POST or None, instance=new_msg)
-
-    # Check a quota of messages
-    limit = timezone.now() - timedelta(days=1)
-    user_msgs = Message.objects.filter(created__gte=limit, sender=request.user)
-    if user_msgs.count() >= 10:
-        messages.error(request, 'Sorry you have used your message quota')
-        return redirect('messages_list')
-
-    if form.is_valid():
-        new_message = form.save()
-        new_message.send_message_notification()
-        messages.success(request, 'Your message has been sent')
-        return redirect('messages_list')
-
-    context = {'form': form, 'thread_id': thread_id}
-    return render(request, 'oneevent/message_create.html', context)
 
 
 @login_required

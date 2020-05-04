@@ -183,7 +183,7 @@ class Event(models.Model):
         '''
         if self.pub_status == 'PUB':
             return True
-        elif user.is_anonymous():
+        elif user.is_anonymous:
             # All other statuses are invisible to anonymous
             return False
         elif self.pub_status == 'REST':
@@ -208,7 +208,7 @@ class Event(models.Model):
         '''
         Check if the given user can book the event
         '''
-        if user.is_anonymous():
+        if user.is_anonymous:
             # All statuses are non-bookable by anonymous
             return False
 

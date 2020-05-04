@@ -25,7 +25,7 @@ dt_format = '%a, %d %b %Y %H:%M'
 
 
 def index(request):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return redirect('events_list_mine')
     else:
         return redirect('events_list_all')
@@ -39,7 +39,7 @@ def events_list(request, events, context, show_archived=False):
         if not evt.user_can_list(request.user, show_archived):
             continue
 
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             # Look for a possible booking by the user
             try:
                 user_booking = evt.get_active_bookings().get(person=request.user)

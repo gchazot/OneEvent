@@ -84,6 +84,9 @@ if [ ! -f "${VENV_DIR}/bin/activate" ]; then
 fi
 source "${VENV_DIR}/bin/activate"
 
+if [ -n "${DJANGO_VERSION}" ]; then
+  pip install "django${DJANGO_VERSION}"
+fi
 pip install -e "${BASE_REPO}[test]"
 
 SITE_NAME=oneevent_site

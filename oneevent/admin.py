@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (Event, Session, Choice, Option,
                     Booking, BookingOption, Message, Category)
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils import timezone
 from .timezones import get_tzinfo

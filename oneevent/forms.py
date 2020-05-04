@@ -2,7 +2,7 @@ from django.forms import Form
 from django.forms.fields import ChoiceField, SplitDateTimeField
 from .models import Event, Session, Category, Choice, Option, Booking, BookingOption, Message
 from django.forms.models import ModelForm, inlineformset_factory, ModelChoiceField
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Reset, Layout, Field, Div, HTML
 from crispy_forms.bootstrap import TabHolder, Tab, FormActions

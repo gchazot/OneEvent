@@ -17,7 +17,7 @@ from .forms import (EventForm, CategoryFormSet, CategoryFormSetHelper,
                    CreateBookingOnBehalfForm, BookingChoicesForm, BookingSessionForm,
                    MessageForm, ReplyMessageForm)
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 
 # A default datetime format (too lazy to use the one in settings)

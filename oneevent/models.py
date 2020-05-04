@@ -68,7 +68,7 @@ class Event(models.Model):
                                      help_text='Venue of your event')
     location_address = models.TextField(null=True, blank=True)
 
-    owner = models.ForeignKey('auth.User', related_name='events_owned',
+    owner = models.ForeignKey('auth.User', related_name='events_owned', on_delete=models.PROTECT,
                               help_text='Main organiser')
     organisers = models.ManyToManyField('auth.User', blank=True, related_name='events_organised')
 
@@ -395,7 +395,7 @@ class Session(models.Model):
     '''
     A session from an event being organised
     '''
-    event = models.ForeignKey('Event', related_name='sessions')
+    event = models.ForeignKey('Event', related_name='sessions', on_delete=models.CASCADE)
     title = models.CharField(max_length=64, unique=True)
     start = models.DateTimeField(help_text='Local start date and time')
     end = models.DateTimeField(blank=True, null=True,
@@ -447,7 +447,7 @@ class Category(models.Model):
     belongs to.
     The rule matches if the participant belongs to any of "groups1" AND to any of "groups2".
     '''
-    event = models.ForeignKey('Event', related_name='categories')
+    event = models.ForeignKey('Event', related_name='categories', on_delete=models.CASCADE)
     order = models.IntegerField()
     name = models.CharField(max_length=64)
     price = models.DecimalField(max_digits=6, decimal_places=2, default=0)
@@ -484,7 +484,7 @@ class Choice(models.Model):
     '''
     A choice that participants have to make for an event
     '''
-    event = models.ForeignKey('Event', related_name='choices')
+    event = models.ForeignKey('Event', related_name='choices', on_delete=models.CASCADE)
     title = models.CharField(max_length=64)
 
     class Meta:
@@ -499,7 +499,7 @@ class Option(models.Model):
     '''
     An option available for a choice of an event
     '''
-    choice = models.ForeignKey('Choice', related_name='options')
+    choice = models.ForeignKey('Choice', related_name='options', on_delete=models.CASCADE)
     title = models.CharField(max_length=256)
     default = models.BooleanField(default=False)
 
@@ -518,18 +518,18 @@ class Booking(models.Model):
     '''
     Entry recording a user registration to an event
     '''
-    event = models.ForeignKey('Event', related_name='bookings')
-    person = models.ForeignKey('auth.User', related_name='bookings')
+    event = models.ForeignKey('Event', related_name='bookings', on_delete=models.CASCADE)
+    person = models.ForeignKey('auth.User', related_name='bookings', on_delete=models.CASCADE)
     session = models.ForeignKey('Session', related_name='bookings',
                                 null=True, blank=True, on_delete=models.SET_NULL)
 
     confirmedOn = models.DateTimeField(blank=True, null=True)
     cancelledBy = models.ForeignKey('auth.User', blank=True, null=True,
-                                    related_name='cancelled_bookings')
+                                    related_name='cancelled_bookings', on_delete=models.SET_NULL)
     cancelledOn = models.DateTimeField(blank=True, null=True)
 
     paidTo = models.ForeignKey('auth.User', blank=True, null=True,
-                               related_name='received_payments')
+                               related_name='received_payments', on_delete=models.SET_NULL)
     datePaid = models.DateTimeField(blank=True, null=True)
     exempt_of_payment = models.BooleanField(default=False)
 
@@ -895,8 +895,8 @@ class BookingOption(models.Model):
     '''
     A choice made by a booking for an event
     '''
-    booking = models.ForeignKey('Booking', related_name='options')
-    option = models.ForeignKey('Option', null=True, blank=True)
+    booking = models.ForeignKey('Booking', related_name='options', on_delete=models.CASCADE)
+    option = models.ForeignKey('Option', null=True, blank=True, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('booking', 'option')
@@ -927,13 +927,13 @@ class Message(models.Model):
         ('FEAT', 'Feature request'),
         ('ADMIN', 'Administration Request'),
     )
-    sender = models.ForeignKey('auth.User')
+    sender = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     category = models.CharField(max_length=8, choices=MSG_CAT_CHOICES,
                                 verbose_name='Reason')
     title = models.CharField(max_length=128)
     text = models.TextField(max_length=2048)
     thread_head = models.ForeignKey('Message', related_name='thread',
-                                    null=True, blank=True)
+                                    null=True, blank=True, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     safe_content = models.BooleanField(default=False)
 

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (Event, Session, Choice, Option,
-                    Booking, BookingOption, Message, Category)
+                    Booking, BookingOption, Category)
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils import timezone
@@ -198,4 +198,3 @@ class BookingAdmin(admin.ModelAdmin):
 admin.site.register(Event, EventAdmin)
 admin.site.register(Choice, ChoiceAdmin)
 admin.site.register(Booking, BookingAdmin)
-admin.site.register(Message, admin.ModelAdmin)

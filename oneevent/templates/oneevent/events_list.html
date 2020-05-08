@@ -56,12 +56,12 @@
         </thead>
         <tbody>
             {% for event_info in events %}
-            {% timezone event_info.event.get_tzinfo %}
+            {% timezone event_info.event.timezone %}
             <tr>
                 <td>
                     <p>
                         {{ event_info.event.title }}
-                        <span class="badge pull-right">{{ event_info.event.city }}</span>
+                        <span class="badge pull-right">{{ event_info.event.timezone }}</span>
                     </p>
                     {% if event_info.event.location_name %}<p><small>at </small>{{event_info.event.location_name}}</p>{% endif %}
                 </td>
@@ -104,25 +104,25 @@
                     </a>
                     {% else %}
                     <button type="button" class="btn btn-success disabled enable-tooltip"
-                        data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Choices Closed</button>
+                        data-toggle="tooltip" data-placement="top" title="Sorry you missed out">Choices Closed</button>
                     {% endif %}
                     {% if event_info.user_can_cancel %}
                     <a href="{% url 'booking_cancel' booking_id=event_info.booking.id %}" class="btn btn-danger">Unregister</a>
                     {% else %}
                     <button type="button" class="btn btn-danger disabled enable-tooltip"
-                        data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Event Closed</button>
+                        data-toggle="tooltip" data-placement="top" title="Sorry you missed out">Event Closed</button>
                     {% endif %}
                 {% elif event_info.user_can_book %}
                     {% if event_info.event.is_booking_open %}
                         {% if event_info.event.is_fully_booked %}
                         <button type="button" class="btn btn-info disabled enable-tooltip"
-                            data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Event Full</button>
+                            data-toggle="tooltip" data-placement="top" title="Sorry you missed out">Event Full</button>
                         {% else %}
                         <a href="{% url 'booking_create' event_id=event_info.event.id %}" class="btn btn-info">Register</a>
                         {% endif %}
                     {% else %}
                         <button type="button" class="btn btn-info disabled enable-tooltip"
-                            data-toggle="tooltip" data-placement="top" title="Too late Vicky! ;-)">Event Closed</button>
+                            data-toggle="tooltip" data-placement="top" title="Sorry you missed out">Event Closed</button>
                     {% endif %}
                 {% endif %}
                 </div>

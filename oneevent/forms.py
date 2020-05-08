@@ -132,7 +132,7 @@ class EventForm(ModelForm):
 
     class Meta:
         model = Event
-        fields = ['title', 'start', 'end', 'city', 'description', 'pub_status',
+        fields = ['title', 'start', 'end', 'timezone', 'description', 'pub_status',
                   'location_name', 'location_address', 'owner', 'organisers',
                   'booking_close', 'choices_close', 'max_participant', 'price_currency']
 
@@ -151,7 +151,7 @@ class EventForm(ModelForm):
         self.helper.label_class = 'col-lg-3'
         self.helper.field_class = 'col-lg-6'
         self.helper.layout = TabHolder(
-            Tab('Basics', 'title', 'start', 'end', 'city', 'pub_status'),
+            Tab('Basics', 'title', 'start', 'end', 'timezone', 'pub_status'),
             Tab('Description', 'description'),
             Tab('Venue', 'location_name', 'location_address'),
             Tab('Organisers', 'owner', 'organisers'),

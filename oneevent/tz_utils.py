@@ -1,7 +1,4 @@
-import logging
-import os
 import pytz
-import time
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
@@ -11,198 +8,73 @@ DSTKEEP = 'keep'
 DSTAUTO = 'auto'
 MAX32 = int(2 ** 31 - 1)
 
-logger = logging.getLogger('plone.event')
 
-
-def validated_timezone(timezone, fallback=None):
-    """ Validate a given timezone identifier. If a fallback is given, return it
-        when the given timezone is not a valid pytz zone. Else raise an
-        ValueError exception.
-
-    :param timezone: Timezone identifier to be validated against pytz.
-    :type timezone: string
-
-    :param fallback: A fallback timezone identifier.
-    :type fallback: string
-
-    :returns: A valid pytz timezone identifier.
-    :rtype: string
-    :raises: ValueError
-
-    >>> from plone.event.utils import validated_timezone
-
-    Validate a valid timezone:
-    >>> validated_timezone('Europe/Vienna')
-    'Europe/Vienna'
-
-    Validate an invalid timezone with fallback:
-    >>> validated_timezone('NOTVALID', 'UTC')
-    'UTC'
-
-    Validate an invalid timezone without fallback:
-    >>> validated_timezone('NOTVALID')
-    Traceback (most recent call last):
-    ...
-    ValueError: The timezone NOTVALID ...
-
-    The fallback itself isn't validated:
-    >>> validated_timezone('NOTVALID', 'NOTVALID')
-    'NOTVALID'
-
+def add_to_zones_map(tzmap, tzid, dt):
     """
-    try:
-        # following statement ensures, that timezone is a valid pytz/Olson zone
-        return pytz.timezone(timezone).zone
-    except:
-        if fallback:
-            logger.warn('The timezone %s is not a valid timezone from the '
-                        'Olson database or pytz. Falling back to %s.'
-                        % (timezone, fallback))
-            return fallback
-        else:
-            raise ValueError('The timezone %s is not a valid timezone from '
-                             'the Olson database or pytz.' % timezone)
+    From https://github.com/plone/plone.app.event/blob/02233f03a6bdf1746760b67a8a78ee9afe9fb0ee/plone/app/event/ical/exporter.py#L92
 
-
-def default_timezone(fallback='UTC'):
-    """ Retrieve the timezone from the server.
-        Default Fallback: UTC
-
-        :param fallback: A fallback timezone identifier.
-        :type fallback: string
-
-        :returns: A timezone identifier.
-        :rtype: string
-
-        >>> from plone.event.utils import default_timezone
-        >>> import os
-        >>> import time
-        >>> timetz = time.tzname
-        >>> ostz = 'TZ' in os.environ.keys() and os.environ['TZ'] or None
-
-        >>> os.environ['TZ'] = "Europe/Vienna"
-        >>> default_timezone()
-        'Europe/Vienna'
-
-        Timezone from time module
-        >>> os.environ['TZ'] = ""
-        >>> time.tzname = ('CET', 'CEST')
-        >>> default_timezone()
-        'CET'
-
-        Invalid timezone
-        >>> os.environ['TZ'] = "PST"
-        >>> default_timezone()
-        'UTC'
-
-        Invalid timezone with defined fallback
-        >>> os.environ['TZ'] = ""
-        >>> time.tzname = None
-        >>> default_timezone(fallback='CET')
-        'CET'
-
-        Restore the system timezone
-        >>> time.tzname = timetz
-        >>> if ostz:
-        ...     os.environ['TZ'] = ostz
-        ... else:
-        ...     del os.environ['TZ']
-
+    Build a dictionary of timezone information from a timezone identifier
+    and a date/time object for which the timezone information should be
+    calculated.
+    :param tzmap: An existing dictionary of timezone information to be extended
+                  or an empty dictionary.
+    :type tzmap: dictionary
+    :param tzid: A timezone identifier.
+    :type tzid: string
+    :param dt: A datetime object.
+    :type dt: datetime
+    :returns: A dictionary with timezone information needed to build VTIMEZONE
+              entries.
+    :rtype: dictionary
     """
 
-    timezone = None
-    if 'TZ' in os.environ.keys():
-        # Timezone from OS env var
-        timezone = os.environ['TZ']
-    if not timezone:
-        # Timezone from python time
-        zones = time.tzname
-        if zones and len(zones) > 0:
-            timezone = zones[0]
-        else:
-            # Default fallback = UTC
-            logger.warn("Operating system's timezone cannot be found. "
-                        "Falling back to UTC.")
-    return validated_timezone(timezone, fallback)
+    if tzid.lower() == 'utc' or not is_datetime(dt):
+        # no need to define UTC nor timezones for date objects.
+        return tzmap
+    null = datetime(1, 1, 1)
+    tz = pytz.timezone(tzid)
+    transitions = getattr(tz, '_utc_transition_times', None)
+    if not transitions:
+        return tzmap  # we need transition definitions
+    dtzl = tzdel(utc(dt))
 
+    # get transition time, which is the dtstart of timezone.
+    #     the key function returns the value to compare with. as long as item
+    #     is smaller or equal like the dt value in UTC, return the item. as
+    #     soon as it becomes greater, compare with the smallest possible
+    #     datetime, which wouldn't create a match within the max-function. this
+    #     way we get the maximum transition time which is smaller than the
+    #     given datetime.
+    transition = max(transitions,
+                     key=lambda item: item <= dtzl and item or null)
 
-# Display helpers
-def is_same_time(start, end, exact=False):
-    """ Test if event starts and ends at same time.
+    # get previous transition to calculate tzoffsetfrom
+    idx = transitions.index(transition)
+    prev_idx = idx > 0 and idx - 1 or idx
+    prev_transition = transitions[prev_idx]
 
-    :param start: The start datetime.
-    :type start: Python datetime or Zope DateTime
-    :param end: The end datetime.
-    :type end: Python datetime or Zope DateTime
-    :param exact: If True, the resolution goes down to microseconds. If False,
-                  the resolution are seconds. Default is False.
-    :type exact: Boolean
-    :returns: True, if start and end have the same time, otherwise False.
-    :rtype: Boolean.
+    def localize(tz, dt):
+        if dt is null:
+            # dummy time, edge case
+            # (dt at beginning of all transitions, see above.)
+            return null
+        return pytz.utc.localize(dt).astimezone(tz)  # naive to utc + localize
+    transition = localize(tz, transition)
+    dtstart = tzdel(transition)  # timezone dtstart must be in local time
+    prev_transition = localize(tz, prev_transition)
 
-    >>> from plone.event.utils import is_same_time, pydt
-    >>> from datetime import datetime, timedelta
-
-    >>> is_same_time(datetime.now(), datetime.now()+timedelta(hours=1))
-    False
-
-    >>> is_same_time(datetime.now(), datetime.now()+timedelta(days=1))
-    True
-
-    Resolution is one second
-    >>> is_same_time(datetime(2013, 5, 21, 10, 59, 58),
-    ...              datetime(2013, 5, 21, 10, 59, 59),
-    ...              exact=False)
-    False
-
-    Exact:
-    >>> now = datetime.now()
-    >>> is_same_time(now, now, exact=True)
-    True
-
-    """
-    start = pydt(start, exact=exact).time()
-    end = pydt(end, exact=exact).time()
-    if exact:
-        return start == end
-    else:
-        return start.hour == end.hour and\
-            start.minute == end.minute and\
-            start.second == end.second
-
-
-def is_same_day(start, end):
-    """ Test if event starts and ends at same day.
-
-    >>> from plone.event.utils import is_same_day, utc
-    >>> from datetime import datetime, timedelta
-
-    >>> is_same_day(
-    ...     datetime(2013, 11, 6, 10, 0, 0),
-    ...     datetime(2013, 11, 6, 10, 0, 0) + timedelta(hours=1)
-    ... )
-    True
-
-    >>> is_same_day(
-    ...     datetime(2013, 11, 6, 10, 0, 0),
-    ...     datetime(2013, 11, 6, 10, 0, 0) + timedelta(days=1)
-    ... )
-    False
-
-    >>> is_same_day(datetime(2011, 11, 11, 0, 0, 0,),
-    ...             datetime(2011, 11, 11, 23, 59, 59))
-    True
-
-    Now with one localized (UTC) datetime:
-    >>> is_same_day(
-    ...     utc(datetime(2013, 11, 6, 10, 0, 0)),
-    ...     datetime(2013, 11, 6, 10, 0, 0)
-    ... )
-    True
-    """
-    start = pydt(start)
-    end = pydt(end)
-    return start.date() == end.date()
+    if tzid not in tzmap:
+        tzmap[tzid] = {}  # initial
+    if dtstart in tzmap[tzid]:
+        return tzmap  # already there
+    tzmap[tzid][dtstart] = {
+        'dst': transition.dst() > timedelta(0),
+        'name': transition.tzname(),
+        'tzoffsetfrom': prev_transition.utcoffset(),
+        'tzoffsetto': transition.utcoffset(),
+        # TODO: recurrence rule
+    }
+    return tzmap
 
 
 # Timezone helpers
@@ -312,26 +184,6 @@ def tzdel(dt):
         return None
 
 
-def is_date(value):
-    """Checks, if given value is a date.
-
-    :param value: The value to check.
-    :type value: object
-    :returns: True, if value is a date (and not a datetime), false otherwise.
-    :rtype: Boolean
-
-    >>> from plone.event.utils import is_date
-    >>> from datetime import datetime, date
-    >>> is_date(date.today())
-    True
-    >>> is_date(datetime.now())
-    False
-    >>> is_date(42)
-    False
-    """
-    return type(value) is date
-
-
 def is_datetime(value):
     """Checks, if given value is a datetime.
 
@@ -350,38 +202,6 @@ def is_datetime(value):
     False
     """
     return type(value) is datetime
-
-
-def date_to_datetime(value):
-    """Converts date objects to datetime objects.
-
-    :param value: Date to convert to datetime.
-    :type value: date
-    :returns: datetime.
-    :rtype: datetime
-
-    >>> from plone.event.utils import date_to_datetime
-    >>> from datetime import datetime, date
-    >>> date_to_datetime(date(2013,3,25))
-    datetime.datetime(2013, 3, 25, 0, 0)
-
-    >>> date_to_datetime(datetime(2013,3,25,10,10,10))
-    datetime.datetime(2013, 3, 25, 10, 10, 10)
-
-    >>> date_to_datetime(42)
-    Traceback (most recent call last):
-    ...
-    ValueError: Value must be a date or datetime object.
-
-
-    """
-
-    if is_date(value):
-        return datetime(value.year, value.month, value.day)
-    elif is_datetime(value):
-        return value
-    else:
-        raise ValueError("Value must be a date or datetime object.")
 
 
 def pydt(dt, missing_zone=None, exact=False):
@@ -518,136 +338,3 @@ def guesstz(DT):
     except KeyError:
         pass
     return None
-
-
-# Date as integer representation helpers
-def dt2int(dt):
-    """ Calculates an integer from a datetime, resolution is one minute.
-    The datetime is always converted to the UTC zone.
-
-    >>> from plone.event import utils
-    >>> from datetime import datetime
-    >>> utils.dt2int(datetime(2011,11,11,11,11,tzinfo=utils.utctz()))
-    1077760031
-
-    """
-    if dt is None:
-        return 0
-    # TODO: if dt has not timezone information, guess and set it
-    dt = utc(dt)
-    value = (((dt.year * 12 + dt.month) * 31 + dt.day) * 24 + dt.hour) * 60 + dt.minute
-
-    # TODO: unit test me
-    if value > MAX32:
-        # value must be integer fitting in the 32bit range
-        raise OverflowError(
-            """%s is not within the range of indexable dates,<<
-            exceeding 32bit range.""" % dt
-        )
-    return value
-
-
-def int2dt(dtint):
-    """ Returns a datetime object from an integer representation with
-    resolution of one minute. The datetime returned is in the UTC zone.
-
-    >>> from plone.event.utils import int2dt
-    >>> int2dt(1077760031)
-    datetime.datetime(2011, 11, 11, 11, 11, tzinfo=<UTC>)
-
-    Dateconversion with int2dt from anything else than integers does not work
-    >>> int2dt(.0)
-    Traceback (most recent call last):
-    ...
-    ValueError: int2dt expects integer values as arguments.
-
-    """
-    if not isinstance(dtint, int):
-        raise ValueError('int2dt expects integer values as arguments.')
-    minutes = dtint % 60
-    hours = dtint / 60 % 24
-    days = dtint / 60 / 24 % 31
-    months = dtint / 60 / 24 / 31 % 12
-    years = dtint / 60 / 24 / 31 / 12
-    return datetime(years, months, days, hours, minutes, tzinfo=utctz())
-
-
-def dt_to_zone(dt, tzstring):
-    """ Return a datetime instance converted to the timezone given by the
-    string.
-
-    """
-    return dt.astimezone(pytz.timezone(tzstring))
-
-
-# RFC2445 export helpers
-def rfc2445dt(dt, mode='utc', date=True, time=True):
-    """ Convert a datetime or DateTime object into an RFC2445 compatible
-    datetime string.
-
-    @param dt: datetime or DateTime object to convert.
-
-    @param mode: Conversion mode ('utc'|'local'|'float')
-        Mode 'utc':   Return datetime string in UTC
-        Mode 'local': Return datetime string as local
-                      including a TZID component
-        Mode 'float': Return datetime string as floating (local without TZID
-                      component)
-
-    @param date: Return date.
-
-    @param time: Return time.
-
-    Usage
-    =====
-
-    >>> from datetime import datetime
-    >>> import pytz # this import actually takes quite a long time!
-    >>> from plone.event.utils import rfc2445dt
-
-    >>> at = pytz.timezone('Europe/Vienna')
-    >>> dt = at.localize(datetime(2010,10,10,10,10))
-    >>> dt
-    datetime.datetime(2010, 10, 10, 10, 10, tzinfo=<DstTzInfo 'Europe/Vienna' CEST+2:00:00 DST>)
-
-    >>> assert(rfc2445dt(dt) == rfc2445dt(dt, mode='utc'))
-    >>> rfc2445dt(dt)
-    '20101010T081000Z'
-
-    >>> rfc2445dt(dt, mode='local')
-    ('20101010T101000', 'Europe/Vienna')
-
-    >>> rfc2445dt(dt, mode='float')
-    '20101010T101000'
-
-    >>> assert(rfc2445dt(dt, date=True, time=True) == rfc2445dt(dt))
-    >>> rfc2445dt(dt, time=False)
-    '20101010Z'
-    >>> rfc2445dt(dt, date=False)
-    '081000Z'
-
-    RFC2445 dates from DateTime objects
-    -----------------------------------
-    >>> from DateTime import DateTime
-
-    It's summer time! So TZ in Belgrade is GMT+2.
-    >>> rfc2445dt(DateTime('2010/08/31 18:00:00 Europe/Belgrade'))
-    '20100831T160000Z'
-
-    GMT offsets are converted to UTC without any DST adjustments.
-    >>> rfc2445dt(DateTime('2010/08/31 20:15:00 GMT+1'))
-    '20100831T191500Z'
-
-    """
-    # TODO: rfc2445dt might not be necessary. drop me then.
-
-    dt = pydt(dt)
-    if mode == 'utc':
-        dt = utc(dt)
-    date = "%s%s%s%s" % (date and dt.strftime("%Y%m%d") or '',
-                         date and time and 'T' or '',
-                         time and dt.strftime("%H%M%S") or '',
-                         mode == 'utc' and 'Z' or '')
-    if mode == 'local':
-        return date, dt.tzinfo.zone
-    return date

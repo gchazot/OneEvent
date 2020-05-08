@@ -1,6 +1,8 @@
 {% extends "oneevent/base.html" %}
 
-{% block navbar_header_text %}Manage Event{% endblock %}
+{% block navbar_breadcrumbs %}
+    <li class="active">Manage Event</li>
+{% endblock %}
 
 {% block heading_action %}Manage{% endblock %}
 {% block heading_title %}{{ event.title }}

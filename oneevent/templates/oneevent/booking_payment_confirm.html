@@ -1,6 +1,8 @@
 {% extends "oneevent/base_confirmation.html" %}
 
-{% block navbar_header_text %}Confirm Payment{% endblock %}
+{% block navbar_breadcrumbs %}
+    <li class="active">Confirm Payment</li>
+{% endblock %}
 
 {% block heading_action %}
     {% if cancel %}Refund{% else %}Confirm Payment{% endif %}

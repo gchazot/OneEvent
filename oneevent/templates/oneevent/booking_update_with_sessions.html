@@ -1,8 +1,9 @@
 {% extends "oneevent/base.html" %}
 {% load crispy_forms_tags %}
 
-
-{% block navbar_header_text %}Registration{% endblock %}
+{% block navbar_breadcrumbs %}
+    <li class="active">Registration</li>
+{% endblock %}
 
 {% block heading_action %}Register{% endblock %}
 {% block heading_title %}{{ booking.event.title }}

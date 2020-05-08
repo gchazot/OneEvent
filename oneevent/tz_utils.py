@@ -3,15 +3,16 @@ from datetime import date
 from datetime import datetime
 from datetime import timedelta
 
-DSTADJUST = 'adjust'
-DSTKEEP = 'keep'
-DSTAUTO = 'auto'
+DSTADJUST = "adjust"
+DSTKEEP = "keep"
+DSTAUTO = "auto"
 MAX32 = int(2 ** 31 - 1)
 
 
 def add_to_zones_map(tzmap, tzid, dt):
     """
-    From https://github.com/plone/plone.app.event/blob/02233f03a6bdf1746760b67a8a78ee9afe9fb0ee/plone/app/event/ical/exporter.py#L92
+    From
+    https://github.com/plone/plone.app.event/blob/2.0/plone/app/event/ical/exporter.py#L91
 
     Build a dictionary of timezone information from a timezone identifier
     and a date/time object for which the timezone information should be
@@ -28,12 +29,12 @@ def add_to_zones_map(tzmap, tzid, dt):
     :rtype: dictionary
     """
 
-    if tzid.lower() == 'utc' or not is_datetime(dt):
+    if tzid.lower() == "utc" or not is_datetime(dt):
         # no need to define UTC nor timezones for date objects.
         return tzmap
     null = datetime(1, 1, 1)
     tz = pytz.timezone(tzid)
-    transitions = getattr(tz, '_utc_transition_times', None)
+    transitions = getattr(tz, "_utc_transition_times", None)
     if not transitions:
         return tzmap  # we need transition definitions
     dtzl = tzdel(utc(dt))
@@ -45,8 +46,7 @@ def add_to_zones_map(tzmap, tzid, dt):
     #     datetime, which wouldn't create a match within the max-function. this
     #     way we get the maximum transition time which is smaller than the
     #     given datetime.
-    transition = max(transitions,
-                     key=lambda item: item <= dtzl and item or null)
+    transition = max(transitions, key=lambda item: item <= dtzl and item or null)
 
     # get previous transition to calculate tzoffsetfrom
     idx = transitions.index(transition)
@@ -59,6 +59,7 @@ def add_to_zones_map(tzmap, tzid, dt):
             # (dt at beginning of all transitions, see above.)
             return null
         return pytz.utc.localize(dt).astimezone(tz)  # naive to utc + localize
+
     transition = localize(tz, transition)
     dtstart = tzdel(transition)  # timezone dtstart must be in local time
     prev_transition = localize(tz, prev_transition)
@@ -68,10 +69,10 @@ def add_to_zones_map(tzmap, tzid, dt):
     if dtstart in tzmap[tzid]:
         return tzmap  # already there
     tzmap[tzid][dtstart] = {
-        'dst': transition.dst() > timedelta(0),
-        'name': transition.tzname(),
-        'tzoffsetfrom': prev_transition.utcoffset(),
-        'tzoffsetto': transition.utcoffset(),
+        "dst": transition.dst() > timedelta(0),
+        "name": transition.tzname(),
+        "tzoffsetfrom": prev_transition.utcoffset(),
+        "tzoffsetto": transition.utcoffset(),
         # TODO: recurrence rule
     }
     return tzmap
@@ -86,7 +87,7 @@ def utctz():
     <UTC>
 
     """
-    return pytz.timezone('UTC')
+    return pytz.timezone("UTC")
 
 
 def utc(dt):
@@ -136,12 +137,12 @@ def utcoffset_normalize(date, delta=None, dstmode=DSTAUTO):
                   used - otherwise DSTADJUST. This behavior is the default.
     """
     try:
-        assert(bool(date.tzinfo))
-    except:
-        raise TypeError('Cannot normalize timezone naive dates')
-    assert(dstmode in [DSTADJUST, DSTKEEP, DSTAUTO])
+        assert bool(date.tzinfo)
+    except AssertionError:
+        raise TypeError("Cannot normalize timezone naive dates")
+    assert dstmode in [DSTADJUST, DSTKEEP, DSTAUTO]
     if delta:
-        assert(isinstance(delta, timedelta))  # Easier in Java
+        assert isinstance(delta, timedelta)  # Easier in Java
         delta = delta.seconds + delta.days * 24 * 3600  # total delta in secs
         if dstmode == DSTAUTO and delta < 24 * 60 * 60:
             dstmode = DSTKEEP
@@ -153,7 +154,7 @@ def utcoffset_normalize(date, delta=None, dstmode=DSTAUTO):
             return date.tzinfo.normalize(date)
         else:  # DSTADJUST
             return date.replace(tzinfo=date.tzinfo.normalize(date).tzinfo)
-    except:
+    except ValueError:
         # TODO: python-datetime converts e.g RDATE:20100119T230000Z to
         # datetime.datetime(2010, 1, 19, 23, 0, tzinfo=tzutc())
         # should that be a real utc zoneinfo?
@@ -223,7 +224,8 @@ def pydt(dt, missing_zone=None, exact=False):
 
     >>> at = pytz.timezone('Europe/Vienna')
     >>> pydt(at.localize(datetime(2010,10,30)))
-    datetime.datetime(2010, 10, 30, 0, 0, tzinfo=<DstTzInfo 'Europe/Vienna' CEST+2:00:00 DST>)
+    datetime.datetime(2010, 10, 30, 0, 0, tzinfo=<DstTzInfo \
+    'Europe/Vienna' CEST+2:00:00 DST>)
 
     >>> pydt(date(2010,10,30))
     datetime.datetime(2010, 10, 30, 0, 0, tzinfo=<UTC>)
@@ -234,21 +236,26 @@ def pydt(dt, missing_zone=None, exact=False):
     datetime.datetime(2011, 11, 11, 10, 11, 11, tzinfo=<UTC>)
 
     >>> pydt(DateTime('2011/11/11 11:11:11 Europe/Vienna'))
-    datetime.datetime(2011, 11, 11, 11, 11, 11, tzinfo=<DstTzInfo 'Europe/Vienna' CET+1:00:00 STD>)
+    datetime.datetime(2011, 11, 11, 11, 11, 11, tzinfo=<DstTzInfo \
+    'Europe/Vienna' CET+1:00:00 STD>)
 
     >>> pydt(DateTime('2005/11/07 18:00:00 Brazil/East'))
-    datetime.datetime(2005, 11, 7, 18, 0, tzinfo=<DstTzInfo 'Brazil/East' BRST-1 day, 22:00:00 DST>)
+    datetime.datetime(2005, 11, 7, 18, 0, tzinfo=<DstTzInfo \
+    'Brazil/East' BRST-1 day, 22:00:00 DST>)
 
     Test with exact set to True
     >>> pydt(DateTime('2012/10/10 10:10:10.123456 Europe/Vienna'), exact=True)
-    datetime.datetime(2012, 10, 10, 10, 10, 10, 123456, tzinfo=<DstTzInfo 'Europe/Vienna' CEST+2:00:00 DST>)
+    datetime.datetime(2012, 10, 10, 10, 10, 10, 123456, tzinfo=<DstTzInfo \
+    'Europe/Vienna' CEST+2:00:00 DST>)
 
     Test with exact set to False
     >>> pydt(DateTime('2012/10/10 10:10:10.123456 Europe/Vienna'), exact=False)
-    datetime.datetime(2012, 10, 10, 10, 10, 10, tzinfo=<DstTzInfo 'Europe/Vienna' CEST+2:00:00 DST>)
+    datetime.datetime(2012, 10, 10, 10, 10, 10, tzinfo=<DstTzInfo 'Europe/Vienna' \
+    CEST+2:00:00 DST>)
 
     >>> pydt(datetime(2012, 10, 10, 20, 20, 20, 123456, tzinfo=at), exact=False)
-    datetime.datetime(2012, 10, 10, 20, 20, 20, tzinfo=<DstTzInfo 'Europe/Vienna' CEST+2:00:00 DST>)
+    datetime.datetime(2012, 10, 10, 20, 20, 20, tzinfo=<DstTzInfo 'Europe/Vienna' \
+    CEST+2:00:00 DST>)
 
     """
     if dt is None:
@@ -263,7 +270,7 @@ def pydt(dt, missing_zone=None, exact=False):
         dt = datetime(dt.year, dt.month, dt.day)
 
     if isinstance(dt, datetime):
-        tznaive = not bool(getattr(dt, 'tzinfo', False))
+        tznaive = not bool(getattr(dt, "tzinfo", False))
         if tznaive:
             ret = missing_zone.localize(dt)
         else:
@@ -296,11 +303,14 @@ def pydt(dt, missing_zone=None, exact=False):
         # tz is equal to <DstTzInfo 'Europe/Paris' PMT+0:09:00 STD>
         dt = datetime(year, month, day, hour, mins, sec, micro, tzinfo=tz)
         # before:
-        # datetime.datetime(2011, 3, 14, 14, 19, tzinfo=<DstTzInfo 'Europe/Paris' PMT+0:09:00 STD>)
+        # datetime.datetime(2011, 3, 14, 14, 19, \
+        # tzinfo=<DstTzInfo 'Europe/Paris' PMT+0:09:00 STD>)
         # dt = dt.tzinfo.normalize(dt)
-        # after: datetime.datetime(2011, 3, 14, 15, 10, tzinfo=<DstTzInfo 'Europe/Paris' CET+1:00:00 STD>
+        # after: datetime.datetime(2011, 3, 14, 15, 10, \
+        # tzinfo=<DstTzInfo 'Europe/Paris' CET+1:00:00 STD>
         dt = utcoffset_normalize(dt, dstmode=DSTADJUST)
-        # after: datetime.datetime(2011, 3, 14, 19, tzinfo=<DstTzInfo 'Europe/Paris' CET+1:00:00 STD>
+        # after: datetime.datetime(2011, 3, 14, 19, \
+        # tzinfo=<DstTzInfo 'Europe/Paris' CET+1:00:00 STD>
         ret = dt
 
     if ret and not exact:

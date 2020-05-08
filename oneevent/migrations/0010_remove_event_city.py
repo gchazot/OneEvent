@@ -6,12 +6,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('oneevent', '0009_event_timezone'),
+        ("oneevent", "0009_event_timezone"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='event',
-            name='city',
-        ),
+        migrations.RemoveField(model_name="event", name="city",),
     ]

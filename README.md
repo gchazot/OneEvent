@@ -138,6 +138,15 @@ urlpatterns += [
 ]
 ```
 
+A few customizations are available:
+* Define the name of the site or the color of the navbar in settings.
+```python
+ONEEVENT_SITE_BRAND = "OneEvent Sandbox"
+ONEEVENT_NAVBAR_COLOR = "green"
+```
+* Customise the user avatar in the navbar. To do this, just create a template in
+`<your_templates_folder>/oneevent/user_avatar.html` and fill it with your desired content.
+
 ## Development
 The `dev_server.sh` script is here to help setting up a development site.
 

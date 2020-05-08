@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.utils import timezone
+from django.utils import timezone as django_timezone
 from django.core.mail.message import EmailMultiAlternatives
 from django.contrib.auth.models import User
 from django.db.models.aggregates import Count
@@ -241,13 +241,13 @@ class Event(models.Model):
         '''
         Check if the event is ended
         '''
-        return self.get_real_end() < timezone.now()
+        return self.get_real_end() < django_timezone.now()
 
     def is_booking_open(self):
         '''
         Check if the event is still open for bookings
         '''
-        closed = self.booking_close is not None and timezone.now() > self.booking_close
+        closed = self.booking_close is not None and django_timezone.now() > self.booking_close
         published = self.pub_status in ('PUB', 'REST', 'PRIV')
         return self.is_choices_open() and not self.is_ended() and not closed and published
 
@@ -255,7 +255,7 @@ class Event(models.Model):
         '''
         Check if the event is still open for choices
         '''
-        closed = self.choices_close is not None and timezone.now() > self.choices_close
+        closed = self.choices_close is not None and django_timezone.now() > self.choices_close
         published = self.pub_status in ('PUB', 'REST', 'PRIV')
         return not self.is_ended() and not closed and published
 
@@ -543,13 +543,13 @@ class Booking(models.Model):
                                                                             self.event))
         # Reset the date paid against paid To
         if self.paidTo is not None and self.datePaid is None:
-            self.datePaid = timezone.now()
+            self.datePaid = django_timezone.now()
         if self.paidTo is None and self.datePaid is not None:
             self.datePaid = None
 
         # Reset the cancel date against cancelledBy
         if self.cancelledBy is not None and self.cancelledOn is None:
-            self.cancelledOn = timezone.now()
+            self.cancelledOn = django_timezone.now()
         if self.cancelledBy is None and self.cancelledOn is not None:
             self.cancelledOn = None
 
@@ -731,7 +731,7 @@ class Booking(models.Model):
         '''
         event = self.event
         event_tz = event.get_tzinfo()
-        creation_time = timezone.now()
+        creation_time = django_timezone.now()
 
         # Generate some description strings
         title, desc_plain, _desc_html = self.get_invite_texts()
@@ -747,7 +747,7 @@ class Booking(models.Model):
         tzmap = {}
         tzmap = add_to_zones_map(tzmap, event_tz.zone, event.start)
         tzmap = add_to_zones_map(tzmap, event_tz.zone, event.get_real_end())
-        tzmap = add_to_zones_map(tzmap, timezone.get_default_timezone_name(), creation_time)
+        tzmap = add_to_zones_map(tzmap, django_timezone.get_default_timezone_name(), creation_time)
 
         for tzid, transitions in tzmap.items():
             cal_tz = icalendar.Timezone()

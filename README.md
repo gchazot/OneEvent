@@ -124,15 +124,6 @@ INSTALLED_APPS = [
     'crispy_forms',
     ...
 ]
-```
-
-OneEvent also uses a custom context processor to allow customising its navbar. This can be
-configured by adding `'oneevent.context_processors.customise_navbar'` to the list of
-`context_processors` in your `TEMPLATES` setting. As an example, here is how it's done for the
-development site:
-```python
-TEMPLATES[0]['OPTIONS']['context_processors'].append('oneevent.context_processors.customise_navbar')
-```
 
 #### Django URLs
 Load the configuration for the URL views.

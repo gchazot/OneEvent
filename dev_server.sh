@@ -112,8 +112,6 @@ INTERNAL_IPS = [
     '127.0.0.1',
 ]
 
-TEMPLATES[0]['OPTIONS']['context_processors'].append('oneevent.context_processors.customise_navbar')
-
 EOF
 
   cat << EOF >> "${SITE_DIR}/urls.py"

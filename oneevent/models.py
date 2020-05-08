@@ -3,11 +3,7 @@ from decimal import Decimal
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.utils.safestring import mark_safe
-from django.template import loader
-from django.core.mail import mail_admins
 from django.core.mail.message import EmailMultiAlternatives
-from django.db.models.query_utils import Q
 from django.contrib.auth.models import User
 from django.db.models.aggregates import Count
 from .timezones import CITY_CHOICES, get_tzinfo, add_to_zones_map
@@ -58,11 +54,14 @@ class Event(models.Model):
     pub_status = models.CharField(
         max_length=8, choices=PUB_STATUS_CHOICES, default='UNPUB',
         verbose_name='Publication status',
-        help_text='Public: Visible and bookable by all; ' +
-                  'Restricted: Visible and Bookable by invited groups; ' +
-                  'Private: Visible by participant, bookable by all; ' +
-                  'Unpublished: Visible by organisers, not bookable; ' +
-                  'Archived: Not visible, not bookable')
+        help_text=(
+            'Public: Visible and bookable by all; '
+            'Restricted: Visible and Bookable by invited groups; '
+            'Private: Visible by participant, bookable by all; '
+            'Unpublished: Visible by organisers, not bookable; '
+            'Archived: Not visible, not bookable'
+        )
+    )
 
     location_name = models.CharField(max_length=64, null=True, blank=True,
                                      help_text='Venue of your event')
@@ -190,15 +189,18 @@ class Event(models.Model):
             # All other statuses are invisible to anonymous
             return False
         elif self.pub_status == 'REST':
-            return (user.is_superuser or
-                    self.user_is_organiser(user) or
-                    self.get_user_category(user) is not None)
+            return any((
+                user.is_superuser,
+                self.user_is_organiser(user),
+                self.get_user_category(user) is not None,
+            ))
         elif self.pub_status == 'PRIV' or self.pub_status == 'UNPUB':
             user_has_booking = self.bookings.filter(person=user, cancelledBy=None).count() > 0
-            return (user.is_superuser or
-                    user_has_booking or
-                    self.user_is_organiser(user)
-                    )
+            return any((
+                user.is_superuser,
+                user_has_booking,
+                self.user_is_organiser(user),
+            ))
         elif self.pub_status == 'ARCH':
             if list_archived:
                 return user.is_superuser or self.user_is_organiser(user)
@@ -218,8 +220,10 @@ class Event(models.Model):
         if self.pub_status == 'PUB':
             return True
         elif self.pub_status == 'REST':
-            return (self.user_is_organiser(user) or
-                    self.get_user_category(user) is not None)
+            return any((
+                self.user_is_organiser(user),
+                self.get_user_category(user) is not None,
+            ))
         elif self.pub_status == 'PRIV':
             return True
         elif self.pub_status == 'UNPUB':
@@ -254,8 +258,10 @@ class Event(models.Model):
         '''
         Check if the event is still open for bookings
         '''
-        closed = (self.booking_close is not None and
-                  timezone.now() > self.booking_close)
+        closed = all((
+            self.booking_close is not None,
+            timezone.now() > self.booking_close,
+        ))
         published = self.pub_status in ('PUB', 'REST', 'PRIV')
         return self.is_choices_open() and not self.is_ended() and not closed and published
 
@@ -263,8 +269,10 @@ class Event(models.Model):
         '''
         Check if the event is still open for choices
         '''
-        closed = (self.choices_close is not None and
-                  timezone.now() > self.choices_close)
+        closed = all((
+            self.choices_close is not None,
+            timezone.now() > self.choices_close,
+        ))
         published = self.pub_status in ('PUB', 'REST', 'PRIV')
         return not self.is_ended() and not closed and published
 
@@ -272,8 +280,7 @@ class Event(models.Model):
         '''
         Checks if it is still possible to add a booking regarding the maximum of participants
         '''
-        return (self.max_participant > 0 and
-                self.get_active_bookings().count() >= self.max_participant)
+        return 0 < self.max_participant <= self.get_active_bookings().count()
 
     def get_active_bookings(self):
         '''
@@ -548,9 +555,11 @@ class Booking(models.Model):
         Validate the contents of this Model
         '''
         super(Booking, self).clean()
-        if (self.paidTo is not None and
-                self.must_pay() == 0 and
-                not self.exempt_of_payment):
+        if all((
+            self.paidTo is not None,
+            self.must_pay() == 0,
+            not self.exempt_of_payment,
+        )):
             raise ValidationError("{0} does not have to pay for {1}".format(self.person,
                                                                             self.event))
         # Reset the date paid against paid To
@@ -588,8 +597,9 @@ class Booking(models.Model):
         '''
         Check that the user can cancel the booking
         '''
-        return ((self.event.is_booking_open() and user == self.person) or
-                self.event.user_is_organiser(user))
+        is_own_open = user == self.person and self.event.is_booking_open()
+        is_organiser = self.event.user_is_organiser(user)
+        return is_own_open or is_organiser
 
     def user_can_update_payment(self, user):
         '''
@@ -718,12 +728,16 @@ class Booking(models.Model):
             ]
             for part_opt in self.options.all():
                 plain_lines.append(
-                    '* {0} : {1}'.format(part_opt.option.choice.title,
-                                          part_opt.option.title)
+                    '* {0} : {1}'.format(
+                        part_opt.option.choice.title,
+                        part_opt.option.title,
+                    )
                 )
                 html_lines.append(
-                    '<li><label>{0} : </label>{1}</li>'.format(part_opt.option.choice.title,
-                                                                part_opt.option.title)
+                    '<li><label>{0} : </label>{1}</li>'.format(
+                        part_opt.option.choice.title,
+                        part_opt.option.title,
+                    )
                 )
             plain_text = plain_text + '\n'.join(plain_lines)
             html_lines.append('</ul>')

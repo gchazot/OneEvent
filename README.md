@@ -134,19 +134,6 @@ development site:
 TEMPLATES[0]['OPTIONS']['context_processors'].append('oneevent.context_processors.customise_navbar')
 ```
 
-Also, the app uses the nice `django-crispy-forms` helper with its `bootstrap3` template pack to
-render nice forms with minimal effort. So you will have to specify the template pack;
-```python
-CRISPY_TEMPLATE_PACK = 'bootstrap3'
-```
-And also customise message tags to map Django's `ERROR` level to Bootstrap's `danger` style:
-```python
-from django.contrib import messages
-MESSAGE_TAGS = {
-    messages.ERROR: 'danger',
-}
-```
-
 #### Django URLs
 Load the configuration for the URL views.
 

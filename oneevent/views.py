@@ -487,8 +487,7 @@ def event_update_sessions(request, event_id):
 
 @login_required
 def event_create(request):
-    new_event = Event(owner=request.user,
-                      city='London')
+    new_event = Event(owner=request.user)
     return _event_edit_form(request, new_event)
 
 

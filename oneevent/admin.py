@@ -125,7 +125,7 @@ class EventAdmin(admin.ModelAdmin):
     fields = (
         ('title', 'pub_status'),
         ('start', 'end'),
-        ('city', 'timezone'),
+        'timezone',
         ('location_name', 'location_address'),
         ('owner', 'organisers'),
         ('booking_close', 'choices_close'),
@@ -133,7 +133,7 @@ class EventAdmin(admin.ModelAdmin):
         'price_currency',
     )
     inlines = (SessionInline, CategoryInline, ChoiceInline,)
-    list_display = ('title', 'city', 'timezone', 'start_local', 'end_local')
+    list_display = ('title', 'timezone', 'start_local', 'end_local')
 
     dt_format = '%a, %d %b %Y %H:%M:%S %Z'
 
@@ -153,8 +153,8 @@ class EventAdmin(admin.ModelAdmin):
 
     def add_view(self, request, form_url='', extra_context=None):
         '''
-        Override add view so we can peek at the city they've entered and
-        set the current time zone accordingly before the form is processed
+        Override add view so we can peek at the timezone they've entered and
+        set the current timezone accordingly before the form is processed
         '''
         if request.method == 'POST':
             tz_form = self.get_form(request)(request.POST)
@@ -166,8 +166,8 @@ class EventAdmin(admin.ModelAdmin):
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         '''
-        Override change view so we can peek at the city they've entered and
-        set the current time zone accordingly before the form is processed
+        Override change view so we can peek at the timezone they've entered and
+        set the current timezone accordingly before the form is processed
         '''
         event = self.get_object(request, unquote(object_id))
 

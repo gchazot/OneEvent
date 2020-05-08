@@ -775,7 +775,7 @@ class Booking(models.Model):
 
         cal_evt.add('summary', title)
         cal_evt.add('description', desc_plain)
-        cal_evt.add('location', vText('{0} - {1}'.format(event.city, event.location_name)))
+        cal_evt.add('location', vText(event.location_name))
 
         cal_evt.add('category', 'Event')
         cal_evt.add('status', 'CONFIRMED')

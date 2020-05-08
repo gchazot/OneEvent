@@ -6,7 +6,7 @@ from django.utils import timezone as django_timezone
 from django.core.mail.message import EmailMultiAlternatives
 from django.contrib.auth.models import User
 from django.db.models.aggregates import Count
-from .timezones import add_to_zones_map
+from .tz_utils import add_to_zones_map
 from timezone_field import TimeZoneField
 
 import icalendar

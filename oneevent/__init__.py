@@ -8,6 +8,12 @@ class OneEventConfig(AppConfig):
     verbose_name = 'OneEvent'
 
     def ready(self):
+        site_brand = getattr(settings, 'ONEEVENT_SITE_BRAND', self.verbose_name)
+        setattr(settings, 'ONEEVENT_SITE_BRAND', site_brand)
+
+        navbar_color = getattr(settings, 'ONEEVENT_NAVBAR_COLOR', None)
+        setattr(settings, 'ONEEVENT_NAVBAR_COLOR', navbar_color)
+
         # Override the "error" message level to match the bootstrap "danger" class
         message_tags = getattr(settings, 'MESSAGE_TAGS', {})
         message_tags.setdefault(messages.ERROR, 'danger')

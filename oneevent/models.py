@@ -224,12 +224,6 @@ class Event(models.Model):
         else:
             raise Exception("Unknown publication status: {0}".format(self.pub_status))
 
-    def get_tzinfo(self):
-        '''
-        Get the tzinfo object applicable to this event
-        '''
-        return get_tzinfo(self.city)
-
     def get_real_end(self):
         '''
         Get the real datetime of the end of the event
@@ -237,7 +231,7 @@ class Event(models.Model):
         if self.end is not None:
             return self.end
         else:
-            return end_of_day(self.start, self.get_tzinfo())
+            return end_of_day(self.start, self.timezone)
 
     def is_ended(self):
         '''
@@ -651,7 +645,7 @@ class Booking(models.Model):
         @return: a tuple (title, description_plain, description_html)
         '''
         event = self.event
-        event_tz = event.get_tzinfo()
+        event_tz = event.timezone
 
         title_text = 'Invitation to {0}'.format(event.title)
 
@@ -732,7 +726,7 @@ class Booking(models.Model):
         iCal validator, useful for debugging: http://icalvalid.cloudapp.net/
         '''
         event = self.event
-        event_tz = event.get_tzinfo()
+        event_tz = event.timezone
         creation_time = django_timezone.now()
 
         # Generate some description strings

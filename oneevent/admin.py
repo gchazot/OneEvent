@@ -126,21 +126,21 @@ class EventAdmin(admin.ModelAdmin):
     fields = (
         ('title', 'pub_status'),
         ('start', 'end'),
-        'city',
+        ('city', 'timezone'),
         ('location_name', 'location_address'),
         ('owner', 'organisers'),
         ('booking_close', 'choices_close'),
-        ('max_participant'),
-        ('price_currency'),
+        'max_participant',
+        'price_currency',
     )
     inlines = (SessionInline, CategoryInline, ChoiceInline,)
-    list_display = ('title', 'city', 'start_local', 'end_local')
+    list_display = ('title', 'city', 'timezone', 'start_local', 'end_local')
 
     dt_format = '%a, %d %b %Y %H:%M:%S %Z'
 
     def start_local(self, event):
         ''' Display the start datetime in its local timezone '''
-        tz = event.get_tzinfo()
+        tz = event.timezone
         dt = event.start.astimezone(tz)
         return dt.strftime(self.dt_format)
 
@@ -148,7 +148,7 @@ class EventAdmin(admin.ModelAdmin):
         ''' Display the end datetime in its local timezone '''
         if event.end is None:
             return None
-        tz = event.get_tzinfo()
+        tz = event.timezone
         dt = event.end.astimezone(tz)
         return dt.strftime(self.dt_format)
 
@@ -170,15 +170,15 @@ class EventAdmin(admin.ModelAdmin):
         Override change view so we can peek at the city they've entered and
         set the current time zone accordingly before the form is processed
         '''
-        obj = self.get_object(request, unquote(object_id))
+        event = self.get_object(request, unquote(object_id))
 
         if request.method == 'POST':
-            tz_form = self.get_form(request, obj)(request.POST, instance=obj)
+            tz_form = self.get_form(request, event)(request.POST, instance=event)
             if tz_form.is_valid():
                 tz = get_tzinfo(tz_form.cleaned_data['city'])
                 timezone.activate(tz)
         else:
-            timezone.activate(obj.get_tzinfo())
+            timezone.activate(event.timezone)
 
         return super(EventAdmin, self).change_view(request, object_id, form_url, extra_context)
 

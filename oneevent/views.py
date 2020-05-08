@@ -152,7 +152,7 @@ def booking_create_on_behalf(request, event_id):
 
         return redirect('booking_update', booking_id=booking.id)
     else:
-        timezone.activate(event.get_tzinfo())
+        timezone.activate(event.timezone)
         context = {'form': form, 'event': event}
         return render(request, 'oneevent/booking_create_on_behalf.html', context)
 
@@ -266,7 +266,7 @@ def booking_update(request, booking_id):
         messages.error(request, 'You are not authorised to update this booking !')
         return redirect('index')
 
-    timezone.activate(booking.event.get_tzinfo())
+    timezone.activate(booking.event.timezone)
 
     if booking.event.sessions.count() > 0:
         return _booking_update_with_sessions(request, booking)
@@ -285,7 +285,7 @@ def booking_session_update(request, booking_id):
         messages.error(request, 'You are not authorised to update this booking !')
         return redirect('index')
 
-    timezone.activate(booking.event.get_tzinfo())
+    timezone.activate(booking.event.timezone)
 
     return _booking_update_session(request, booking, 'booking_session_update')
 
@@ -298,7 +298,7 @@ def booking_cancel(request, booking_id):
         messages.error(request, 'You are not authorised to cancel this booking !')
         return redirect('index')
 
-    timezone.activate(booking.event.get_tzinfo())
+    timezone.activate(booking.event.timezone)
 
     if request.method == 'POST':
         booking.confirmedOn = None
@@ -339,7 +339,7 @@ def event_manage(request, event_id):
         return redirect('index')
 
     # Activate the timezone from the event
-    timezone.activate(event.get_tzinfo())
+    timezone.activate(event.timezone)
 
     context = {'event': event, 'registration_url': get_registration_url(request, event_id)}
     return render(request, 'oneevent/event_manage.html', context)
@@ -376,7 +376,7 @@ def _event_edit_form(request, event):
         if event_form.is_bound:
             messages.error(request, 'Unable to update event details, see below for errors!')
         # Not saving a form. Activate the timezone from the event
-        timezone.activate(event.get_tzinfo())
+        timezone.activate(event.timezone)
 
     # Build FormSet for Categories
     category_formset = None
@@ -446,7 +446,7 @@ def event_update_categories(request, event_id):
                         'session_helper': session_helper,
                         'registration_url': get_registration_url(request, event_id)}
 
-    timezone.activate(event.get_tzinfo())
+    timezone.activate(event.timezone)
 
     return render(request, 'oneevent/event_update.html', template_context)
 
@@ -481,7 +481,7 @@ def event_update_sessions(request, event_id):
                         'session_helper': session_helper,
                         'registration_url': get_registration_url(request, event_id)},
 
-    timezone.activate(event.get_tzinfo())
+    timezone.activate(event.timezone)
 
     return render(request, 'oneevent/event_update.html', template_context)
 
@@ -536,7 +536,7 @@ def _choice_edit_form(request, choice):
             else:
                 messages.error(request, 'Unable to update choice, see errors below!')
 
-    timezone.activate(choice.event.get_tzinfo())
+    timezone.activate(choice.event.timezone)
     context = {
         'choice': choice,
         'choice_form': choice_form,
@@ -571,7 +571,7 @@ def choice_delete(request, choice_id):
 
         return redirect('event_update', event_id=choice.event.id)
     else:
-        timezone.activate(choice.event.get_tzinfo())
+        timezone.activate(choice.event.timezone)
         return render(request, 'oneevent/choice_delete.html', {'choice': choice})
 
 
@@ -601,7 +601,7 @@ def booking_payment_confirm(request, booking_id, cancel=False):
 
         return redirect('event_manage', event_id=booking.event.id)
     else:
-        timezone.activate(booking.event.get_tzinfo())
+        timezone.activate(booking.event.timezone)
         context = {'booking': booking, 'cancel': cancel}
         return render(request, 'oneevent/booking_payment_confirm.html', context)
 
@@ -640,7 +640,7 @@ def booking_payment_exempt(request, booking_id, cancel=False):
                              'Exemption cancelled for {0}'.format(booking.person.get_full_name()))
         return redirect('event_manage', event_id=booking.event.id)
     else:
-        timezone.activate(booking.event.get_tzinfo())
+        timezone.activate(booking.event.timezone)
         context = {'booking': booking, 'cancel': cancel}
         return render(request, 'oneevent/booking_payment_exempt.html', context)
 
@@ -705,7 +705,7 @@ def event_download_participants_list(request, event_id):
 
     for booking in bookings:
         if booking.paidTo is not None:
-            local_datePaid = booking.datePaid.astimezone(booking.event.get_tzinfo())
+            local_datePaid = booking.datePaid.astimezone(booking.event.timezone)
             payment = 'Paid'
             paid_to = '{0} on {1}'.format(
                 booking.paidTo.get_full_name(),
@@ -720,7 +720,7 @@ def event_download_participants_list(request, event_id):
 
         if booking.cancelledBy is not None:
             cancelled = 'Yes'
-            local_dateCancelled = booking.cancelledOn.astimezone(booking.event.get_tzinfo())
+            local_dateCancelled = booking.cancelledOn.astimezone(booking.event.timezone)
             cancelled_by = "{0} on {1}".format(
                 booking.cancelledBy.get_full_name(),
                 local_dateCancelled.strftime(dt_format),
@@ -732,7 +732,7 @@ def event_download_participants_list(request, event_id):
             cancelled_by = ''
 
         if booking.confirmedOn is not None:
-            local_date_confirmed = booking.confirmedOn.astimezone(booking.event.get_tzinfo())
+            local_date_confirmed = booking.confirmedOn.astimezone(booking.event.timezone)
             confirmed_on = local_date_confirmed.strftime(dt_format)
         else:
             confirmed_on = 'N/A'

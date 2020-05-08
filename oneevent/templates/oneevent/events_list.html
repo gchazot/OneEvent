@@ -56,7 +56,7 @@
         </thead>
         <tbody>
             {% for event_info in events %}
-            {% timezone event_info.event.get_tzinfo %}
+            {% timezone event_info.event.timezone %}
             <tr>
                 <td>
                     <p>

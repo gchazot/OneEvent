@@ -102,8 +102,10 @@ assign users to groups depending on the structure of your organisation.
 OneEvent is only tested with Django 1.11 running on Python 2.7. The instructions below assume those
 are used. Feel free to report any successful experience using it with different versions. 
 
-Note: As an example, have a look at the [`dev_server.sh`](dev_server.sh) file or the resulting
-development site it creates.
+Note: As an example, have a look at the [`dev_server.sh`](dev_server.sh) file and the resulting
+development site it creates. You may also have a look at
+[this sandbox website](https://oneevent-sandbox.herokuapp.com/) and
+[the repository that manages it](https://github.com/gchazot/oneevent-sandbox)
 
 #### Python package
 First, install the python package:

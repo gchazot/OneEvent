@@ -1,6 +1,18 @@
 from django.db import migrations
 import timezone_field.fields
-from oneevent.timezones import TIMEZONE_CODES
+
+
+TIMEZONE_CODES = {
+    'Boston': 'US/Eastern',
+    'Erding': 'Europe/Berlin',
+    'London': 'Europe/London',
+    'Miami': 'US/Eastern',
+    'Munich': 'Europe/Berlin',
+    'Nice': 'Europe/Paris',
+    'Sydney': 'Australia/Sydney',
+    'Toronto': 'America/Toronto',
+    'UTC': 'UTC'
+}
 
 
 def forwards(apps, _schema_editor):

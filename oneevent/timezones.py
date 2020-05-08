@@ -2,25 +2,6 @@ import pytz
 import datetime
 from .tz_utils import is_datetime, tzdel, utc
 
-# A map of available cities to the corresponding timezone code
-TIMEZONE_CODES = {
-    'Boston': 'US/Eastern',
-    'Erding': 'Europe/Berlin',
-    'London': 'Europe/London',
-    'Miami': 'US/Eastern',
-    'Munich': 'Europe/Berlin',
-    'Nice': 'Europe/Paris',
-    'Sydney': 'Australia/Sydney',
-    'Toronto': 'America/Toronto',
-    'UTC': 'UTC'
-}
-
-# A map of available cities to the corresponding tzinfo object
-TIMEZONES = {city: pytz.timezone(code) for city, code in TIMEZONE_CODES.items()}
-
-# Choices for the available cities
-CITY_CHOICES = [(city, city) for city in sorted(TIMEZONE_CODES.keys())]
-
 
 def add_to_zones_map(tzmap, tzid, dt):
     """

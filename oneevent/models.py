@@ -6,7 +6,7 @@ from django.utils import timezone as django_timezone
 from django.core.mail.message import EmailMultiAlternatives
 from django.contrib.auth.models import User
 from django.db.models.aggregates import Count
-from .timezones import CITY_CHOICES, add_to_zones_map
+from .timezones import add_to_zones_map
 from timezone_field import TimeZoneField
 
 import icalendar
@@ -47,8 +47,6 @@ class Event(models.Model):
     start = models.DateTimeField(help_text='Local start date and time')
     end = models.DateTimeField(blank=True, null=True,
                                help_text='Local end date and time')
-    city = models.CharField(max_length=32, choices=CITY_CHOICES,
-                            help_text='Timezone of your event')
     timezone = TimeZoneField(default='Europe/London', help_text='Local timezone of your event')
 
     description = models.TextField(blank=True)

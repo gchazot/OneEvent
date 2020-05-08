@@ -1,6 +1,8 @@
 {% extends "oneevent/base_confirmation.html" %}
 
-{% block navbar_header_text %}Unregister{% endblock %}
+{% block navbar_breadcrumbs %}
+    <li class="active">Unregister</li>
+{% endblock %}
 
 {% block heading_action %}Unregister{% endblock %}
 {% block heading_title %}{{ booking.event.title }}

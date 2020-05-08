@@ -1,6 +1,8 @@
 from django.contrib import admin
-from .models import (Event, Session, Choice, Option,
-                    Booking, BookingOption, Category)
+from .models import (
+    Event, Session, Choice, Option,
+    Booking, BookingOption, Category,
+)
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils import timezone

@@ -4,14 +4,10 @@
 {% block heading_action %}OneEvent!{% endblock %}
 {% block heading_title %}All your events{% endblock %}
 
-{% block navbar_header_text %}Events List{% endblock %}
-
-{% block navbar_extra %}
-<ul class="nav navbar-nav">
-    <li class="dropdown">
+{% block navbar_breadcrumbs %}
+    <li class="dropdown active">
         <a href="#" class="dropdown-toggle"
             data-toggle="dropdown" title="Events">
-            <span class="glyphicon glyphicon-list"></span>
             <span class="">
                 {% if events_shown == 'fut' %}
                     Coming Up
@@ -41,7 +37,6 @@
              </a></li>
         </ul>
     </li>
-</ul>
 {% endblock %}
 
 {% block content %}

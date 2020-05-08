@@ -1,7 +1,9 @@
 {% extends "oneevent/base.html" %}
 {% load crispy_forms_tags %}
 
-{% block navbar_header_text %}{% if event.id %}Edit{% else %}New{% endif %} Event{% endblock %}
+{% block navbar_breadcrumbs %}
+    <li class="active">{% if event.id %}Edit{% else %}New{% endif %} Event</li>
+{% endblock %}
 
 {% block heading_action %}{% if event.id %}Edit{% else %}New{% endif %} Event{% endblock %}
 

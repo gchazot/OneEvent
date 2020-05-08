@@ -1,12 +1,15 @@
 {% extends "oneevent/base_confirmation.html" %}
 
-{% block navbar_header_text %}
-    {% if cancel %}
-    Cancel Exemption
-    {% else %}
-    Confirm Exemption
-    {% endif %}
+{% block navbar_breadcrumbs %}
+    <li class="active">
+        {% if cancel %}
+        Cancel Exemption
+        {% else %}
+        Confirm Exemption
+        {% endif %}
+    </li>
 {% endblock %}
+
 
 {% block heading_action %}
     {% if cancel %}

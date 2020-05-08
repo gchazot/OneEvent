@@ -2,7 +2,9 @@
 {% load crispy_forms_tags %}
 {% load crispy_forms_field %}
 
-{% block navbar_header_text %}{% if choice.id %}Edit{% else %}New{% endif %} Choice{% endblock %}
+{% block navbar_breadcrumbs %}
+    <li class="active">{% if choice.id %}Edit{% else %}New{% endif %} Choice</li>
+{% endblock %}
 
 {% block heading_action %}{% if choice.id %}Edit{% else %}New{% endif %} Choice{% endblock %}
 

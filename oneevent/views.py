@@ -8,13 +8,14 @@ from django.utils import timezone
 
 from . import unicode_csv
 from .timezones import get_tzinfo
-from datetime import timedelta
 
 from .models import Event, Booking, Choice, BookingOption
-from .forms import (EventForm, CategoryFormSet, CategoryFormSetHelper,
-                   SessionFormSet, SessionFormSetHelper,
-                   ChoiceForm, OptionFormSet, OptionFormSetHelper,
-                   CreateBookingOnBehalfForm, BookingChoicesForm, BookingSessionForm)
+from .forms import (
+    EventForm, CategoryFormSet, CategoryFormSetHelper,
+    SessionFormSet, SessionFormSetHelper,
+    ChoiceForm, OptionFormSet, OptionFormSetHelper,
+    CreateBookingOnBehalfForm, BookingChoicesForm, BookingSessionForm,
+)
 from django.contrib.auth.models import User
 from django.urls import reverse
 
@@ -207,10 +208,12 @@ def _booking_update_with_sessions(request, booking):
     '''
     View to handle the modification of bookings on events with sessions
     '''
-    if (booking.is_cancelled() or
-            request.GET.get('session_change') or
-            booking.session is None or
-            not booking.event.choices.exists()):
+    if any((
+            booking.is_cancelled(),
+            request.GET.get('session_change'),
+            booking.session is None,
+            not booking.event.choices.exists(),
+    )):
         # Step 1: Handling Session selection
         return _booking_update_session(request, booking, 'booking_update')
     elif booking.event.choices.count() > 0:
@@ -704,8 +707,10 @@ def event_download_participants_list(request, event_id):
         if booking.paidTo is not None:
             local_datePaid = booking.datePaid.astimezone(booking.event.get_tzinfo())
             payment = 'Paid'
-            paid_to = '{0} on {1}'.format(booking.paidTo.get_full_name(),
-                                           local_datePaid.strftime(dt_format))
+            paid_to = '{0} on {1}'.format(
+                booking.paidTo.get_full_name(),
+                local_datePaid.strftime(dt_format),
+            )
         else:
             paid_to = ''
             if booking.must_pay() > 0:
@@ -716,8 +721,10 @@ def event_download_participants_list(request, event_id):
         if booking.cancelledBy is not None:
             cancelled = 'Yes'
             local_dateCancelled = booking.cancelledOn.astimezone(booking.event.get_tzinfo())
-            cancelled_by = "{0} on {1}".format(booking.cancelledBy.get_full_name(),
-                                                local_dateCancelled.strftime(dt_format))
+            cancelled_by = "{0} on {1}".format(
+                booking.cancelledBy.get_full_name(),
+                local_dateCancelled.strftime(dt_format),
+            )
             if booking.paidTo is None:
                 payment = "N/A"
         else:

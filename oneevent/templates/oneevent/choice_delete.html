@@ -1,6 +1,8 @@
 {% extends "oneevent/base_confirmation.html" %}
 
-{% block navbar_header_text %}Delete Choice{% endblock %}
+{% block navbar_breadcrumbs %}
+    <li class="active">Delete Choice</li>
+{% endblock %}
 
 {% block heading_action %}Delete Choice{% endblock %}
 {% block heading_title %}{{ choice.title }}

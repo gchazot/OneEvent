@@ -6,7 +6,6 @@ from .models import (
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils import timezone
-from .timezones import get_tzinfo
 from django.contrib.admin.utils import unquote
 
 
@@ -160,7 +159,7 @@ class EventAdmin(admin.ModelAdmin):
         if request.method == 'POST':
             tz_form = self.get_form(request)(request.POST)
             if tz_form.is_valid():
-                tz = get_tzinfo(tz_form.cleaned_data['city'])
+                tz = tz_form.cleaned_data['timezone']
                 timezone.activate(tz)
 
         return super(EventAdmin, self).add_view(request, form_url, extra_context)
@@ -175,7 +174,7 @@ class EventAdmin(admin.ModelAdmin):
         if request.method == 'POST':
             tz_form = self.get_form(request, event)(request.POST, instance=event)
             if tz_form.is_valid():
-                tz = get_tzinfo(tz_form.cleaned_data['city'])
+                tz = tz_form.cleaned_data['timezone']
                 timezone.activate(tz)
         else:
             timezone.activate(event.timezone)

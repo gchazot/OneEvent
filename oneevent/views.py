@@ -7,7 +7,6 @@ from django.contrib import messages
 from django.utils import timezone
 
 from . import unicode_csv
-from .timezones import get_tzinfo
 
 from .models import Event, Booking, Choice, BookingOption
 from .forms import (
@@ -356,7 +355,7 @@ def _event_edit_form(request, event):
     # Use a separate form! otherwise the data is already processed
     tz_form = EventForm(request.POST or None, instance=event)
     if tz_form.is_valid():
-        tz = get_tzinfo(tz_form.cleaned_data['city'])
+        tz = tz_form.cleaned_data['timezone']
         timezone.activate(tz)
 
     event_form = EventForm(request.POST or None, instance=event)

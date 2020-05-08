@@ -22,13 +22,6 @@ TIMEZONES = {city: pytz.timezone(code) for city, code in TIMEZONE_CODES.items()}
 CITY_CHOICES = [(city, city) for city in sorted(TIMEZONE_CODES.keys())]
 
 
-def get_tzinfo(city):
-    '''
-    Returns a tzinfo object for the given city
-    '''
-    return pytz.timezone(TIMEZONE_CODES[city])
-
-
 def add_to_zones_map(tzmap, tzid, dt):
     """
     From https://github.com/plone/plone.app.event/blob/02233f03a6bdf1746760b67a8a78ee9afe9fb0ee/plone/app/event/ical/exporter.py#L92

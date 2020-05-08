@@ -144,8 +144,14 @@ A few customizations are available:
 ONEEVENT_SITE_BRAND = "OneEvent Sandbox"
 ONEEVENT_NAVBAR_COLOR = "green"
 ```
-* Customise the authentication section in the navbar. To do this, just create a template in
-`<your_templates_folder>/oneevent/navbar_auth.html` and fill it with your desired content.
+* Customise the authentication section in the navbar. To do this, just create in your site's
+`<templates_folder>/oneevent/` folder one or more of the following template files and fill it with
+your desired content:
+  * `navbar_auth_avatar.html`: To customise just the user menu title
+  * `navbar_auth_extra_actions.html`: To insert actions in the user menu
+  * `navbar_auth.html`: To customise the entire user menu section
+
+  A good starting point is to copy the file from our code.
 
 ## Development
 The `dev_server.sh` script is here to help setting up a development site.

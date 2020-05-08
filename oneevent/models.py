@@ -189,18 +189,10 @@ class Event(models.Model):
             # All other statuses are invisible to anonymous
             return False
         elif self.pub_status == 'REST':
-            return any((
-                user.is_superuser,
-                self.user_is_organiser(user),
-                self.get_user_category(user) is not None,
-            ))
+            return user.is_superuser or self.user_is_organiser(user) or self.get_user_category(user) is not None
         elif self.pub_status == 'PRIV' or self.pub_status == 'UNPUB':
             user_has_booking = self.bookings.filter(person=user, cancelledBy=None).count() > 0
-            return any((
-                user.is_superuser,
-                user_has_booking,
-                self.user_is_organiser(user),
-            ))
+            return user.is_superuser or user_has_booking or self.user_is_organiser(user)
         elif self.pub_status == 'ARCH':
             if list_archived:
                 return user.is_superuser or self.user_is_organiser(user)
@@ -220,10 +212,7 @@ class Event(models.Model):
         if self.pub_status == 'PUB':
             return True
         elif self.pub_status == 'REST':
-            return any((
-                self.user_is_organiser(user),
-                self.get_user_category(user) is not None,
-            ))
+            return self.user_is_organiser(user) or self.get_user_category(user) is not None
         elif self.pub_status == 'PRIV':
             return True
         elif self.pub_status == 'UNPUB':
@@ -258,10 +247,7 @@ class Event(models.Model):
         '''
         Check if the event is still open for bookings
         '''
-        closed = all((
-            self.booking_close is not None,
-            timezone.now() > self.booking_close,
-        ))
+        closed = self.booking_close is not None and timezone.now() > self.booking_close
         published = self.pub_status in ('PUB', 'REST', 'PRIV')
         return self.is_choices_open() and not self.is_ended() and not closed and published
 
@@ -269,10 +255,7 @@ class Event(models.Model):
         '''
         Check if the event is still open for choices
         '''
-        closed = all((
-            self.choices_close is not None,
-            timezone.now() > self.choices_close,
-        ))
+        closed = self.choices_close is not None and timezone.now() > self.choices_close
         published = self.pub_status in ('PUB', 'REST', 'PRIV')
         return not self.is_ended() and not closed and published
 
@@ -555,11 +538,7 @@ class Booking(models.Model):
         Validate the contents of this Model
         '''
         super(Booking, self).clean()
-        if all((
-            self.paidTo is not None,
-            self.must_pay() == 0,
-            not self.exempt_of_payment,
-        )):
+        if self.paidTo is not None and self.must_pay() == 0 and not self.exempt_of_payment:
             raise ValidationError("{0} does not have to pay for {1}".format(self.person,
                                                                             self.event))
         # Reset the date paid against paid To

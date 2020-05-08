@@ -153,10 +153,13 @@ class Event(models.Model):
         Finds the Event's category for the given user.
         @returns the Category object or None if none matches
         '''
+        if not self.categories:
+            return None
+
         for category in self.categories.all():
             if self._get_from_users_cache(user.id, category.name, False):
                 return category
-        logging.warning("User {0} is neither employee not contractor for {1}".format(user, self))
+        logging.warning("User {0} is in no category for {1}".format(user, self))
         return None
 
     def user_price(self, user):

@@ -144,8 +144,8 @@ A few customizations are available:
 ONEEVENT_SITE_BRAND = "OneEvent Sandbox"
 ONEEVENT_NAVBAR_COLOR = "green"
 ```
-* Customise the user avatar in the navbar. To do this, just create a template in
-`<your_templates_folder>/oneevent/user_avatar.html` and fill it with your desired content.
+* Customise the authentication section in the navbar. To do this, just create a template in
+`<your_templates_folder>/oneevent/navbar_auth.html` and fill it with your desired content.
 
 ## Development
 The `dev_server.sh` script is here to help setting up a development site.

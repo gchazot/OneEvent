@@ -36,3 +36,8 @@ body {
     margin-right: 0px;
 }
 
+/* Breadcrumbs in the navvar */
+/* Based on https://stackoverflow.com/a/20271642/4117760 */
+.nav .breadcrumb {
+    margin: 7px 10px;
+}

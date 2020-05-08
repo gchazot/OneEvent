@@ -34,16 +34,19 @@
                     <span class="icon-bar"></span>
                 </button>
                 <span class="navbar-brand">{{ site_brand }}</span>
-                <span class="navbar-text" style="float:left">{% block navbar_header_text %}{% endblock %}</span>
             </div>
             <div class="collapse navbar-collapse" id="navbar-menu-entries">
                 <ul class="nav navbar-nav">
                     <li>
-                        <a href="{% url 'index' %}"
-                            data-toggle="tooltip" data-placement="top" title="Home">
-                            <span class="glyphicon glyphicon-home"></span>
-                            <span class="hidden-sm hidden-md hidden-lg">Home</span>
-                        </a>
+                        <ol class="breadcrumb">
+                            <li>
+                                <a href="{% url 'index' %}"
+                                   data-toggle="tooltip" data-placement="top" title="Home">
+                                    <span class="glyphicon glyphicon-home"></span> Home
+                                </a>
+                            </li>
+                            <li class="active">{% block navbar_header_text %}{% endblock %}</li>
+                        </ol>
                     </li>
                 </ul>
 

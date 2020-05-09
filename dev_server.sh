@@ -142,8 +142,8 @@ if [ "${ACTION}" == "test" ]; then
   "${MANAGE_COMMAND}" check || exit 11
   "${MANAGE_COMMAND}" makemigrations --dry-run --check || exit 12
   "${MANAGE_COMMAND}" test || exit 13
-  flake8 "${PROJECT_DIR}" || exit 14
-  black --check --exclude dev_site/ "${PROJECT_DIR}" || exit 15
+  flake8 "${TARGET_DIR}" || exit 14
+  black --check --exclude dev_site/ "${TARGET_DIR}" || exit 15
   exit 0
 elif [ "${ACTION}" == "run" ]; then
   set -e

@@ -1,7 +1,12 @@
 from django.contrib import admin
 from .models import (
-    Event, Session, Choice, Option,
-    Booking, BookingOption, Category,
+    Event,
+    Session,
+    Choice,
+    Option,
+    Booking,
+    BookingOption,
+    Category,
 )
 from django.urls import reverse
 from django.utils.safestring import mark_safe
@@ -10,19 +15,21 @@ from django.contrib.admin.utils import unquote
 
 
 class EditLinkToInlineObjectMixin(object):
-    '''
+    """
     Mixin to allow having a link to the admin page of another Model
     From http://stackoverflow.com/a/22113967
-    '''
+    """
+
     def edit_link(self, instance):
         url = reverse(
-            'admin:%s_%s_change' % (instance._meta.app_label, instance._meta.module_name),
-            args=[instance.pk]
+            "admin:%s_%s_change"
+            % (instance._meta.app_label, instance._meta.module_name),
+            args=[instance.pk],
         )
         if instance.pk:
             return mark_safe('<a href="{u}">edit</a>'.format(u=url))
         else:
-            return ''
+            return ""
 
 
 class LimitedAdminInlineMixin(object):
@@ -64,10 +71,9 @@ class LimitedAdminInlineMixin(object):
         Make sure we can only select variations that relate to the current
         item.
         """
-        formset = \
-            super(LimitedAdminInlineMixin, self).get_formset(request,
-                                                             obj,
-                                                             **kwargs)
+        formset = super(LimitedAdminInlineMixin, self).get_formset(
+            request, obj, **kwargs
+        )
 
         for (field, filters) in self.get_filters(obj):
             if obj:
@@ -88,98 +94,113 @@ class LimitedAdminInlineMixin(object):
         subclass or define a `filters` property with the same syntax as this
         one.
         """
-        return getattr(self, 'filters', ())
+        return getattr(self, "filters", ())
 
 
 class OptionInline(admin.TabularInline):
     model = Option
-    fields = ('title', 'default',)
+    fields = (
+        "title",
+        "default",
+    )
 
 
 class ChoiceAdmin(admin.ModelAdmin):
-    fields = ('event', 'title', )
-    readonly_fields = ('event',)
+    fields = (
+        "event",
+        "title",
+    )
+    readonly_fields = ("event",)
     inlines = [OptionInline]
-    list_display = ('event', 'title')
+    list_display = ("event", "title")
 
 
 class ChoiceInline(admin.TabularInline, EditLinkToInlineObjectMixin):
     model = Choice
-    fields = ('title', 'edit_link',)
-    readonly_fields = ('edit_link',)
+    fields = (
+        "title",
+        "edit_link",
+    )
+    readonly_fields = ("edit_link",)
 
 
 class SessionInline(admin.TabularInline):
     model = Session
-    fields = ('title', 'start', 'end', 'max_participant')
+    fields = ("title", "start", "end", "max_participant")
     extra = 1
 
 
 class CategoryInline(admin.TabularInline):
     model = Category
-    fields = ('order', 'name', 'price', 'groups1', 'groups2')
+    fields = ("order", "name", "price", "groups1", "groups2")
     extra = 1
 
 
 class EventAdmin(admin.ModelAdmin):
     fields = (
-        ('title', 'pub_status'),
-        ('start', 'end'),
-        'timezone',
-        ('location_name', 'location_address'),
-        ('owner', 'organisers'),
-        ('booking_close', 'choices_close'),
-        'max_participant',
-        'price_currency',
+        ("title", "pub_status"),
+        ("start", "end"),
+        "timezone",
+        ("location_name", "location_address"),
+        ("owner", "organisers"),
+        ("booking_close", "choices_close"),
+        "max_participant",
+        "price_currency",
     )
-    inlines = (SessionInline, CategoryInline, ChoiceInline,)
-    list_display = ('title', 'timezone', 'start_local', 'end_local')
+    inlines = (
+        SessionInline,
+        CategoryInline,
+        ChoiceInline,
+    )
+    list_display = ("title", "timezone", "start_local", "end_local")
 
-    dt_format = '%a, %d %b %Y %H:%M:%S %Z'
+    dt_format = "%a, %d %b %Y %H:%M:%S %Z"
 
     def start_local(self, event):
-        ''' Display the start datetime in its local timezone '''
+        """ Display the start datetime in its local timezone """
         tz = event.timezone
         dt = event.start.astimezone(tz)
         return dt.strftime(self.dt_format)
 
     def end_local(self, event):
-        ''' Display the end datetime in its local timezone '''
+        """ Display the end datetime in its local timezone """
         if event.end is None:
             return None
         tz = event.timezone
         dt = event.end.astimezone(tz)
         return dt.strftime(self.dt_format)
 
-    def add_view(self, request, form_url='', extra_context=None):
-        '''
+    def add_view(self, request, form_url="", extra_context=None):
+        """
         Override add view so we can peek at the timezone they've entered and
         set the current timezone accordingly before the form is processed
-        '''
-        if request.method == 'POST':
+        """
+        if request.method == "POST":
             tz_form = self.get_form(request)(request.POST)
             if tz_form.is_valid():
-                tz = tz_form.cleaned_data['timezone']
+                tz = tz_form.cleaned_data["timezone"]
                 timezone.activate(tz)
 
         return super(EventAdmin, self).add_view(request, form_url, extra_context)
 
-    def change_view(self, request, object_id, form_url='', extra_context=None):
-        '''
+    def change_view(self, request, object_id, form_url="", extra_context=None):
+        """
         Override change view so we can peek at the timezone they've entered and
         set the current timezone accordingly before the form is processed
-        '''
+        """
         event = self.get_object(request, unquote(object_id))
 
-        if request.method == 'POST':
+        if request.method == "POST":
             tz_form = self.get_form(request, event)(request.POST, instance=event)
             if tz_form.is_valid():
-                tz = tz_form.cleaned_data['timezone']
+                tz = tz_form.cleaned_data["timezone"]
                 timezone.activate(tz)
         else:
             timezone.activate(event.timezone)
 
-        return super(EventAdmin, self).change_view(request, object_id, form_url, extra_context)
+        return super(EventAdmin, self).change_view(
+            request, object_id, form_url, extra_context
+        )
 
 
 class BookingOptionInline(LimitedAdminInlineMixin, admin.TabularInline):
@@ -187,13 +208,13 @@ class BookingOptionInline(LimitedAdminInlineMixin, admin.TabularInline):
 
     def get_filters(self, obj):
         if obj:
-            return (('option', {'choice__event': obj.event}),)
+            return (("option", {"choice__event": obj.event}),)
         return []
 
 
 class BookingAdmin(admin.ModelAdmin):
     inlines = (BookingOptionInline,)
-    list_display = ('event', 'person', 'cancelledBy', 'cancelledOn', 'confirmedOn')
+    list_display = ("event", "person", "cancelledBy", "cancelledOn", "confirmedOn")
 
 
 admin.site.register(Event, EventAdmin)

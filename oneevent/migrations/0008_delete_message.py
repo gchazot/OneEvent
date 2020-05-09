@@ -6,11 +6,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('oneevent', '0007_auto_20151212_1805'),
+        ("oneevent", "0007_auto_20151212_1805"),
     ]
 
     operations = [
-        migrations.DeleteModel(
-            name='Message',
-        ),
+        migrations.DeleteModel(name="Message",),
     ]

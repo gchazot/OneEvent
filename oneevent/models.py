@@ -217,7 +217,7 @@ class Event(models.Model):
             )
         elif self.pub_status == "PRIV" or self.pub_status == "UNPUB":
             user_has_booking = (
-                self.bookings.filter(person=user, cancelledBy=None).count() > 0
+                self.bookings.filter(person=user, cancelledOn=None).count() > 0
             )
             return user.is_superuser or user_has_booking or self.user_is_organiser(user)
         elif self.pub_status == "ARCH":
@@ -301,13 +301,13 @@ class Event(models.Model):
         """
         Return the active bookings
         """
-        return self.bookings.filter(cancelledBy__isnull=True)
+        return self.bookings.filter(cancelledOn__isnull=True)
 
     def get_cancelled_bookings(self):
         """
         Return the cancelled bookings
         """
-        return self.bookings.filter(cancelledBy__isnull=False)
+        return self.bookings.filter(cancelledOn__isnull=False)
 
     def get_participants_ids(self):
         """
@@ -322,7 +322,7 @@ class Event(models.Model):
         """
         result = {}
         event_options = Option.objects.filter(choice__event=self)
-        event_options = event_options.filter(bookingoption__booking__cancelledBy=None)
+        event_options = event_options.filter(bookingoption__booking__cancelledOn=None)
         event_options = event_options.annotate(total=Count("bookingoption"))
         event_options = event_options.select_related("choice")
 
@@ -640,7 +640,7 @@ class Booking(models.Model):
             self.cancelledOn = None
 
         # Checked that the booking is not cancelled and confirmed
-        if self.cancelledBy is not None and self.confirmedOn is not None:
+        if self.is_cancelled() and self.confirmedOn is not None:
             raise ValidationError("Booking can not be both cancelled and confirmed")
 
     def user_can_update(self, user):
@@ -652,7 +652,7 @@ class Booking(models.Model):
             return True
         elif user == self.person:
             # updating a cancelled booking is like re-booking
-            if self.cancelledBy is not None:
+            if self.cancelledOn is not None:
                 return self.event.user_can_book(user)
             else:
                 return self.event.is_choices_open()
@@ -676,7 +676,7 @@ class Booking(models.Model):
         """
         Indicate if the booking is currently cancelled
         """
-        return self.cancelledBy is not None
+        return self.cancelledOn is not None
 
     def get_category(self):
         """
@@ -718,12 +718,12 @@ class Booking(models.Model):
         Return the status of payment (as a Bootstrap context CSS class)
         """
         if self.paidTo is not None:
-            if self.cancelledBy is not None:
+            if self.is_cancelled():
                 return "danger"
             else:
                 return "success"
         else:
-            if self.cancelledBy is not None:
+            if self.is_cancelled():
                 return "default"
             elif self.must_pay() == Decimal(0):
                 return "success"

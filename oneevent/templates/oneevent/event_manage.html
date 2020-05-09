@@ -138,7 +138,7 @@
             <tbody>
                 {% for booking in event.bookings.all %}
                 <tr class="{{ booking.get_payment_status_class }}
-                           {% if booking.cancelledBy %}cancelled hidden{% endif %}">
+                           {% if booking.is_cancelled %}cancelled hidden{% endif %}">
                     <td><!-- Name -->
                         <p>{{ booking.person.get_full_name }}</p>
                         {% if booking.person.email %}
@@ -160,14 +160,14 @@
                     </td>
 
                     <td><!--  Actions -->
-                        {% if booking.cancelledBy and booking.paidTo%}
+                        {% if booking.is_cancelled and booking.paidTo%}
                         <div><a href="{% url 'booking_payment_cancel' booking_id=booking.id %}"
                             class="btn btn-danger btn-sm">
                             <span class="glyphicon glyphicon-gbp"></span>
                             Refund
                         </a></div>
                         {% endif %}
-                        {% if not booking.cancelledBy and not booking.paidTo and booking.must_pay > 0 %}
+                        {% if not booking.is_cancelled and not booking.paidTo and booking.must_pay > 0 %}
                         <div><a href="{% url 'booking_payment_confirm' booking_id=booking.id %}"
                             class='btn btn-success btn-sm'>
                             <span class="glyphicon glyphicon-ok"></span>
@@ -179,7 +179,7 @@
                             Exempt of Payment
                         </a></div>
                         {% endif %}
-                        {% if not booking.cancelledBy and booking.exempt_of_payment %}
+                        {% if not booking.is_cancelled and booking.exempt_of_payment %}
                             <div><a href="{% url 'booking_payment_unexempt' booking_id=booking.id %}"
                                 class='btn btn-default btn-sm bg-danger'>
                                 <span class="glyphicon glyphicon-thumbs-down"></span>
@@ -192,7 +192,7 @@
                                 <span class="glyphicon glyphicon-pencil"></span>
                                 Edit
                             </a>
-                            {% if not booking.cancelledBy %}
+                            {% if not booking.is_cancelled %}
                             <a href="{% url 'booking_cancel' booking_id=booking.id %}"
                                 class="btn btn-danger btn-xs">
                                 <span class="glyphicon glyphicon-ban-circle"></span>
@@ -204,7 +204,7 @@
                     </td>
 
                     <td><!-- Booking status -->
-                        {% if booking.cancelledBy %}
+                        {% if booking.is_cancelled %}
                             <div><span class="label label-default">Cancelled</span>
                             by {{booking.cancelledBy.get_full_name}} on {{booking.cancelledOn|date:"d N Y H:i"}}</div>
                         {% endif %}

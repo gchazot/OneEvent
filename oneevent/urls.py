@@ -78,4 +78,5 @@ urlpatterns = [
         views.booking_send_invite,
         name="booking_send_invite",
     ),
+    path("accounts/delete", views.user_delete, name="user_delete"),
 ]

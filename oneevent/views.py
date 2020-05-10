@@ -849,3 +849,15 @@ def booking_send_invite(request, booking_id):
     else:
         messages.error(request, "Failure sending the invitation")
     return redirect("booking_update", booking_id=booking_id)
+
+
+@login_required
+def user_delete(request):
+    if request.method == "POST":
+        user = request.user
+        user.delete()
+        messages.success(request, "Account deleted")
+
+        return redirect("index")
+    else:
+        return render(request, "oneevent/user_delete.html")

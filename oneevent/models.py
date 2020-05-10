@@ -77,7 +77,7 @@ class Event(models.Model):
     owner = models.ForeignKey(
         "auth.User",
         related_name="events_owned",
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         help_text="Main organiser",
     )
     organisers = models.ManyToManyField(

@@ -1,1 +1,1 @@
-<span class="">{{user.get_full_name}}</span>
+<span class="">{{ user.get_full_name|default:user.email|default:user.username }}</span>

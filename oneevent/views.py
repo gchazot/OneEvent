@@ -94,7 +94,7 @@ def events_list_archived(request):
 @login_required
 def events_list_mine(request):
     context = {"events_shown": "mine"}
-    query = Q(bookings__person=request.user, bookings__cancelledBy=None)
+    query = Q(bookings__person=request.user, bookings__cancelledOn=None)
     query = query | Q(organisers=request.user)
     query = query | Q(owner=request.user)
     events = Event.objects.filter(query).distinct()
@@ -563,7 +563,7 @@ def _choice_edit_form(request, choice):
         # If a new choice, choose default option for all bookings
         if is_new_choice:
             bookings = Booking.objects.filter(
-                event=choice.event, cancelledBy__exact=None
+                event=choice.event, cancelledOn__isnull=True
             )
             for bkg in bookings:
                 print(
@@ -791,11 +791,13 @@ def event_download_participants_list(request, event_id):
             else:
                 payment = "Not needed"
 
-        if booking.cancelledBy is not None:
+        if booking.is_cancelled():
             cancelled = "Yes"
             local_dateCancelled = booking.cancelledOn.astimezone(booking.event.timezone)
             cancelled_by = "{0} on {1}".format(
-                booking.cancelledBy.get_full_name(),
+                booking.cancelledBy.get_full_name()
+                if booking.cancelledBy
+                else "Deleted User",
                 local_dateCancelled.strftime(dt_format),
             )
             if booking.paidTo is None:
@@ -847,3 +849,15 @@ def booking_send_invite(request, booking_id):
     else:
         messages.error(request, "Failure sending the invitation")
     return redirect("booking_update", booking_id=booking_id)
+
+
+@login_required
+def user_delete(request):
+    if request.method == "POST":
+        user = request.user
+        user.delete()
+        messages.success(request, "Account deleted")
+
+        return redirect("index")
+    else:
+        return render(request, "oneevent/user_delete.html")

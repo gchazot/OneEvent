@@ -1,0 +1,54 @@
+{% extends "oneevent/base_confirmation.html" %}
+
+{% block navbar_breadcrumbs %}
+    <li>Account</li>
+    <li class="active">Delete</li>
+{% endblock %}
+
+{% block heading_action %}Delete User{% endblock %}
+
+{% block heading_title %}{{ user.email }}{% endblock %}
+
+{% block post_url %}{% url 'user_delete' %}{% endblock %}
+
+{% block additional_info %}
+    <h2 class="text-danger">Are you sure you want to delete your account?</h2>
+    <h3>
+        The following records will also be deleted from the application.
+        They will not be recoverable!
+    </h3>
+{% endblock %}
+
+{% block extra_details %}
+    {% for event in user.events_owned.all %}
+        <div class="panel panel-info collapsible-caret">
+            <div class="panel-heading collapsible-toggle"
+                 data-toggle="collapse" data-target="#collapseChoices{{ event.id }}">
+                <strong>{{ event.title }}</strong>
+                <span>{{ event.start|date:"D, d N Y" }}</span>
+                <a href="{% url 'event_update' event_id=event.id %}"
+                    onclick="avoid_collapse_toggle(event)"
+                    class="btn btn-info" style="margin-left: 10px"
+                >
+                    Edit event
+                </a>
+            </div>
+            <div id="collapseChoices{{ event.id }}" class="panel-collapse collapse in table-responsive" >
+                <div class="panel-body">
+                    <ul class="list-unstyled">
+                        <li>
+                            <strong>From</strong> {{ event.start|date:"D, d N Y H:i" }}
+                            <strong>to</strong> {{ event.get_real_end|date:"D, d N Y H:i" }}
+                            ({{ event.timezone }})
+                        </li>
+                        <li><strong>Location:</strong> {{ event.location_name }}</li>
+                        <li><strong>Status:</strong> {{ event.get_pub_status_display }}</li>
+                        <li><strong>Participants:</strong>
+                            {{ event.get_active_bookings.count }} confirmed
+                            ({{ event.bookings.count }} total}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}

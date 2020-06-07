@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models.query_utils import Q
 from django.http.response import HttpResponse, Http404
@@ -843,11 +844,15 @@ def event_download_participants_list(request, event_id):
 
 @login_required
 def booking_send_invite(request, booking_id):
-    booking = get_object_or_404(Booking, id=booking_id)
-    if booking.send_calendar_invite():
-        messages.success(request, "Invitation sent to your email")
+    if settings.ONEEVENT_CALENDAR_INVITE_FROM is not None:
+        booking = get_object_or_404(Booking, id=booking_id)
+        if booking.send_calendar_invite():
+            messages.success(request, "Invitation sent to your email")
+        else:
+            messages.error(request, "Failure sending the invitation")
     else:
-        messages.error(request, "Failure sending the invitation")
+        messages.warning(request, "This site is not configured to send emails.")
+
     return redirect("booking_update", booking_id=booking_id)
 
 

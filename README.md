@@ -140,6 +140,13 @@ urlpatterns += [
 ]
 ```
 
+To benefit from the calendar invite function you must configure email sending.
+* Start with the [corresponding section of Django docs](https://docs.djangoproject.com/en/3.0/topics/email/).
+* Then also define the email address invite that emails will be coming from:
+```python
+ONEEVENT_CALENDAR_INVITE_FROM = "no-reply@my-domain.io"
+```
+
 A few customizations are available:
 * Define the name of the site or the color of the navbar in settings.
 ```python

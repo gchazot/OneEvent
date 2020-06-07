@@ -15,6 +15,9 @@ class OneEventConfig(AppConfig):
         navbar_color = getattr(settings, "ONEEVENT_NAVBAR_COLOR", None)
         setattr(settings, "ONEEVENT_NAVBAR_COLOR", navbar_color)
 
+        calendar_invite_from = getattr(settings, "ONEEVENT_CALENDAR_INVITE_FROM", None)
+        setattr(settings, "ONEEVENT_CALENDAR_INVITE_FROM", calendar_invite_from)
+
         # add context processors
         template_engines = getattr(settings, "TEMPLATES", [])
         for template_engine in template_engines:

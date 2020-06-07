@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.db import models
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone as django_timezone
 from django.core.mail.message import EmailMultiAlternatives
@@ -953,12 +954,25 @@ class Booking(models.Model):
         #         msg.attach(ical_atch)
 
         # The "Outlook" format
+
+        from_full = "{0} on behalf of {1} <{2}>".format(
+            settings.ONEEVENT_SITE_BRAND,
+            self.event.owner.get_full_name(),
+            settings.ONEEVENT_CALENDAR_INVITE_FROM,
+        )
+
+        reply_to_full = "{0} <{1}>".format(
+            self.event.owner.get_full_name(),
+            self.event.owner.email,
+        )
+
         # Create the message object
         msg = EmailMultiAlternatives(
             subject=title,
             body=None,
             to=[self.person.email],
-            from_email=self.event.owner.email,
+            from_email=from_full,
+            reply_to=[reply_to_full],
         )
         msg.extra_headers["Content-class"] = "urn:content-classes:calendarmessage"
         msg.attach(part_html)

@@ -4,12 +4,13 @@ from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta
-from django.contrib.auth.models import User, Group
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from decimal import Decimal
 
 
 def default_user():
-    return User.objects.get_or_create(username="default")[0]
+    return get_user_model().objects.get_or_create(username="default")[0]
 
 
 class EventTest(TestCase):
@@ -30,7 +31,7 @@ class EventTest(TestCase):
     def test_isFullyBooked_NoMaxParticipants(self):
         self.assertFalse(self.ev.is_fully_booked())
 
-        user1 = User.objects.create(username="myUser")
+        user1 = get_user_model().objects.create(username="myUser")
         Booking.objects.create(event=self.ev, person=user1)
         self.assertFalse(self.ev.is_fully_booked())
 
@@ -39,11 +40,11 @@ class EventTest(TestCase):
 
         self.assertFalse(self.ev.is_fully_booked())
 
-        user1 = User.objects.create(username="myUser1")
+        user1 = get_user_model().objects.create(username="myUser1")
         Booking.objects.create(event=self.ev, person=user1)
         self.assertTrue(self.ev.is_fully_booked())
 
-        user2 = User.objects.create(username="myUser2")
+        user2 = get_user_model().objects.create(username="myUser2")
         Booking.objects.create(event=self.ev, person=user2)
         self.assertTrue(self.ev.is_fully_booked())
 
@@ -52,11 +53,11 @@ class EventTest(TestCase):
 
         self.assertFalse(self.ev.is_fully_booked())
 
-        user1 = User.objects.create(username="myUser1")
+        user1 = get_user_model().objects.create(username="myUser1")
         Booking.objects.create(event=self.ev, person=user1)
         self.assertFalse(self.ev.is_fully_booked())
 
-        user2 = User.objects.create(username="myUser2")
+        user2 = get_user_model().objects.create(username="myUser2")
         Booking.objects.create(event=self.ev, person=user2)
         self.assertTrue(self.ev.is_fully_booked())
 
@@ -232,7 +233,7 @@ class BookingTest(TestCase):
         self.ev = Event.objects.create(
             title="myEvent", start=timezone.now(), owner=default_user()
         )
-        self.user = User.objects.create(username="myUser")
+        self.user = get_user_model().objects.create(username="myUser")
 
         self.g1a = Group.objects.create(name="group1A")
         self.g1b = Group.objects.create(name="group1B")
@@ -352,7 +353,7 @@ class ParticipantChoiceTest(TestCase):
         )
         self.choice = Choice.objects.create(event=self.ev, title="choice 1")
         self.option = Option.objects.create(choice=self.choice, title="option 1")
-        self.user = User.objects.create(username="myUser")
+        self.user = get_user_model().objects.create(username="myUser")
         self.booking = Booking.objects.create(event=self.ev, person=self.user)
 
     def test_uniqueBookingOption(self):

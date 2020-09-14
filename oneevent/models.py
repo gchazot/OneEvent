@@ -2,10 +2,10 @@ from decimal import Decimal
 
 from django.db import models
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.utils import timezone as django_timezone
 from django.core.mail.message import EmailMultiAlternatives
-from django.contrib.auth.models import User
 from django.db.models.aggregates import Count
 from .tz_utils import add_to_zones_map
 from timezone_field import TimeZoneField
@@ -76,13 +76,13 @@ class Event(models.Model):
     location_address = models.TextField(null=True, blank=True)
 
     owner = models.ForeignKey(
-        "auth.User",
+        settings.AUTH_USER_MODEL,
         related_name="events_owned",
         on_delete=models.CASCADE,
         help_text="Main organiser",
     )
     organisers = models.ManyToManyField(
-        "auth.User", blank=True, related_name="events_organised"
+        settings.AUTH_USER_MODEL, blank=True, related_name="events_organised"
     )
 
     booking_close = models.DateTimeField(
@@ -148,7 +148,7 @@ class Event(models.Model):
         for orga in self.organisers.all():
             add_cache(orga.id, "__orga_group_")
 
-        users = User.objects.all().prefetch_related("groups")
+        users = get_user_model().objects.all().prefetch_related("groups")
         for cat in self.categories.all():
             for user_id in [u.id for u in users if cat.match(u.groups.all())]:
                 add_cache(user_id, cat.name)
@@ -578,7 +578,7 @@ class Booking(models.Model):
         "Event", related_name="bookings", on_delete=models.CASCADE
     )
     person = models.ForeignKey(
-        "auth.User", related_name="bookings", on_delete=models.CASCADE
+        settings.AUTH_USER_MODEL, related_name="bookings", on_delete=models.CASCADE
     )
     session = models.ForeignKey(
         "Session",
@@ -590,7 +590,7 @@ class Booking(models.Model):
 
     confirmedOn = models.DateTimeField(blank=True, null=True)
     cancelledBy = models.ForeignKey(
-        "auth.User",
+        settings.AUTH_USER_MODEL,
         blank=True,
         null=True,
         related_name="cancelled_bookings",
@@ -599,7 +599,7 @@ class Booking(models.Model):
     cancelledOn = models.DateTimeField(blank=True, null=True)
 
     paidTo = models.ForeignKey(
-        "auth.User",
+        settings.AUTH_USER_MODEL,
         blank=True,
         null=True,
         related_name="received_payments",

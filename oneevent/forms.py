@@ -7,7 +7,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Reset, Layout, Field, Div, HTML
 from crispy_forms.bootstrap import TabHolder, Tab, FormActions
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 
 def datetime_help_string():
@@ -362,7 +362,7 @@ class OptionFormSetHelper(FormHelper):
 
 def all_username_choices():
     """Generates all pairs (username, full_name) for users sorted alphabetically"""
-    all_users = User.objects.order_by("last_name", "first_name")
+    all_users = get_user_model().objects.order_by("last_name", "first_name")
     for u in all_users:
         yield (u.username, u.get_full_name())
 

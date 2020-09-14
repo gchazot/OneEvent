@@ -23,7 +23,7 @@ from .forms import (
     BookingChoicesForm,
     BookingSessionForm,
 )
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 
@@ -140,7 +140,7 @@ def booking_create_on_behalf(request, event_id):
 
     form = CreateBookingOnBehalfForm(event.id, request.POST or None)
     if form.is_valid():
-        target_user = User.objects.get(username=form.cleaned_data["username"])
+        target_user = get_user_model().objects.get(username=form.cleaned_data["username"])
         booking, created = Booking.objects.get_or_create(
             event=event,
             person=target_user,

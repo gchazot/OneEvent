@@ -3,7 +3,7 @@ A Django App to manage registration to events.
 
 [![Pypi Version](https://img.shields.io/pypi/v/django-oneevent.svg)](https://pypi.org/project/django-oneevent/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/django-oneevent.svg)](https://pypi.org/project/django-oneevent/)
-[![Build Status](https://travis-ci.org/gchazot/OneEvent.svg?branch=master)](https://travis-ci.org/gchazot/OneEvent)
+[![Build Status](https://travis-ci.com/gchazot/OneEvent.svg?branch=master)](https://travis-ci.com/gchazot/OneEvent)
 
 ## Usage
 
@@ -188,7 +188,7 @@ For more options the script has to offer.
 * Push the tag to GitHub
 
 #### Automatic release
-[Travis the Builder](https://travis-ci.org/github/gchazot/OneEvent) takes care of everything.
+[Travis the Builder](https://travis-ci.com/github/gchazot/OneEvent) takes care of everything.
 
 #### Manual release process
 A little more involved but it's Okay I guess

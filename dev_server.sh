@@ -80,7 +80,7 @@ VENV_DIR=${TARGET_DIR}/venv
 mkdir -p "${PROJECT_DIR}"
 
 if [ ! -f "${VENV_DIR}/bin/activate" ]; then
-  virtualenv -p "$(command -v python3)" "${VENV_DIR}"
+  virtualenv -p "$(command -v python3)" "${VENV_DIR}" || exit 1
 fi
 source "${VENV_DIR}/bin/activate"
 

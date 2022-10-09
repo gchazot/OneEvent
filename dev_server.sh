@@ -81,8 +81,11 @@ mkdir -p "${PROJECT_DIR}"
 
 if [ ! -f "${VENV_DIR}/bin/activate" ]; then
   python -m venv "${VENV_DIR}" || exit 1
+  source "${VENV_DIR}/bin/activate"
+  python -m pip install --upgrade pip
+else
+  source "${VENV_DIR}/bin/activate"
 fi
-source "${VENV_DIR}/bin/activate"
 
 if [ -n "${DJANGO_VERSION}" ]; then
   pip install -e "${BASE_REPO}[test]" "django${DJANGO_VERSION}"

@@ -3,7 +3,7 @@ A Django App to manage registration to events.
 
 [![Pypi Version](https://img.shields.io/pypi/v/django-oneevent.svg)](https://pypi.org/project/django-oneevent/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/django-oneevent.svg)](https://pypi.org/project/django-oneevent/)
-[![Build Status](https://travis-ci.com/gchazot/OneEvent.svg?branch=master)](https://travis-ci.com/gchazot/OneEvent)
+[![Run tests](https://github.com/gchazot/OneEvent/actions/workflows/run_tests.yml/badge.svg)](https://github.com/gchazot/OneEvent/actions/workflows/run_tests.yml)
 
 ## Usage
 

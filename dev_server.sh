@@ -80,14 +80,23 @@ VENV_DIR=${TARGET_DIR}/venv
 mkdir -p "${PROJECT_DIR}"
 
 if [ ! -f "${VENV_DIR}/bin/activate" ]; then
-  virtualenv -p "$(command -v python3)" "${VENV_DIR}" || exit 1
+  python -m venv "${VENV_DIR}" || exit 1
+  source "${VENV_DIR}/bin/activate"
+  python -m pip install --upgrade pip
+else
+  source "${VENV_DIR}/bin/activate"
 fi
-source "${VENV_DIR}/bin/activate"
 
 if [ -n "${DJANGO_VERSION}" ]; then
-  pip install "django${DJANGO_VERSION}"
+  pip install -e "${BASE_REPO}[test]" "django${DJANGO_VERSION}"
+else
+  pip install -e "${BASE_REPO}[test]"
 fi
-pip install -e "${BASE_REPO}[test]"
+
+installed_django=$(python -m pip freeze | grep -i '^django=' | sed 's/=\+/ /')
+echo "==============================================================="
+echo "Running tests with $(python --version) and $installed_django"
+echo "==============================================================="
 
 SITE_NAME=oneevent_site
 SITE_DIR="${PROJECT_DIR}/${SITE_NAME}"

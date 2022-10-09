@@ -7,6 +7,9 @@ class OneEventConfig(AppConfig):
     name = "oneevent"
     verbose_name = "OneEvent"
 
+    # Avoid migration to BigAutoField in Django 3.2
+    default_auto_field = 'django.db.models.AutoField'
+
     def ready(self):
         # Default customisable settings
         site_brand = getattr(settings, "ONEEVENT_SITE_BRAND", self.verbose_name)

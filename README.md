@@ -182,13 +182,12 @@ For more options the script has to offer.
 
 ## Releasing
 #### Preparation
-* Merge all desired changes to `master`
 * Update `setup.cfg` with the new version number and commit
-* Tag the desired version
-* Push the tag to GitHub
+* Merge all desired changes to `master`
+* Create a release in GitHub with a summary description, including creating a new tag v<version_number>.
 
 #### Automatic release
-[Travis the Builder](https://travis-ci.com/github/gchazot/OneEvent) takes care of everything.
+[Github Actions](https://github.com/gchazot/OneEvent/actions) take care of everything.
 
 #### Manual release process
 A little more involved but it's Okay I guess

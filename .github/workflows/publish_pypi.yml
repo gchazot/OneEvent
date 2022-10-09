@@ -1,6 +1,6 @@
 on:
   release:
-    types: [published]
+    types: [created, edited]
 
 jobs:
   publish-to-pypi:
@@ -20,4 +20,5 @@ jobs:
       - name: Publish Package
         uses: pypa/gh-action-pypi-publish@v1.5.1
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/

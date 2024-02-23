@@ -1,10 +1,14 @@
 name: Run tests
 
-on: [push]
+on:
+  push:
+  schedule:
+    # Every 13th and 28th of the month at 07:42
+    - cron: '42 7 13,28 * *' 
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: ['3.6', '3.7', '3.8', '3.9', '3.10']

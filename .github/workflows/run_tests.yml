@@ -1,6 +1,10 @@
 name: Run tests
 
-on: [push]
+on:
+  push:
+  schedule:
+    # Every 13th and 28th of the month at 07:42
+    - cron: '42 7 13,28 * *' 
 
 jobs:
   tests:

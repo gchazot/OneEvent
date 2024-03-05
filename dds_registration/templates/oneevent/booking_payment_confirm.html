@@ -1,0 +1,27 @@
+{% extends "dds_registration/base_confirmation.html" %}
+
+{% block navbar_breadcrumbs %}
+    <li class="active">Confirm Payment</li>
+{% endblock %}
+
+{% block heading_action %}
+    {% if cancel %}Refund{% else %}Confirm Payment{% endif %}
+{% endblock %}
+{% block heading_title %}{{ booking.person.get_full_name }}
+<small>for</small> {{ booking.event.title }}{% endblock %}
+
+{% block post_url %}
+    {% if cancel %}
+        {% url 'booking_payment_cancel' booking_id=booking.id %}
+    {% else %}
+        {% url 'booking_payment_confirm' booking_id=booking.id %}
+    {% endif %}
+{% endblock %}
+
+{% block additional_info %}
+<p>
+    <label>Amount due: </label>
+    {{ booking.must_pay|floatformat:'2' }}
+    {% if booking.event.price_currency %}({{booking.event.price_currency}}){% endif %}
+</p>
+{% endblock %}

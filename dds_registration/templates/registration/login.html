@@ -1,0 +1,22 @@
+{% extends "dds_registration/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block navbar_breadcrumbs %}
+    <li>Account</li>
+    <li class="active">Login</li>
+{% endblock %}
+
+{% block content %}
+
+{% if form.errors %}
+<p>Your username and password didn't match. Please try again.</p>
+{% endif %}
+
+<form role="form" method="post" action="{% url 'login' %}">
+{% csrf_token %}
+    {{ form|crispy }}
+    <input class="btn btn-default" type="submit" value="login" />
+    <input type="hidden" name="next" value="{{ next }}" />
+</form>
+
+{% endblock %}

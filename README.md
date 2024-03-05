@@ -1,14 +1,14 @@
-# OneEvent
+# dds_registration
 A Django App to manage registration to events.
 
-[![Pypi Version](https://img.shields.io/pypi/v/django-oneevent.svg)](https://pypi.org/project/django-oneevent/)
-[![Python Versions](https://img.shields.io/pypi/pyversions/django-oneevent.svg)](https://pypi.org/project/django-oneevent/)
-[![Run tests](https://github.com/gchazot/OneEvent/actions/workflows/run_tests.yml/badge.svg)](https://github.com/gchazot/OneEvent/actions/workflows/run_tests.yml)
+[![Pypi Version](https://img.shields.io/pypi/v/django-dds_registration.svg)](https://pypi.org/project/django-dds_registration/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/django-dds_registration.svg)](https://pypi.org/project/django-dds_registration/)
+[![Run tests](https://github.com/gchazot/dds_registration/actions/workflows/run_tests.yml/badge.svg)](https://github.com/gchazot/dds_registration/actions/workflows/run_tests.yml)
 
 ## Usage
 
 ### Basics
-The objective of OneEvent is to simplify provide people organising an event with a tool to:
+The objective of dds_registration is to simplify provide people organising an event with a tool to:
 * Let participants quickly self-register to the event
 * Let participants update or cancel their registration to the event
 * Ask participants simple questions about their registration. These are called "Choices", and the
@@ -53,7 +53,7 @@ as those changes cannot be undone, and may result in loosing the choices that pa
 already made and saved.
 
 ### Advanced concepts
-OneEvent provides a few advanced features to help with the organisation of complex events.
+dds_registration provides a few advanced features to help with the organisation of complex events.
 
 #### Multiple Organisers
 It is possible to add more organisers to an event. They will get access to some of the management
@@ -79,7 +79,7 @@ offering (at least) 5 different sessions that participants can choose from.
 (Note that this can only be configured after the event has been created)
 
 #### Pricing Categories
-Sadly, sometimes, participants have to contribute to be able to attend your event. OneEvent provides
+Sadly, sometimes, participants have to contribute to be able to attend your event. dds_registration provides
 an easy way to track who has paid what they owe.
 
 Multiple categories of price can be defined and named to offer different prices. Users can be
@@ -87,11 +87,11 @@ matched to each category based on the **groups** they belong to. More on users a
 section about user accounts.
 
 ### User accounts
-OneEvent relies on Django user and group management. This means it's your site that needs to
+dds_registration relies on Django user and group management. This means it's your site that needs to
 implement user authentication.
 
 For most functionality, only **User** accounts are required to use the app. However, in order to
-define multiple *Pricing Categories*, Users must be assigned into groups that allow OneEvent to
+define multiple *Pricing Categories*, Users must be assigned into groups that allow dds_registration to
 decide which category the user belongs to.
 
 Making sure that users are in the Groups they are supposed to can be tricky, but this functionality
@@ -99,18 +99,18 @@ can prove particularly useful in corporate environments if your site's authentic
 assign users to groups depending on the structure of your organisation.
 
 ## Installation
-OneEvent is only tested with Django 1.11 running on Python 2.7. The instructions below assume those
+dds_registration is only tested with Django 1.11 running on Python 2.7. The instructions below assume those
 are used. Feel free to report any successful experience using it with different versions. 
 
 Note: As an example, have a look at the [`dev_server.sh`](dev_server.sh) file and the resulting
 development site it creates. You may also have a look at
-[this sandbox website](https://oneevent-sandbox.herokuapp.com/) and
-[the repository that manages it](https://github.com/gchazot/oneevent-sandbox)
+[this sandbox website](https://dds_registration-sandbox.herokuapp.com/) and
+[the repository that manages it](https://github.com/gchazot/dds_registration-sandbox)
 
 #### Python package
 First, install the python package:
 ```shell script
-pip install django-oneevent
+pip install django-dds_registration
 ```
 You will probably want to add it, potentially with a pinned down version, in your `requirements.txt`
 or other dependency configuration you're using.
@@ -122,7 +122,7 @@ Then you can add the app and its dependencies to your Django settings file:
 
 INSTALLED_APPS = [
     ...
-    'oneevent',
+    'dds_registration',
     'crispy_forms',
     ...
 ]
@@ -135,7 +135,7 @@ from django.conf.urls import include, url
 
 urlpatterns += [
     ...
-    url(r'^', include('oneevent.urls')),
+    url(r'^', include('dds_registration.urls')),
     ...
 ]
 ```
@@ -144,17 +144,17 @@ To benefit from the calendar invite function you must configure email sending.
 * Start with the [corresponding section of Django docs](https://docs.djangoproject.com/en/3.0/topics/email/).
 * Then also define the email address invite that emails will be coming from:
 ```python
-ONEEVENT_CALENDAR_INVITE_FROM = "no-reply@my-domain.io"
+dds_registration_CALENDAR_INVITE_FROM = "no-reply@my-domain.io"
 ```
 
 A few customizations are available:
 * Define the name of the site or the color of the navbar in settings.
 ```python
-ONEEVENT_SITE_BRAND = "OneEvent Sandbox"
-ONEEVENT_NAVBAR_COLOR = "green"
+dds_registration_SITE_BRAND = "dds_registration Sandbox"
+dds_registration_NAVBAR_COLOR = "green"
 ```
 * Customise the authentication section in the navbar. To do this, just create in your site's
-`<templates_folder>/oneevent/` folder one or more of the following template files and fill it with
+`<templates_folder>/dds_registration/` folder one or more of the following template files and fill it with
 your desired content:
   * `navbar_auth_avatar.html`: To customise just the user menu title
   * `navbar_auth_extra_actions.html`: To insert actions in the user menu
@@ -187,12 +187,12 @@ For more options the script has to offer.
 * Create a release in GitHub with a summary description, including creating a new tag v<version_number>.
 
 #### Automatic release
-[Github Actions](https://github.com/gchazot/OneEvent/actions) take care of everything.
+[Github Actions](https://github.com/gchazot/dds_registration/actions) take care of everything.
 
 #### Manual release process
 A little more involved but it's Okay I guess
 ```shell script
-rm -rf build/ dist/ django_oneevent.egg-info/
+rm -rf build/ dist/ django_dds_registration.egg-info/
 python setup.py sdist
 twine upload dist/*
 ```

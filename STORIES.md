@@ -11,6 +11,7 @@
 - The total price is the sum of the registration choice and add-ons minus the discounts in the currency of the event
 - The admin interface includes the ability to email all registered participants of an event. These emails are stored in the event message archive
 - Users can check their status (registration and registration options, payment) for all events
+- After an event, users can generate a PDF certificate (following an event-specific template) of completion
 - Users can check the message archive for events
 - Users can check their payment status
 - Users can generate a PDF invoice for their event registration. The generated invoice can be downloaded or (through a button click) emailed to their registered address.

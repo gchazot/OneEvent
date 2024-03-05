@@ -39,7 +39,6 @@ dependencies = [
     "django-crispy-forms~=1.8",
     "django-timezone-field>=3.1",
     "django>=5.0",
-    "icalendar~=4.0"
 ]
 
 [project.urls]

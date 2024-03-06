@@ -134,6 +134,7 @@ ROOT_URLCONF = APP_NAME + '.urls'
 # Templates folders...
 TEMPLATES_DIRS = [
     STATIC_ROOT,
+    APP_NAME + '/templates',  # For production wsgi
 ]
 #  if DEV:
 #      # Extra templates folders...

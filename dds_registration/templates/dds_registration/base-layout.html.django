@@ -4,21 +4,12 @@
 {% block page_header %}
 {{ block.super }}
 
-{% if settings.DEV and True %}
-<p>ARGV: {{ settings.ARGV }}</p>
-<p>DEV: {{ settings.DEV }}</p>
-<p>DEBUG: {{ settings.DEBUG }}</p>
-<p>RUNNING_DEVSERVER: {{ settings.RUNNING_DEVSERVER }}</p>
-<p>RUNNING_MOD_WSGI: {{ settings.RUNNING_MOD_WSGI }}</p>
-<p>RUNNING_MANAGE_PY: {{ settings.RUNNING_MANAGE_PY }}</p>
-{% endif %}
-
 {% comment %} {% include 'blocks/page-header-navbar/page-header-navbar.django' %} {% endcomment %}
 {% endblock page_header %}
 
 {% block page_body %}
 {{ block.super }}
-{% include 'blocks/test.django' %}
+{% include 'blocks/test/test.django' %}
 {% endblock page_body %}
 
 {% block page_footer %}

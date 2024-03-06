@@ -23,12 +23,35 @@
   <meta charset="utf-8" />
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="{{ settings.STATIC_URL }}favicon.ico" rel="icon" type="image/x-icon" />
+  <link href="{% static 'favicon.ico' %}" rel="icon" type="image/x-icon" />
+
   {% block meta_og %}{% endblock %}
 
   <!-- {{{ CSS -->
 
-  <link href="{% if settings.LOCAL %}{{ settings.STATIC_URL }}vendor/bootstrap-5.3.2/css/bootstrap.css{% else %}https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css{% endif %}" rel="stylesheet" type="text/css" />
+  <link href="{% if settings.LOCAL %}{% static 'vendor/bootstrap-5.3.2/css/bootstrap.css' %}{% else %}https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css{% endif %}" rel="stylesheet" type="text/css" />
+
+  <!-- Webfonts -->
+  {% if True and settings.LOCAL %}
+  <link href="{% static 'vendor/webfonts/roboto/300.css' %}" rel="stylesheet" type="text/css" />
+  <link href="{% static 'vendor/webfonts/roboto/400.css' %}" rel="stylesheet" type="text/css" />
+  <link href="{% static 'vendor/webfonts/roboto/500.css' %}" rel="stylesheet" type="text/css" />
+  <link href="{% static 'vendor/webfonts/roboto/700.css' %}" rel="stylesheet" type="text/css" />
+  {% else %}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  {% comment %}
+    Full link:
+    - https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap
+    Get customized link:
+    - https://fonts.google.com/selection/embed
+  {% endcomment %}
+  {% endif %}
+
+  {% compress css %}
+  <link type="text/x-scss" href="{% static 'blocks/styles.scss' %}" rel="stylesheet" media="screen">
+  {% endcompress css %}
 
   <!-- CSS }}} -->
 </head>
@@ -36,6 +59,7 @@
 
   <!-- {{{ Page header container -->
   {% block page_header %}
+  <div>Page header stub</div>
   {% endblock page_header %}
   <!-- }}} Page header container -->
 
@@ -43,21 +67,22 @@
   <div class="content container" role="main">
   {% block page_body %}
 
-    <p>TEST</p
-    {% if settings.DEV %}
-    <p>DEV</p
-    {% endif %}
-
   {% endblock page_body %}
   </div>
   <!-- }}} Page content container -->
 
   <!-- {{{ Page footer container -->
   {% block page_footer %}
+  <div>Page footer stub</div>
   {% endblock page_footer %}
   <!-- }}} Page footer container -->
 
   <!-- {{{ JS -->
+
+  <script src="{% if settings.LOCAL %}{% static 'vendor/bootstrap-5.3.2/js/bootstrap.js' %}{% else %}https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js{% endif %}" type="text/javascript"></script>
+
+  {# TODO: Place custom scripts here, with compress tag #}
+
   <!-- }}} JS -->
 
 </body>

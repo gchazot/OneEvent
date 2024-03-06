@@ -1,0 +1,9 @@
+$font-stack:    Helvetica, sans-serif;
+$primary-color: #333;
+
+body {
+  // DEBUG: Test if scss processing works
+  font: 100% $font-stack;
+  color: $primary-color;
+  border: 3px solid red;
+}

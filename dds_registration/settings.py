@@ -74,6 +74,10 @@ STATICFILES_FINDERS = (
     'compressor.finders.CompressorFinder',
 )
 
+COMPRESS_PRECOMPILERS = (
+    ('text/x-scss', 'django_libsass.SassCompiler'),
+)
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -119,6 +123,7 @@ MIDDLEWARE = [
 
 # Add livereload app...
 # @see https://pypi.org/project/django-livereload/
+# Run the reload server with a command: `python manage.py livereload static`
 INSTALLED_APPS.insert(0, 'livereload')
 if False or DEV:
     MIDDLEWARE.append('livereload.middleware.LiveReloadScript')

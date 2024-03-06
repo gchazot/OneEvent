@@ -1,7 +1,8 @@
-# Byte-compiled / optimized / DLL files
+# Byte-compiled / optimized / DLL files / cache
 __pycache__/
 *.py[cod]
 *$py.class
+/static/CACHE
 
 db.sqlite
 

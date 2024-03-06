@@ -1,5 +1,5 @@
 {# ex: set ft=htmldjango : #}
-{% extends "dds_registration/base-core.html.django" %}
+{% extends "base-core.html.django" %}
 
 {% block page_header %}
 {{ block.super }}

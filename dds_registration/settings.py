@@ -40,21 +40,19 @@ DEBUG = True  # LOCAL  # and DEV
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 STATIC_FOLDER = 'static/'
-STATIC_ROOT = posixpath.join(BASE_DIR, STATIC_FOLDER, '')
-STATIC_URL = posixpath.join('/', STATIC_FOLDER, '')
+STATIC_ROOT = posixpath.join(BASE_DIR, STATIC_FOLDER)
+STATIC_URL = posixpath.join('/', STATIC_FOLDER)
 
 #  ASSETS_FOLDER = 'src/'
-#  ASSETS_ROOT = posixpath.join(BASE_DIR, ASSETS_FOLDER, '')
-#  ASSETS_URL = posixpath.join('/', ASSETS_FOLDER, '')
+#  ASSETS_ROOT = posixpath.join(BASE_DIR, ASSETS_FOLDER)
+#  ASSETS_URL = posixpath.join('/', ASSETS_FOLDER)
 
 MEDIA_FOLDER = 'media/'
-MEDIA_ROOT = posixpath.join(BASE_DIR, MEDIA_FOLDER, '')
-MEDIA_URL = posixpath.join('/', MEDIA_FOLDER, '')
+MEDIA_ROOT = posixpath.join(BASE_DIR, MEDIA_FOLDER)
+MEDIA_URL = posixpath.join('/', MEDIA_FOLDER)
 
 BLOCKS_FOLDER = 'blocks/'
-BLOCKS_ROOT = posixpath.join(STATIC_ROOT, BLOCKS_FOLDER, '')
-
-#  TEMPLATES_PATH = STATIC_FOLDER # posixpath.join(STATIC_FOLDER, 'templates', '')  # TODO?
+BLOCKS_ROOT = posixpath.join(STATIC_ROOT, BLOCKS_FOLDER)
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -132,18 +130,20 @@ if False or DEV:
 ROOT_URLCONF = APP_NAME + '.urls'
 
 # Templates folders...
-TEMPLATES_DIRS = [
+#  TEMPLATES_PATH = posixpath.join(BASE_DIR, APP_NAME, 'templates')
+TEMPLATES_PATH = BASE_DIR / APP_NAME / 'templates'
+
+TEMPLATE_DIRS = [
+    TEMPLATES_PATH,
     STATIC_ROOT,
-    APP_NAME + '/templates',  # For production wsgi
 ]
 #  if DEV:
 #      # Extra templates folders...
-#      TEMPLATES_DIRS.append(ASSETS_ROOT)
+#      TEMPLATE_DIRS.append(ASSETS_ROOT)
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -158,7 +158,7 @@ TEMPLATES = [
                 APP_NAME + '.context_processors.common_values',  # Pass local context to the templates. @see `main/context_processors.py`
             ],
         },
-        'DIRS': TEMPLATES_DIRS,
+        'DIRS': TEMPLATE_DIRS,
     },
 ]
 

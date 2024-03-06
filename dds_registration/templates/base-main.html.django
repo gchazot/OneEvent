@@ -1,5 +1,5 @@
 {# ex: set ft=htmldjango : #}
-{% extends "dds_registration/base-layout.html.django" %}
+{% extends "base-layout.html.django" %}
 
 {% block body_class %}main{% endblock %}
 

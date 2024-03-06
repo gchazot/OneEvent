@@ -136,7 +136,6 @@ TEMPLATES_PATH = BASE_DIR / APP_NAME / 'templates'
 TEMPLATE_DIRS = [
     TEMPLATES_PATH,
     STATIC_ROOT,
-    APP_NAME + '/templates',  # For production wsgi
 ]
 #  if DEV:
 #      # Extra templates folders...

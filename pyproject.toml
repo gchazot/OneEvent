@@ -39,6 +39,9 @@ dependencies = [
     "django-crispy-forms~=1.8",
     "django-timezone-field>=3.1",
     "django>=5.0",
+    "django-compressor>=4.4",
+    "django-livereload-server>=0.5.1",
+    "django-preferences>=1.0.0",
 ]
 
 [project.urls]
@@ -63,6 +66,7 @@ dev = [
     "pytest-cov",
     "pytest-randomly",
     "setuptools",
+    "pyright",
 ]
 
 [tool.setuptools]

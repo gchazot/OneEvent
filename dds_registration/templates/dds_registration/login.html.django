@@ -1,4 +1,4 @@
-{% extends "dds_registration/base.html" %}
+{% extends "dds_registration/base-regular.html.django" %}
 {% load crispy_forms_tags %}
 
 {% block navbar_breadcrumbs %}

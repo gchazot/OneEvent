@@ -1,0 +1,13 @@
+{% extends "dds_registration/base-main.html.django" %}
+{% load crispy_forms_tags %}
+
+{% block navbar_breadcrumbs %}
+    <li>Account</li>
+    <li class="active">Login</li>
+{% endblock %}
+
+{% block content %}
+
+<p>Landing</p>
+
+{% endblock %}

@@ -1,0 +1,12 @@
+{# ex: set ft=htmldjango : #}
+{% extends "dds_registration/base-layout.html.django" %}
+
+{% block body_class %}main{% endblock %}
+
+{% block page_body %}
+{{ block.super }}
+
+{# {% include "blocks/main-page-splash/main-page-splash.django" %} #}
+<div>Splash coming here</div>
+
+{% endblock page_body %}

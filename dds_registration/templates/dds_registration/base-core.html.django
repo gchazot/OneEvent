@@ -1,0 +1,64 @@
+{# ex: set ft=htmldjango : #}
+<!--
+- Html template
+- Version: 0.0.0
+- Last changes timestamp: 2024.03.06, 12:00 +0700
+- Generated: {% now "Y.m.d H:i:s O" %}
+-->
+
+{% if settings.DEV %}
+{% load livereload_tags %}
+{% endif %}
+
+{% load cache %}
+{% load compress %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>{% block title %}{{ settings.SITE_TITLE }}{% endblock title %}</title>
+  <meta name="description" content="{% block meta_description %}{{ settings.SITE_DESCRIPTION }}{% endblock meta_description %}" />
+  <meta name="keywords" content="{% block meta_keywords %}{{ settings.SITE_KEYWORDS }}{% endblock meta_keywords %}" />
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="{{ settings.STATIC_URL }}favicon.ico" rel="icon" type="image/x-icon" />
+  {% block meta_og %}{% endblock %}
+
+  <!-- {{{ CSS -->
+
+  <link href="{% if settings.LOCAL %}{{ settings.STATIC_URL }}vendor/bootstrap-5.3.2/css/bootstrap.css{% else %}https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css{% endif %}" rel="stylesheet" type="text/css" />
+
+  <!-- CSS }}} -->
+</head>
+<body class="{% block body_class %}default{% endblock %}">
+
+  <!-- {{{ Page header container -->
+  {% block page_header %}
+  {% endblock page_header %}
+  <!-- }}} Page header container -->
+
+  <!-- {{{ Page content container -->
+  <div class="content container" role="main">
+  {% block page_body %}
+
+    <p>TEST</p
+    {% if settings.DEV %}
+    <p>DEV</p
+    {% endif %}
+
+  {% endblock page_body %}
+  </div>
+  <!-- }}} Page content container -->
+
+  <!-- {{{ Page footer container -->
+  {% block page_footer %}
+  {% endblock page_footer %}
+  <!-- }}} Page footer container -->
+
+  <!-- {{{ JS -->
+  <!-- }}} JS -->
+
+</body>
+</html>

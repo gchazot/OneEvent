@@ -1,0 +1,8 @@
+{# ex: set ft=htmldjango : #}
+{% extends "dds_registration/base-layout.html.django" %}
+
+{% block body_class %}regular{% endblock %}
+
+{% block page_body %}
+{{ block.super }}
+{% endblock page_body %}

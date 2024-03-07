@@ -1,0 +1,29 @@
+{
+  "name": "dds_registration",
+  "version": "0.0.1",
+  "timetag": "240307-2151",
+  "timestamp": "2024.03.07 21:51 +0700",
+  "changed": "2024.03.07, 20:37",
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+  },
+  "scripts": {
+    "livereload-server": "echo --Start livereload server-- && python manage.py livereload static",
+    "start-django": "echo --Start django dev server-- && python manage.py runserver",
+    "pyformat": "echo --Run python formatter /autopep8, venv/-- && autopep8 .",
+    "pylint": "echo --Run python linter /pyright, venv/-- && pyright .",
+    "check-all": "echo --Run all python checkers /autopep8, venv/-- && npm-run-all pyformat pylint",
+    "help": "echo --List all available script commands-- && npm-package-user-scripts-list"
+  }
+}

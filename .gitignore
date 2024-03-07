@@ -130,3 +130,14 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Temporariy, swap & ignored files
+/config-local.*
+/*.session
+*UNUSED
+*_
+*~
+.*.sw?
+*.tmp
+*.zip
+*.tgz
